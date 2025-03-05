@@ -1,76 +1,141 @@
-
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-  <div class="container">
-
-    <a class="navbar-brand text-light"
-
-    >ATN portal</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
-            aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="hanDropdown" role="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false">Product </a>
-          <div class="dropdown-menu" aria-labelledby="hanDropdown">
-            <a class="dropdown-item"
-               href="{{route('product.index')}}"
-            >View All</a>
-            <a class="dropdown-item"
-               href="{{route('product.create')}}"
-            >New Product</a>
-          </div>
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h3>ATN portal</h3>
+  </div>
+  <ul class="sidebar-menu">
+    <li>
+      <a href="{{route('ui.index')}}">Home Page</a>
+    </li>
+    <li class="{{ request()->routeIs('product.*') ? 'active' : '' }}">
+      <a href="#">Product</a>
+      <ul class="submenu">
+        <li class="{{ request()->routeIs('product.index') ? 'active' : '' }}">
+          <a href="{{ route('product.index') }}">View All</a>
         </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="publisherDropdown" role="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false">
-            Admin
-          </a>
-          <div class="dropdown-menu" aria-labelledby="publisherDropdown">
-            <a class="dropdown-item" href="{{route('admin.index')}}">View All</a>
-          </div>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="formatDropdown" role="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false">
-            Category
-          </a>
-          <div class="dropdown-menu" aria-labelledby="formatDropdown">
-            <a class="dropdown-item" href="{{route('category.index')}}">View All</a>
-            <a class="dropdown-item" href="{{route('category.create')}}">New category</a>
-          </div>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="formatDropdown" role="button" data-toggle="dropdown"
-             aria-haspopup="true" aria-expanded="false">
-            Customer
-          </a>
-          <div class="dropdown-menu" aria-labelledby="formatDropdown">
-            <a class="dropdown-item" href="{{route('customer.index')}}">View All</a>
-          </div>
+        <li class="{{ request()->routeIs('product.create') ? 'active' : '' }}">
+          <a href="{{ route('product.create') }}">New Product</a>
         </li>
       </ul>
-      <ul class="navbar-nav">
-        <li class="nav-item mr-3">
-          <!-- try without mr-3 -->
-          <a class="nav-link" href="#">
-            <i class="bi bi-person"></i>
-            {{\Illuminate\Support\Facades\Session::has('username')?
-              \Illuminate\Support\Facades\Session::get('username') : ''}}
-{{--            usernam lấy trong session nếu mà có usernam thì lấy username còn ko thì in nó rỗng--}}
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{route('auth.signout')}}">
-            <i class="bi bi-box-arrow-left"></i>
-            Logout
-          </a>
+    </li>
+    <li class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">
+      <a href="#">Admin</a>
+      <ul class="submenu">
+        <li class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
+          <a href="{{ route('admin.index') }}">View All</a>
         </li>
       </ul>
-
-    </div>
+    </li>
+    <li class="{{ request()->routeIs('category.*') ? 'active' : '' }}">
+      <a href="#">Category</a>
+      <ul class="submenu">
+        <li class="{{ request()->routeIs('category.index') ? 'active' : '' }}">
+          <a href="{{ route('category.index') }}">View All</a>
+        </li>
+        <li class="{{ request()->routeIs('category.create') ? 'active' : '' }}">
+          <a href="{{ route('category.create') }}">New Category</a>
+        </li>
+      </ul>
+    </li>
+    <li class="{{ request()->routeIs('customer.*') ? 'active' : '' }}">
+      <a href="#">Customer</a>
+      <ul class="submenu">
+        <li class="{{ request()->routeIs('customer.index') ? 'active' : '' }}">
+          <a href="{{ route('customer.index') }}">View All</a>
+        </li>
+        <li class="{{ request()->routeIs('ui.create') ? 'active' : '' }}">
+          <a href="{{route('ui.create')}}">Create Customer</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+  <div class="sidebar-footer">
+    <a href="#">
+      <i class="bi bi-person"></i>
+      {{ \Illuminate\Support\Facades\Session::has('username') ? \Illuminate\Support\Facades\Session::get('username') : '' }}
+    </a>
+    <a href="{{ route('auth.signout') }}">
+      <i class="bi bi-box-arrow-left"></i>
+      Logout
+    </a>
   </div>
 </nav>
 
+<style>
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background: #343a40;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    margin-bottom: 30px;
+    color: #fff;
+    text-align: center;
+  }
+
+  .sidebar-menu, .submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-menu li {
+    margin-bottom: 10px;
+  }
+  .sidebar-menu > li > a {
+    color: #adb5bd;
+    display: block;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  .sidebar-menu > li > a:hover, .submenu li a:hover {
+    background: #495057;
+    color: #fff;
+  }
+
+  .submenu {
+    margin-left: 15px;
+    margin-top: 5px;
+  }
+  .submenu li a {
+    font-size: 14px;
+    color: #ced4da;
+    display: block;
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 5px;
+  }
+
+  /* Hiệu ứng khi menu đang được chọn */
+  .sidebar-menu > li.active > a,
+  .submenu li.active a {
+    background: #17a2b8;
+    color: #fff;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    border-top: 1px solid #495057;
+    padding-top: 20px;
+    color: #adb5bd;
+  }
+  .sidebar-footer a {
+    color: #adb5bd;
+    display: block;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  .sidebar-footer a:hover {
+    color: #fff;
+  }
+
+  body {
+    margin-left: 250px;
+  }
+</style>

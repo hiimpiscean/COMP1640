@@ -36,6 +36,9 @@ Route::get('/team', function () {
 Route::get('/testimonial', function () {
     return view('ui.testimonial');
 })->name('ui.testimonial');
+Route::get('/schedule', function () {
+    return view('ui.schedule');
+})->name('ui.schedule');
 
 Route::group(['prefix' => 'home'], function () {
 

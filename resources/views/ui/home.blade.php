@@ -157,41 +157,27 @@
   <!-- Service Start -->
   <div class="container-xxl py-5">
     <div class="container">
-      <div class="row g-4">
+      <div class="row g-4 justify-content-center gap-4">
         <div class="col-lg-3 col-sm-6" data-aos="fade-up" data-aos-delay="100">
           <div class="service-item text-center pt-3">
-            <div class="p-4">
-              <i class="fa fa-3x fa-graduation-cap text-primary mb-4"></i>
-              <h5 class="mb-3">Skilled Instructors</h5>
-              <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-sm-6" data-aos="fade-up" data-aos-delay="300">
-          <div class="service-item text-center pt-3">
-            <div class="p-4">
-              <i class="fa fa-3x fa-globe text-primary mb-4"></i>
-              <h5 class="mb-3">Online Classes</h5>
-              <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-sm-6" data-aos="fade-up" data-aos-delay="500">
-          <div class="service-item text-center pt-3">
-            <div class="p-4">
-              <i class="fa fa-3x fa-home text-primary mb-4"></i>
-              <h5 class="mb-3">Home Projects</h5>
-              <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>
-            </div>
+            <a href="{{ route('ui.schedule') }}">
+              <div class="p-4">
+                <i class="fa fa-3x fa-graduation-cap text-primary mb-4"></i>
+                <h5 class="mb-3">School Schedule</h5>
+                <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>
+              </div>
+            </a>
           </div>
         </div>
         <div class="col-lg-3 col-sm-6" data-aos="fade-up" data-aos-delay="700">
           <div class="service-item text-center pt-3">
-            <div class="p-4">
-              <i class="fa fa-3x fa-book-open text-primary mb-4"></i>
-              <h5 class="mb-3">Book Library</h5>
-              <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>
-            </div>
+            <a href="">
+              <div class="p-4">
+                <i class="fa fa-3x fa-book-open text-primary mb-4"></i>
+                <h5 class="mb-3">Book Library</h5>
+                <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>
+              </div>
+            </a>
           </div>
         </div>
       </div>
@@ -417,37 +403,36 @@
       position: relative;
     }
 
-    /* Hiệu ứng hover làm nổi bật box */
     .service-item:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     }
 
-    /* Hiệu ứng icon khi hover */
+    .service-item a:hover {
+      text-decoration: none;
+    }
+
     .service-item i {
       transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
     }
 
-    /* Khi hover vào service, icon sẽ nhảy nhẹ lên */
     .service-item:hover i {
       transform: translateY(-5px);
       color: #004a99;
     }
 
-    /* Tùy chỉnh phần text */
     .service-item h5 {
       font-size: 18px;
       font-weight: bold;
       color: #333;
     }
 
-    /* Tùy chỉnh phần mô tả */
     .service-item p {
       font-size: 14px;
       color: #666;
     }
 
-    /* Phong cách Giới thiệu */
+    /* Giới thiệu */
     .about .section-title {
       display: inline-block;
       padding: 0 10px;
@@ -488,7 +473,6 @@
       text-align: center;
     }
 
-    /* Bố cục grid */
     .category-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -513,13 +497,11 @@
       transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     }
 
-    /* Hiệu ứng hover */
     .category-item:hover img {
       transform: scale(1.05);
       opacity: 0.9;
     }
 
-    /* Hộp chứa text */
     .category-text {
       position: absolute;
       bottom: 10px;
@@ -550,14 +532,11 @@
     }
 
     /* ========== Expert Instructors Styles ========== */
-
-    /* Khoảng cách và màu nền */
     .container-xxl {
       padding: 60px 0;
       background-color: #f8f9fa;
     }
 
-    /* Tiêu đề chính */
     .text-center h1 {
       font-size: 2.5rem;
       font-weight: bold;
@@ -567,7 +546,6 @@
       position: relative;
     }
 
-    /* Hiệu ứng underline cho tiêu đề */
     .text-center h1::after {
       content: "";
       width: 80px;
@@ -580,20 +558,17 @@
       border-radius: 2px;
     }
 
-    /* Khối thông tin giảng viên */
     .team-item {
       border-radius: 10px;
       overflow: hidden;
       transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     }
 
-    /* Hiệu ứng hover nổi bật */
     .team-item:hover {
       transform: translateY(-5px);
       box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
     }
 
-    /* Hình ảnh giảng viên */
     .team-item img {
       width: 100%;
       height: 260px;
@@ -601,12 +576,10 @@
       transition: transform 0.3s ease-in-out;
     }
 
-    /* Hiệu ứng zoom ảnh khi hover */
     .team-item:hover img {
       transform: scale(1.05);
     }
 
-    /* Khối chứa icon mạng xã hội */
     .position-relative .bg-light {
       border-radius: 50px;
       padding: 5px 10px;
@@ -614,12 +587,10 @@
       transition: all 0.3s ease-in-out;
     }
 
-    /* Hiệu ứng hover làm nổi icon */
     .team-item:hover .bg-light {
       background-color: #007bff;
     }
 
-    /* Màu icon mạng xã hội */
     .btn-sm-square {
       width: 36px;
       height: 36px;
@@ -631,13 +602,11 @@
       transition: all 0.3s ease-in-out;
     }
 
-    /* Hover icon mạng xã hội */
     .btn-sm-square:hover {
       background-color: white !important;
       color: #007bff !important;
     }
 
-    /* Thông tin giảng viên */
     .text-center h5 {
       font-size: 1.2rem;
       font-weight: bold;
