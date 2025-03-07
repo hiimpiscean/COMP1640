@@ -64,10 +64,11 @@ class HomepageController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
-        $product_search = FunctionRepos::searchForProducts($query);
+        $product_search = FunctionRepos::searchForProducts($query)->paginate(6);
 
         return view('ui.search', [
             'product' => $product_search,
+            'query' => $query
         ]);
     }
 
