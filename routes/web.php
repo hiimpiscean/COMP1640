@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BlogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -158,15 +159,8 @@ Route::group(['prefix' => 'blog'], function () {
     ]);
 
     // Route cho bình luận
-    Route::post('{id}/comment', [
-        'uses' => 'BlogController@storeComment',
-        'as' => 'blog.comment.store'
-    ]);
-
-    Route::post('{id}/comment/{commentId}/destroy', [
-        'uses' => 'BlogController@destroyComment',
-        'as' => 'blog.comment.destroy'
-    ]);
+    Route::post('{id}/comment', [BlogController::class, 'storeComment'])->name('blog.comment.store');
+    Route::post('{id}/comment/{commentId}/destroy', [BlogController::class, 'destroyComment'])->name('blog.comment.destroy');
 });
 
 ///////////handicraftRepos/////////////////////////
