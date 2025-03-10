@@ -115,6 +115,60 @@ Route::group(['prefix' => 'auth'], function (){
         'as' => 'auth.signout'
     ]);
 });
+
+Route::group(['prefix' => 'blog'], function () {
+    Route::get('', [
+        'uses' => 'BlogController@index',
+        'as' => 'blog.index'
+    ]);
+
+    Route::get('show/{id}', [
+        'uses' => 'BlogController@show',
+        'as' => 'blog.show'
+    ]);
+
+    Route::get('create', [
+        'uses' => 'BlogController@create',
+        'as' => 'blog.create'
+    ]);
+
+    Route::post('create', [
+        'uses' => 'BlogController@store',
+        'as' => 'blog.store'
+    ]);
+
+    Route::get('update/{id}', [
+        'uses' => 'BlogController@edit',
+        'as' => 'blog.edit'
+    ]);
+
+    Route::post('update/{id}', [
+        'uses' => 'BlogController@update',
+        'as' => 'blog.update'
+    ]);
+
+    Route::get('delete/{id}', [
+        'uses' => 'BlogController@confirm',
+        'as' => 'blog.confirm'
+    ]);
+
+    Route::post('delete/{id}', [
+        'uses' => 'BlogController@destroy',
+        'as' => 'blog.destroy'
+    ]);
+
+    // Route cho bình luận
+    Route::post('{id}/comment', [
+        'uses' => 'BlogController@storeComment',
+        'as' => 'blog.comment.store'
+    ]);
+
+    Route::post('{id}/comment/{commentId}/destroy', [
+        'uses' => 'BlogController@destroyComment',
+        'as' => 'blog.comment.destroy'
+    ]);
+});
+
 ///////////handicraftRepos/////////////////////////
 
 Route::group(

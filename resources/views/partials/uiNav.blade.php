@@ -21,8 +21,8 @@
         <li class="nav-item {{ request()->routeIs('ui.index') ? 'active' : '' }}">
           <a class="nav-link" href="{{ route('ui.index') }}">HOME</a>
         </li>
-        <li class="nav-item {{ request()->routeIs('ui.blog') ? 'active' : '' }}">
-          <a class="nav-link" href="{{ route('ui.blog') }}">BLOG</a>
+        <li class="nav-item {{ request()->routeIs('blog.index') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ route('blog.index') }}">BLOG</a>
         </li>
         <li class="nav-item {{ request()->routeIs('ui.home') ? 'active' : '' }}">
           <a class="nav-link" href="{{ route('ui.home') }}">COURSES</a>
