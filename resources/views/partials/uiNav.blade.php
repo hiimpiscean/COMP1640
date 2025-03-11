@@ -41,25 +41,24 @@
 
       <!-- Kiểm tra đăng nhập -->
       <div class="user_option">
-        @if(Auth::check())
+        @if(Session::has('username'))
           <div class="dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown">
-              <img src="{{ Auth::user()->avatar ?? asset('images/default-avatar.png') }}" width="30" height="30" class="rounded-circle">
-              {{ Auth::user()->name }}
+              <img src="{{ asset('images/default-avatar.png') }}" width="30" height="30" class="rounded-circle">
+              {{ Session::get('username') }}
             </a>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="{{ route('profile') }}">Profile</a>
-              <a class="dropdown-item" href="{{ route('logout') }}"
+              <a class="dropdown-item" href="{{ route('auth.signout') }}"
                  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 Logout
               </a>
-              <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+              <form id="logout-form" action="{{ route('auth.signout') }}" method="GET" style="display: none;">
                 @csrf
               </form>
             </div>
           </div>
         @else
-          <a href="{{ route('auth.signin') }}" class="join-now">Join Now →</a>
+          <a href="{{ route('auth.ask') }}" class="join-now">Join Now →</a>
         @endif
       </div>
     </div>

@@ -54,7 +54,7 @@ class HomepageController extends Controller
                 'dob' => '',
                 'gender' => '',
                 'phone_c' => '',
-                'email_c' => '',
+                'email' => '',
                 'address_c' => '',
             ],
         ]);
@@ -82,7 +82,7 @@ class HomepageController extends Controller
             'dob' => $request->input('dob'),
             'gender' => $request->input('gender'),
             'phone_c' => $request->input('phone_c'),
-            'email_c' => $request->input('email_c'),
+            'email' => $request->input('email'),
             'address_c' => $request->input('address_c'),
         ];
 
@@ -120,15 +120,15 @@ class HomepageController extends Controller
             'fullname_c' => ['required', 'min:5'],
             'dob' => ['required', 'date_format:"Y-m-d"'],
             'phone_c' => ['required', 'starts_with:0', 'digits:10'],
-            'email_c' => ['required', 'email'],
+            'email' => ['required', 'email'],
         ], [
             'fullname_c.required' => 'Vui lòng nhập tên đầy đủ',
             'fullname_c.min' => 'Vui lòng nhập tên đầy đủ ít nhất 5 ký tự',
             'phone_c.required' => 'Vui lòng nhập số điện thoại',
             'phone_c.starts_with' => 'Vui lòng nhập số điện thoại bắt đầu bằng số 0',
             'phone_c.digits' => 'Vui lòng nhập đúng 10 chữ số',
-            'email_c.required' => 'Vui lòng nhập email',
-            'email_c.email' => 'Vui lòng nhập đúng định dạng email',
+            'email.required' => 'Vui lòng nhập email',
+            'email.email' => 'Vui lòng nhập đúng định dạng email',
         ]);
     }
 }

@@ -99,7 +99,7 @@
           </select>
         </label>
         <label>Email
-          <input type="email" id="email_c" name="email_c" placeholder="Enter your email" value="{{old('email_c')?? $customer->email_c}}">
+          <input type="email" id="email" name="email" placeholder="Enter your email" value="{{old('email')?? $customer->email}}">
         </label>
         <label>Address
           <input type="text" id="address_c" name="address_c" placeholder="Enter your address" value="{{old('address_c')?? $customer->address_c}}">
@@ -108,11 +108,11 @@
           <input type="tel" id="phone_c" name="phone_c" placeholder="Enter your phone number" value="{{old('phone_c')?? $customer->phone_c}}">
         </label>
         <label>Password
-          <input type="password" name="password_c" placeholder="Enter Password"
+          <input type="password" name="password" placeholder="Enter Password"
                  @if(!isset($customer->id_c)) required @endif>
         </label>
         <label>Confirm Password
-          <input type="password" name="password_c_confirmation" placeholder="Enter Confirm Password"
+          <input type="password" name="password_confirmation" placeholder="Enter Confirm Password"
                  @if(!isset($customer->id_c)) required @endif>
         </label>
         <div class="btn-container">

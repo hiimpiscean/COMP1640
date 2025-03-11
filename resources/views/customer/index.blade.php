@@ -153,9 +153,9 @@
             <td>{{ $c->dob }}</td>
             <td>{{ $c->gender }}</td>
             <td>{{ $c->phone_c }}</td>
-            <td>{{ $c->email_c }}</td>
+            <td>{{ $c->email }}</td>
             <td>{{ $c->address_c }}</td>
-            <td>{{ $c->password_c }}</td>
+            <td>{{ $c->password }}</td>
             <td>
               <a class="action-link" href="{{ route('customer.show', ['id_c' => $c->id_c]) }}">
                 <i class="bi bi-eye"></i>

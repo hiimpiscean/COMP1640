@@ -26,9 +26,9 @@ class CustomerController extends Controller
             'dob'         => '',
             'gender'      => '',
             'phone_c'     => '',
-            'email_c'     => '',
+            'email'     => '',
             'address_c'   => '',
-            'password_c'  => null,
+            'password'  => null,
         ];
         return view('customer.create', ['customer' => $customer]);
     }
@@ -43,9 +43,9 @@ class CustomerController extends Controller
             'dob'         => $request->input('dob'),
             'gender'      => $request->input('gender'),
             'phone_c'     => $request->input('phone_c'),
-            'email_c'     => $request->input('email_c'),
+            'email'     => $request->input('email'),
             'address_c'   => $request->input('address_c'),
-            'password_c'  => Hash::make($request->input('password_c')),
+            'password'  => Hash::make($request->input('password')),
         ];
 
         CustomerRepos::insert($customer);
@@ -91,9 +91,9 @@ class CustomerController extends Controller
             'dob'         => $request->input('dob'),
             'gender'      => $request->input('gender'),
             'phone_c'     => $request->input('phone_c'),
-            'email_c'     => $request->input('email_c'),
+            'email'     => $request->input('email'),
             'address_c'   => $request->input('address_c'),
-            'password_c'  => $request->filled('password_c') ? Hash::make($request->input('password_c')) : CustomerRepos::getCustomerById($id_c)->password_c,
+            'password'  => $request->filled('password') ? Hash::make($request->input('password')) : CustomerRepos::getCustomerById($id_c)->password,
         ];
 
         CustomerRepos::update($customer);
@@ -139,12 +139,12 @@ class CustomerController extends Controller
             'fullname_c'  => ['required', 'min:5'],
             'dob'         => ['required', 'date_format:Y-m-d'],
             'phone_c'     => ['required', 'starts_with:0', 'digits:10'],
-            'email_c'     => ['required', 'email'],
+            'email'     => ['required', 'email'],
         ];
 
         // Chỉ bắt buộc mật khẩu khi tạo mới hoặc khi có nhập mật khẩu mới
-        if (!$isUpdate || $request->filled('password_c')) {
-            $rules['password_c'] = ['required', 'min:6', 'confirmed'];
+        if (!$isUpdate || $request->filled('password')) {
+            $rules['password'] = ['required', 'min:6', 'confirmed'];
         }
 
         return Validator::make(
@@ -156,10 +156,10 @@ class CustomerController extends Controller
                 'phone_c.required'     => 'Please enter Phone',
                 'phone_c.starts_with'  => 'Enter a phone number starting with 0',
                 'phone_c.digits'       => 'Please enter exactly 10 numbers',
-                'email_c.required'     => 'Please enter Email',
-                'email_c.email'        => 'Please enter email form',
-                'password_c.min'       => 'Password must be at least 6 characters',
-                'password_c.confirmed' => 'Password confirmation does not match',
+                'email.required'     => 'Please enter Email',
+                'email.email'        => 'Please enter email form',
+                'password.min'       => 'Password must be at least 6 characters',
+                'password.confirmed' => 'Password confirmation does not match',
             ]
         );
     }

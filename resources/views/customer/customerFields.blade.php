@@ -45,7 +45,7 @@
           <div class="input-group-prepend">
             <span class="input-group-text">@</span>
           </div>
-          <input type="text" class="form-control" id="email_c" name="email_c" value="{{old('email_c')?? $customer->email_c}}">
+          <input type="text" class="form-control" id="email" name="email" value="{{old('email')?? $customer->email}}">
         </div>
       </div>
       <div class="mb-3 form-group">
@@ -57,12 +57,12 @@
         <input type="text" class="form-control" id="phone_c" name="phone_c" value="{{old('phone_c')?? $customer->phone_c}}">
       </div>
       <div class="mb-3 form-group">
-        <label for="password_c">Password</label>
-        <input type="text" class="form-control" id="password_c" name="password_c" value="{{old('password_c')?? $customer->password_c}}">
+        <label for="password">Password</label>
+        <input type="text" class="form-control" id="password" name="password" value="{{old('password')?? $customer->password}}">
       </div>
       <div class="mb-3 form-group">
-        <label for="password_c_confirmation">Confirmation Password</label>
-        <input type="text" class="form-control" id="password_c_confirmation" name="password_c_confirmation">
+        <label for="password_confirmation">Confirmation Password</label>
+        <input type="text" class="form-control" id="password_confirmation" name="password_confirmation">
       </div>
     </div>
   </div>
