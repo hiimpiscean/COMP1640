@@ -81,7 +81,7 @@
 
     @include('partials.errors')
 
-    <form action="{{route('ui.store')}}" method="post">
+    <form action="{{ route('customer.store') }}" method="post">
       @csrf
       <input type="hidden" name="id_c" value="{{old('id_c')?? $customer->id_c}}">
       <div class="form">
@@ -108,14 +108,16 @@
           <input type="tel" id="phone_c" name="phone_c" placeholder="Enter your phone number" value="{{old('phone_c')?? $customer->phone_c}}">
         </label>
         <label>Password
-          <input type="password" name="password" placeholder="Enter your Password" required>
+          <input type="password" name="password_c" placeholder="Enter Password"
+                 @if(!isset($customer->id_c)) required @endif>
         </label>
         <label>Confirm Password
-          <input type="password" name="password_confirmation" placeholder="Enter Confirm Password" required>
+          <input type="password" name="password_c_confirmation" placeholder="Enter Confirm Password"
+                 @if(!isset($customer->id_c)) required @endif>
         </label>
         <div class="btn-container">
           <button type="submit" class="btn btn-dark">Sign up</button>
-          <a href="{{route('ui.index')}}" class="btn btn-info">Cancel</a>
+          <a href="{{ route('customer.index') }}" class="btn btn-info">Cancel</a>
         </div>
       </div>
     </form>

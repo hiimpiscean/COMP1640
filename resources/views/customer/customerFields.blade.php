@@ -56,6 +56,14 @@
         <label for="phone_c">Phone</label>
         <input type="text" class="form-control" id="phone_c" name="phone_c" value="{{old('phone_c')?? $customer->phone_c}}">
       </div>
+      <div class="mb-3 form-group">
+        <label for="password_c">Password</label>
+        <input type="text" class="form-control" id="password_c" name="password_c" value="{{old('password_c')?? $customer->password_c}}">
+      </div>
+      <div class="mb-3 form-group">
+        <label for="password_c_confirmation">Confirmation Password</label>
+        <input type="text" class="form-control" id="password_c_confirmation" name="password_c_confirmation">
+      </div>
     </div>
   </div>
 </div>

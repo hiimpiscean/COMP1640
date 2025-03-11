@@ -35,6 +35,9 @@
   <dt class="col-sm-3">Address</dt>
   <dd class="col-sm-9">{{$customer->address_c }}</dd>
 
+  <dt class="col-sm-3">Password</dt>
+  <dd class="col-sm-9">{{$customer->password_c}}</dd>
+
 </dl>
 
 </div>

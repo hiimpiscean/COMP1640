@@ -88,7 +88,7 @@ class HomepageController extends Controller
 
         CustomerRepos::insert($customer);
 
-        return view('ui.success');
+        return view('customer.index');
     }
 
     // Lấy sản phẩm theo danh mục ID
@@ -114,7 +114,7 @@ class HomepageController extends Controller
     }
 
     // Xác thực dữ liệu của form tạo khách hàng
-    private function formValidate($request)
+    private function formValidate($request): \Illuminate\Contracts\Validation\Validator
     {
         return Validator::make($request->all(), [
             'fullname_c' => ['required', 'min:5'],
