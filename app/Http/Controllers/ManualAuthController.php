@@ -23,8 +23,9 @@ class ManualAuthController extends Controller
         // Lấy dữ liệu từ cả admin và customer
         $adminUsers = AdminRepos::getAllAdmin();
         $customerUsers = CustomerRepos::getAllCustomer();
+       // $teacherUsers = TeacherRepos::getAllTeacher();
 
-        $allUsers = array_merge($adminUsers, $customerUsers);
+        $allUsers = array_merge($adminUsers, $customerUsers); //TODO: add them tập khách hàng là stu
 
         $user = null;
         foreach ($allUsers as $i) {
