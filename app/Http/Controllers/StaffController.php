@@ -58,7 +58,7 @@ class StaffController extends Controller
                 'username' => $request->input('username'),
                 'fullname_s' => $request->input('fullname_s'),
                 'phone_s' => $request->input('phone_s'),
-                'email_s' => $request->input('email_s'),
+                'email' => $request->input('email'),
                 'password' =>  hash('sha1', $request->input('new_password')),
 
 
@@ -91,7 +91,7 @@ class StaffController extends Controller
                 'username' => ['required'],
                 'fullname_s' => ['required','min:5'],
                 'phone_s' => ['required','starts_with:0','digits:10'],
-                'email_s' => ['required','email'],
+                'email' => ['required','email'],
                 'old_password' => ['required'],
                 'new_password' => ['required','min:8'],
                 'confirm_password' => ['required_with:new_password','same:new_password'],
@@ -102,12 +102,12 @@ class StaffController extends Controller
 
                 'fullname_s.required' => 'Please enter Full Name',
                 'phone_s.required' => 'Please enter Phone',
-                'email_s.required' => 'Please enter Email',
+                'email.required' => 'Please enter Email',
                 'old_password.required' => 'Please enter Password',
                 'fullname_s.min' => 'Enter Full Name up to 5 characters',
                 'phone_s.digits' => 'Please enter phone exactly 10 numbers',
                 'phone_s.starts_with' => 'Enter a phone number starting with 0',
-                'email_s' => 'Please enter email form',
+                'email' => 'Please enter email form',
                 'new_password.min'=>'Password must be equal or more than 8 letters!',
                 'confirm_password.same'=>'Password confirmation mismatch!',
             ]
