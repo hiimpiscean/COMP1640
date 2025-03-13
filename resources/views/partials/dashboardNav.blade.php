@@ -47,6 +47,18 @@
         </li>
       </ul>
     </li>
+    <li class="{{ request()->routeIs('teacher.*') ? 'active' : '' }}">
+      <a href="#">Teacher</a>
+      <ul class="submenu">
+        <li class="{{ request()->routeIs('teacher.index') ? 'active' : '' }}">
+          <a href="{{ route('teacher.index') }}">View All</a>
+        </li>
+        <li class="{{ request()->routeIs('teacher.create') ? 'active' : '' }}">
+          <a href="{{route('teacher.create')}}">Create Teacher</a>
+        </li>
+      </ul>
+    </li>
+
   </ul>
   <div class="sidebar-footer">
     <a href="#">

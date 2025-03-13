@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Repository\AdminRepos;
-use App\Repository\StaffRepos;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -11,11 +11,15 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $admin = AdminRepos::getAllAdmin();
-        return view('admin.index',
-            [
-                'admin' => $admin,
-            ]);
+        // Kiểm tra quyền truy cập Admin
+        if (!Session::has('username') || Session::get('role') !== 'admin') {
+            return redirect('/')->with('error', 'Bạn không có quyền truy cập!');
+        }
+
+        // Lấy danh sách admin từ Database
+        $admin = AdminRepos::getAllAdmin(); // Đảm bảo đây là array hoặc collection
+
+        return view('admin.index', compact('admin'));
     }
 
     public function show($id_a)

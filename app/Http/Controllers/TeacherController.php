@@ -8,109 +8,107 @@ use Illuminate\Support\Facades\Validator;
 
 class TeacherController extends Controller
 {
-    public function index() //TODO: sửa lại cấu trúc trang index
+    public function index()
     {
         $teacher = TeacherRepos::getAllTeacher();
-        return view('teacher.index',
-            [
-                'teacher' => $teacher,
-            ]);
+        return view('teacher.index', compact('teacher'));
     }
 
-    public function show($id_t)
+    public function show($id)
     {
-
-        $teacher = TeacherRepos::getTeacherById($id_t); //this is always an array
-        return view('teacher.show',
-            [
-                'teacher' => $teacher[0]
-            ]
-        );
+        $teacher = TeacherRepos::getTeacherById($id)[0] ?? null;
+        return $teacher ? view('teacher.show', compact('teacher')) : redirect()->route('teacher.index')->with('error', 'Giáo viên không tồn tại');
     }
 
-    public function edit($id_t)
+    public function create()
     {
-        $teacher = TeacherRepos::getTeacherById($id_t); //this is always an array
-        return view(
-            'teacher.update',
-            ["teacher" => $teacher[0]]);
+        return view('teacher.create');
     }
 
-    public function update(Request $request, $id_t)
+    public function store(Request $request)
     {
-        if ($id_t != $request->input('id_t')) {
-            //id in query string must match id in hidden input
-            return redirect()->action('TeacherController@index');
-        }
+        $validated = $this->formValidate($request)->validate();
+        $validated['password'] = $request->password;
 
-        $old_password_input = hash('sha1',$request->input('old_password'));
-        $sub = '';
-        $passwd = TeacherRepos::getTeacherById($id_t); //this is always an array
-        foreach($passwd as $cat)
-        {
-            $sub.=$cat->password;
-        }
-        $this->formValidate($request)->validate();
-        if ($old_password_input == $sub) //hash check,
-        {
-            $teacher = (object)[
-                'id_t' => $request->input('id_t'),
-                //      'username' => $request->input('username'),
-                'fullname_t' => $request->input('fullname_t'),
-                'phone_t' => $request->input('phone_t'),
-                'email_t' => $request->input('email_t'),
-                'password' =>  hash('sha1', $request->input('new_password')),
-
-
-            ];
-
-            TeacherRepos::update($teacher);
-
-            return redirect()->action('TeacherController@index')
-                ->with('msg', 'Update Successfully');
-
-        }
-        else
-        {
-            return redirect()
-                ->action('TeacherController@index')
-                ->withErrors(['msg' => 'Cannot update teacher with ID: '.$id_t.'!']);
-
-        }
-
-
-
-
+        TeacherRepos::insert((object)$validated);
+        return redirect()->route('teacher.index')->with('msg', 'Thêm giáo viên thành công!');
     }
 
-    private function formValidate($request)
+    public function edit($id)
     {
-        return Validator::make(
-            $request->all(),
-            [
-                //   'username' => ['required'],
-                'fullname_t' => ['required','min:5'],
-                'phone_t' => ['required','starts_with:0','digits:10'],
-                'email_t' => ['required','email'],
-                'old_password' => ['required'],
-                'new_password' => ['required','min:8'],
-                'confirm_password' => ['required_with:new_password','same:new_password'],
+        $teacher = TeacherRepos::getTeacherById($id)[0] ?? null;
+        return $teacher ? view('teacher.edit', compact('teacher')) : redirect()->route('teacher.index')->with('error', 'Giáo viên không tồn tại');
+    }
 
+    public function update(Request $request, $id)
+    {
+        if ($id != $request->id_t) {
+            return redirect()->route('teacher.index')->with('error', 'Dữ liệu không hợp lệ!');
+        }
 
-            ],
-            [
+        $teacher = TeacherRepos::getTeacherById($id)[0] ?? null;
+        if (!$teacher) {
+            return redirect()->route('teacher.index')->with('error', 'Giáo viên không tồn tại!');
+        }
 
-                'fullname_t.required' => 'Please enter Full Name',
-                'phone_t.required' => 'Please enter Phone',
-                'email_t.required' => 'Please enter Email',
-                'old_password.required' => 'Please enter Password',
-                'fullname_t.min' => 'Enter Full Name up to 5 characters',
-                'phone_t.digits' => 'Please enter phone exactly 10 numbers',
-                'phone_t.starts_with' => 'Enter a phone number starting with 0',
-                'email_t' => 'Please enter email form',
-                'new_password.min'=>'Password must be equal or more than 8 letters!',
-                'confirm_password.same'=>'Password confirmation mismatch!',
-            ]
-        );
+        // Nếu nhập mật khẩu mới, kiểm tra mật khẩu cũ
+        if ($request->filled('password')) {
+            if (trim($request->old_password) !== trim($teacher->password)) {
+                return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
+            }
+
+            if ($request->password !== $request->password_confirmation) {
+                return redirect()->back()->with('error', 'Mật khẩu xác nhận không khớp!');
+            }
+        }
+
+        // Validate dữ liệu nhập vào
+        $validated = $this->formValidate($request)->validate();
+        $validated['id_t'] = $id;
+
+        // Nếu nhập mật khẩu mới thì cập nhật, ngược lại giữ nguyên mật khẩu cũ
+        $validated['password'] = $request->filled('password') ? $request->password : $teacher->password;
+
+        // Gọi repository để cập nhật
+        TeacherRepos::update((object)$validated);
+
+        return redirect()->route('teacher.index')->with('msg', 'Cập nhật thành công!');
+    }
+
+    public function confirm($id)
+    {
+        $teacher = TeacherRepos::getTeacherById($id)[0] ?? null;
+        return $teacher ? view('teacher.confirm', compact('teacher')) : redirect()->route('teacher.index')->with('error', 'Giáo viên không tồn tại');
+    }
+
+    private function formValidate($request, $id_t = null)
+    {
+        $rules = [
+            'fullname_t' => 'required|min:5',
+            'phone_t'    => 'required|digits:10|starts_with:0',
+            'email'      => 'required|email',
+        ];
+
+        if ($request->filled('password')) {
+            $rules['password'] = 'required|min:6|confirmed';
+            if ($id_t) {
+                $rules['old_password'] = 'required';
+            }
+        }
+
+        $messages = [
+            'fullname_t.required' => 'Vui lòng nhập Họ và Tên',
+            'fullname_t.min'      => 'Họ và tên phải có ít nhất 5 ký tự',
+            'phone_t.required'    => 'Vui lòng nhập số điện thoại',
+            'phone_t.digits'      => 'Số điện thoại phải có đúng 10 số',
+            'phone_t.starts_with' => 'Số điện thoại phải bắt đầu bằng 0',
+            'email.required'      => 'Vui lòng nhập Email',
+            'email.email'         => 'Email không hợp lệ',
+            'old_password.required' => 'Vui lòng nhập mật khẩu cũ để đổi mật khẩu',
+            'password.min'    => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'password.confirmed' => 'Mật khẩu xác nhận không khớp',
+        ];
+
+        return Validator::make($request->all(), $rules, $messages);
     }
 }
