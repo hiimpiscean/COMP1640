@@ -25,8 +25,6 @@ class CustomerRepos
 
     public static function insert($customer): bool
     {
-        $hashedPassword = Hash::make($customer->password);
-
         $sql = "insert into customer ";
         $sql .= "(fullname_c, dob, gender, phone_c, email, address_c, password) ";
         $sql .= "values (?, ?, ?, ?, ?, ?, ?)";
@@ -37,9 +35,10 @@ class CustomerRepos
             $customer->phone_c,
             $customer->email,
             $customer->address_c,
-            $hashedPassword
+            $customer->password
         ]);
     }
+
 
     public static function update($customer){
         $sql = "update customer ";
@@ -53,10 +52,9 @@ class CustomerRepos
             $customer->address_c
         ];
 
-        // Nếu mật khẩu mới được nhập, cập nhật nó
         if (!empty($customer->password)) {
             $sql .= ", password = ?";
-            $params[] = Hash::make($customer->password);
+            $params[] = $customer->password;
         }
 
         $sql .= " WHERE id_c = ?";

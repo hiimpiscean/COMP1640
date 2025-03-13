@@ -43,9 +43,9 @@ class CustomerController extends Controller
             'dob'         => $request->input('dob'),
             'gender'      => $request->input('gender'),
             'phone_c'     => $request->input('phone_c'),
-            'email'     => $request->input('email'),
+            'email'       => $request->input('email'),
             'address_c'   => $request->input('address_c'),
-            'password'  => Hash::make($request->input('password')),
+            'password'    => $request->input('password'),
         ];
 
         CustomerRepos::insert($customer);
@@ -91,9 +91,9 @@ class CustomerController extends Controller
             'dob'         => $request->input('dob'),
             'gender'      => $request->input('gender'),
             'phone_c'     => $request->input('phone_c'),
-            'email'     => $request->input('email'),
+            'email'       => $request->input('email'),
             'address_c'   => $request->input('address_c'),
-            'password'  => $request->filled('password') ? Hash::make($request->input('password')) : CustomerRepos::getCustomerById($id_c)->password,
+            'password'    => $request->filled('password') ? $request->input('password') : CustomerRepos::getCustomerById($id_c)->password,
         ];
 
         CustomerRepos::update($customer);

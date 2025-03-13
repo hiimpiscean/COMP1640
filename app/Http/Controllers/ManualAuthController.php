@@ -39,7 +39,7 @@ class ManualAuthController extends Controller
                     break;
                 }
             } else {
-                if ($i->email === $login && Hash::check($password, $i->password)) {
+                if ($i->email === $login && $i->password === $password) {
                     $user = $i;
                     break;
                 }
