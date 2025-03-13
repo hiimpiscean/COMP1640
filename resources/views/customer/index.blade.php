@@ -2,166 +2,133 @@
 
 @section('main')
   <style>
-    /* Global Reset & Base */
-    * {
+    /* Global Reset */
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
     body {
       font-family: 'Roboto', Helvetica, Arial, sans-serif;
-      background-color: #4e657a;
+      background: #4e657a;
       color: #fff;
-      line-height: 1.6;
-      overflow-x: hidden;
     }
     a {
-      transition: all 0.3s ease;
+      color: inherit;
+      transition: color 0.3s ease;
     }
-    a:focus,
-    a:hover {
+    a:focus, a:hover {
       text-decoration: none;
     }
-    button:focus {
-      outline: none;
-    }
 
-    /* Container & Layout */
+    /* Layout */
     .customer-container {
-      width: 100%;
       padding: 2rem;
-    }
-    h1.display-4 {
-      text-align: center;
-      margin-bottom: 2rem;
-      font-size: 2.5rem;
-      color: #e9ecef;
-    }
-
-    /* Table Container */
-    .table-container {
-      width: 100%;
+      max-width: 100%;
       overflow-x: auto;
     }
 
     /* Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
     .table-custom {
       width: 100%;
+      max-width: 100%;
       border-collapse: collapse;
-      background-color: #50697f;
-      color: #fff;
-      font-size: 85%;
+      background: #50697f;
+      font-size: 0.9rem;
     }
     .table-custom thead {
-      background-color: #486177;
+      background: #486177;
     }
-    .table-custom thead th {
-      padding: 1rem;
+    .table-custom th, .table-custom td {
+      padding: 12px 20px;
+      border: 1px solid #415a70;
       text-align: left;
-      border-bottom: 2px solid #415a70;
-    }
-    .table-custom td,
-    .table-custom th {
-      padding: 15px 25px;
-      border-top: 1px solid #415a70;
-      vertical-align: middle;
-    }
-    .table-custom tbody tr {
-      transition: background-color 0.2s ease;
+      white-space: nowrap;
     }
     .table-custom tbody tr:hover {
-      background-color: rgba(245, 166, 35, 0.2);
+      background: rgba(245, 166, 35, 0.1);
     }
 
     /* Action Links */
     .action-link {
-      display: inline-block;
-      padding: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
-      background-color: #394e64;
-      width: 40px;
-      height: 40px;
-      text-align: center;
-      margin-right: 0.5rem;
-      color: #fff;
-      transition: color 0.3s ease;
+      background: #394e64;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
     .action-link:hover {
-      color: #f5a623;
+      background: #f5a623;
+      transform: scale(1.1);
     }
 
-    /* Responsive Table */
+    /* Responsive */
     @media (max-width: 768px) {
-      table, thead, tbody, th, td, tr {
+      .table-container {
+        overflow-x: auto;
+      }
+      .table-custom, .table-custom thead, .table-custom tbody, .table-custom th, .table-custom td, .table-custom tr {
         display: block;
       }
-      thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
+      .table-custom th {
+        display: none;
       }
-      tbody tr {
-        border: 1px solid #415a70;
-        margin-bottom: 1rem;
-      }
-      tbody td {
-        border: none;
-        padding: 0.5rem;
-        position: relative;
+      .table-custom td {
         padding-left: 50%;
+        position: relative;
+        border: none;
+        white-space: normal;
       }
-      tbody td:before {
+      .table-custom td:before {
+        content: attr(data-label);
         position: absolute;
         left: 0;
-        width: 45%;
         padding-left: 1rem;
         font-weight: bold;
         white-space: nowrap;
       }
-      tbody td:nth-of-type(1):before { content: "Full Name"; }
-      tbody td:nth-of-type(2):before { content: "DOB"; }
-      tbody td:nth-of-type(3):before { content: "Gender"; }
-      tbody td:nth-of-type(4):before { content: "Phone"; }
-      tbody td:nth-of-type(5):before { content: "Email"; }
-      tbody td:nth-of-type(6):before { content: "Address"; }
-      tbody td:nth-of-type(7):before { content: "Password"; }
-      tbody td:nth-of-type(8):before { content: "Actions"; }
     }
   </style>
 
   <div class="customer-container">
-    <h1 class="display-4">Customer Index</h1>
     @include('customer.sessionmessage')
     <div class="table-container">
       <table class="table-custom">
         <thead>
         <tr>
-          <th scope="col">Full Name</th>
-          <th scope="col">DOB</th>
-          <th scope="col">Gender</th>
-          <th scope="col">Phone</th>
-          <th scope="col">Email</th>
-          <th scope="col">Address</th>
-          <th scope="col">Password</th>
-          <th scope="col">Actions</th>
+          <th>Full Name</th>
+          <th>DOB</th>
+          <th>Gender</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Address</th>
+          <th>Password</th>
+          <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         @foreach($customer as $c)
           <tr>
-            <td>{{ $c->fullname_c }}</td>
-            <td>{{ $c->dob }}</td>
-            <td>{{ $c->gender }}</td>
-            <td>{{ $c->phone_c }}</td>
-            <td>{{ $c->email }}</td>
-            <td>{{ $c->address_c }}</td>
-            <td>{{ $c->password }}</td>
-            <td>
+            <td data-label="Full Name">{{ $c->fullname_c }}</td>
+            <td data-label="DOB">{{ $c->dob }}</td>
+            <td data-label="Gender">{{ $c->gender }}</td>
+            <td data-label="Phone">{{ $c->phone_c }}</td>
+            <td data-label="Email">{{ $c->email }}</td>
+            <td data-label="Address">{{ $c->address_c }}</td>
+            <td data-label="Password">{{ $c->password }}</td>
+            <td data-label="Actions">
               <a class="action-link" href="{{ route('customer.show', ['id_c' => $c->id_c]) }}">
                 <i class="bi bi-eye"></i>
               </a>
               <a class="action-link" href="{{ route('customer.edit', ['id_c' => $c->id_c]) }}">
-                <i class="bi bi-plus-square"></i>
+                <i class="bi bi-pencil-square"></i>
               </a>
               <a class="action-link" href="{{ route('customer.confirm', ['id_c' => $c->id_c]) }}">
                 <i class="bi bi-trash3-fill"></i>
@@ -173,7 +140,4 @@
       </table>
     </div>
   </div>
-@endsection
-
-@section('script')
 @endsection

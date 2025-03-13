@@ -77,7 +77,7 @@
   </style>
 
   <div class="container">
-    <h1 class="form-title">New Customer</h1>
+    <h1 class="form-title">New Student</h1>
 
     @include('partials.errors')
 

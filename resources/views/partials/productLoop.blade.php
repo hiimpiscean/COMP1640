@@ -11,7 +11,7 @@
             </a>
             <div class="course-buttons">
               <a href="{{ route('ui.details', $p->id_p) }}" class="btn btn-primary">Read More</a>
-              <a href="{{route('ui.create')}}" class="btn btn-outline-primary">Join Now</a>
+              <a href="{{ route('auth.ask') }}" class="btn btn-outline-primary">Join Now</a>
             </div>
           </div>
           <div class="course-content text-center p-3">

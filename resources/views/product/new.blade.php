@@ -62,7 +62,7 @@
   </style>
 
   <div class="container">
-    <h1 class="form-title">Create New Product</h1>
+    <h1 class="form-title">Create New Course</h1>
 
     @include('partials.errors')
 

@@ -66,6 +66,9 @@
 </div>
 
 <style>
+  body {
+    overflow-x: hidden;
+  }
   /* Reset mặc định */
   * {
     margin: 0;
@@ -177,28 +180,93 @@
   .user_option {
     display: flex;
     align-items: center;
+    gap: 15px;
   }
 
-  .user_option a {
+  /* Nút đăng nhập / đăng ký */
+  .user_option a.join-now {
     background-color: #00bcd4;
     color: #ffffff;
-    padding: 10px 15px;
-    border-radius: 6px;
-    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 14px;
     font-weight: bold;
-    transition: all 0.3s ease;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 188, 212, 0.3);
   }
 
-  .user_option a:hover {
+  .user_option a.join-now:hover {
     background-color: #008ba3;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 139, 163, 0.4);
   }
 
-  .user_option img {
-    width: 30px;
-    height: 30px;
+  /* Avatar và dropdown user */
+  .user_option .dropdown {
+    position: relative;
+  }
+
+  .user_option .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    text-decoration: none;
+    border-radius: 20px;
+    background-color: #f1f1f1;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .user_option .dropdown-toggle img {
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     margin-right: 8px;
+    border: 2px solid #00bcd4;
+  }
+
+  .user_option .dropdown-toggle:hover {
+    background-color: #e0f7fa;
+  }
+
+  .user_option .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease-in-out;
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .user_option .dropdown:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .user_option .dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .user_option .dropdown-menu a:hover {
+    background-color: #00bcd4;
+    color: white;
   }
 
   /* Responsive */
@@ -210,6 +278,16 @@
       width: 100%;
       max-width: 250px;
       margin: 10px auto;
+    }
+    .user_option {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .user_option .dropdown-menu {
+      right: auto;
+      left: 50%;
+      transform: translate(-50%, 10px);
     }
   }
 </style>

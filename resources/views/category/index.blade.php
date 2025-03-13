@@ -1,137 +1,99 @@
 @extends('masters.dashboardMaster')
+
 @section('main')
   <style>
-    html {
-      font-size: 16px;
-      overflow-x: hidden;
+    /* Global Reset */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
     body {
-      font-family: Roboto, Helvetica, Arial, sans-serif;
-      background-color: #4e657a;
-      overflow-x: hidden;
+      font-family: 'Roboto', Helvetica, Arial, sans-serif;
+      background: #4e657a;
+      color: #fff;
     }
     a {
-      transition: all 0.3s ease;
-    }
-    a:focus,
-    a:hover {
-      text-decoration: none;
-    }
-    button:focus {
-      outline: 0;
-    }
-
-    .navbar .container {
-      position: relative;
-    }
-
-    .nav-link > i {
-      margin-bottom: 10px;
-      margin-right: 0;
-      font-size: 1.5rem;
-    }
-    .navbar-nav .active > .nav-link,
-    .navbar-nav .nav-link.active {
-      background-color: #f5a623;
-      color: #fff;
-    }
-    .navbar-nav .nav-link.active i {
-      color: #fff;
-    }
-    .navbar-nav a:hover,
-    .navbar-nav a:hover i {
-      color: #f5a623;
-    }
-
-    .tm-content-row {
-      justify-content: space-between;
-      margin-left: -20px;
-      margin-right: -20px;
-    }
-
-    .table {
-      width: 100%;
-      background-color: #50697f;
-      color: #fff;
-      font-size: 85%;
-      margin-bottom: 0;
-    }
-    /* Sticky header: khi cuộn, thead sẽ cố định */
-    thead {
-      background-color: #486177;
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    .table thead th {
-      border-bottom: 0;
-      padding: 15px 25px;
-      text-align: left;
-    }
-    .table td,
-    .table th {
-      border-top: 1px solid #415a70;
-      padding: 15px 25px;
-      vertical-align: middle;
-    }
-    .table-hover tbody tr {
-      transition: all 0.2s ease;
-    }
-    .table-hover tbody tr:hover {
-      color: #a0c0de;
-    }
-    .tm-bg-primary-dark {
-      background-color: #435c70;
-    }
-    .tm-product-table-container {
-      max-height: 465px;
-      margin-bottom: 15px;
-      overflow-y: auto;
-    }
-    .tm-product-table tr {
-      font-weight: 600;
-    }
-    .tm-product-delete-link {
-      padding: 10px;
-      border-radius: 50%;
-      background-color: #394e64;
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      text-align: center;
-      color: #fff;
+      color: inherit;
       transition: color 0.3s ease;
     }
-    .tm-product-delete-link:hover .tm-product-delete-icon {
-      color: #6d8ca6;
+    a:focus, a:hover {
+      text-decoration: none;
     }
-    .but a {
-      margin-right: 5px;
-    }
-    /* Chỉnh sửa khối sản phẩm cho phù hợp với toàn bộ giao diện */
-    .tm-block-products {
-      min-height: 500px;
-      margin-top: 60px;
-      width: 100%;
-    }
-    .table img {
+
+    /* Layout */
+    .container-fluid, .customer-container {
+      padding: 2rem;
       max-width: 100%;
-      height: auto;
+      overflow-x: auto;
     }
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+
+    /* Table Styling */
+    .table-container, .tm-product-table-container {
+      width: 100%;
+      overflow-x: auto;
     }
-    ::-webkit-scrollbar-track {
-      background: #394e62;
+    .table-custom {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      background: #50697f;
+      font-size: 0.9rem;
     }
-    ::-webkit-scrollbar-thumb {
-      background: #6d8da6;
+    .table-custom thead {
+      background: #486177;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #8ab5d6;
+    .table-custom th, .table-custom td {
+      padding: 12px 20px;
+      border: 1px solid #415a70;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .table-custom tbody tr:hover {
+      background: rgba(245, 166, 35, 0.1);
+    }
+
+    /* Action Links */
+    .action-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: #394e64;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .action-link:hover {
+      background: #f5a623;
+      transform: scale(1.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .table-container, .tm-product-table-container {
+        overflow-x: auto;
+      }
+      .table-custom, .table-custom thead, .table-custom tbody, .table-custom th, .table-custom td, .table-custom tr {
+        display: block;
+      }
+      .table-custom th {
+        display: none;
+      }
+      .table-custom td {
+        padding-left: 50%;
+        position: relative;
+        border: none;
+        white-space: normal;
+      }
+      .table-custom td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        padding-left: 1rem;
+        font-weight: bold;
+        white-space: nowrap;
+      }
     }
   </style>
 
@@ -141,37 +103,37 @@
         <div class="tm-bg-primary-dark tm-block tm-block-products">
           @include('category.sessionmessage')
           <div class="tm-product-table-container">
-            <table class="table table-hover tm-table-small tm-product-table">
+            <table class="table-custom">
               <thead>
               <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Image</th>
-                <th scope="col">View</th>
-                <th scope="col">Edit</th>
-                <th scope="col">Delete</th>
+                <th>Tên</th>
+                <th>Hình ảnh</th>
+                <th>Xem</th>
+                <th>Sửa</th>
+                <th>Xóa</th>
               </tr>
               </thead>
               <tbody>
               @foreach($category as $c)
                 <tr>
-                  <td>{{ $c->name_cate }}</td>
-                  <td>
+                  <td data-label="Tên">{{ $c->name_cate }}</td>
+                  <td data-label="Hình ảnh">
                     <a href="{{ route('category.show', ['id_cate' => $c->id_cate]) }}">
                       <img src="{{ asset('images/category/' . $c->image_cate) }}" alt="{{ $c->name_cate }}" style="width: 30%;">
                     </a>
                   </td>
                   <td class="but">
-                    <a class="tm-product-delete-link" href="{{ route('category.show', ['id_cate' => $c->id_cate]) }}">
+                    <a class="action-link" href="{{ route('category.show', ['id_cate' => $c->id_cate]) }}">
                       <i class="bi bi-eye"></i>
                     </a>
                   </td>
                   <td class="but">
-                    <a class="tm-product-delete-link" href="{{ route('category.edit', ['id_cate' => $c->id_cate]) }}">
-                      <i class="bi bi-plus-square"></i>
+                    <a class="action-link" href="{{ route('category.edit', ['id_cate' => $c->id_cate]) }}">
+                      <i class="bi bi-pencil-square"></i>
                     </a>
                   </td>
                   <td class="but">
-                    <a class="tm-product-delete-link" href="{{ route('category.confirm', ['id_cate' => $c->id_cate]) }}">
+                    <a class="action-link" href="{{ route('category.confirm', ['id_cate' => $c->id_cate]) }}">
                       <i class="bi bi-trash3-fill"></i>
                     </a>
                   </td>
@@ -184,7 +146,4 @@
       </div>
     </div>
   </div>
-@endsection
-
-@section('script')
 @endsection

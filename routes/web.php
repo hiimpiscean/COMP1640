@@ -40,6 +40,10 @@ Route::get('/schedule', function () {
     return view('ui.schedule');
 })->name('ui.schedule');
 
+Route::get('/flm', function () {
+    return view('ui.flm');
+})->name('ui.flm');
+
 Route::group(['prefix' => 'home'], function () {
 
     Route::get('products', [
