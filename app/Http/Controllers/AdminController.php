@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Repository\AdminRepos;
+use App\Repository\StaffRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 

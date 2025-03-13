@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Repository\AdminRepos;
 use App\Repository\CustomerRepos;
+use App\Repository\StaffRepos;
+use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -23,14 +25,15 @@ class ManualAuthController extends Controller
         // Lấy dữ liệu từ cả admin và customer
         $adminUsers = AdminRepos::getAllAdmin();
         $customerUsers = CustomerRepos::getAllCustomer();
-       // $teacherUsers = TeacherRepos::getAllTeacher();
+        $teacherUsers = TeacherRepos::getAllTeacher();
+        $StaffUsers = StaffRepos::getAllStaff();
 
-        $allUsers = array_merge($adminUsers, $customerUsers); //TODO: add them tập khách hàng là stu
+        $allUsers = array_merge($adminUsers, $customerUsers, $teacherUsers, $StaffUsers); //TODO: add them tập khách hàng là stu, staff
 
         $user = null;
         foreach ($allUsers as $i) {
             // Nếu role là admin, so sánh với username, ngược lại so sánh với email
-            if ($i->role === 'admin') {
+            if ($i->role === 'admin' or $i->role === 'staff') {
                 if ($i->username === $login && $i->password === sha1($password)) {
                     $user = $i;
                     break;
@@ -44,7 +47,7 @@ class ManualAuthController extends Controller
         }
 
         if ($user) {
-            $displayName = $user->role === 'admin' ? $user->username : $user->email;
+            $displayName = $user->role === 'admin' || $user->role === 'staff' ? $user->username : $user->email;
             Session::put('username', $displayName);
             Session::put('role', $user->role);
 
