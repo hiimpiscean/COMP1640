@@ -6,7 +6,7 @@ use App\Repository\CustomerRepos;
 use App\Repository\StaffRepos;
 use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+//use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,33 +26,54 @@ class ManualAuthController extends Controller
         $adminUsers = AdminRepos::getAllAdmin();
         $customerUsers = CustomerRepos::getAllCustomer();
         $teacherUsers = TeacherRepos::getAllTeacher();
-        $StaffUsers = StaffRepos::getAllStaff();
+        $staffUsers = StaffRepos::getAllStaff();
 
-        $allUsers = array_merge($adminUsers, $customerUsers, $teacherUsers, $StaffUsers); //TODO: add them tập khách hàng là stu, staff
+     //   $allUsers = array_merge($adminUsers, $customerUsers, $teacherUsers, $staffUsers); // add them tập khách hàng là stu, staff
 
         $user = null;
-        foreach ($allUsers as $i) {
+        $role = '';
+        //$bool = true;
+
+        foreach ($adminUsers as $a)
             // Nếu role là admin, so sánh với username, ngược lại so sánh với email
-            if ($i->role === 'admin' or $i->role === 'staff') {
-                if ($i->username === $login && $i->password === sha1($password)) {
-                    $user = $i;
-                    break;
-                }
-            } else {
-                if ($i->email === $login && $i->password === $password) {
-                    $user = $i;
-                    break;
-                }
+            if ($a->username === $login && $a->password === sha1($password)) {
+                $user = $a;
+                $role = 'admin';
+            //    $bool == false;
+                break;
+            } else foreach ($staffUsers as $s)
+            // Nếu role là admin, so sánh với username, ngược lại so sánh với email
+                if ($s->username === $login && $s->password === $password) {
+                $user = $s;
+                $role = 'staff';
+             //   $bool == false;
+                break;
+            } else foreach ($customerUsers as $c)
+            // Nếu role là admin, so sánh với username, ngược lại so sánh với email
+            if ($c->email === $login && $c->password === $password) {
+                $user = $c;
+                $role = 'customer';
+            //    $bool == false;
+                break;
+            } else foreach ($teacherUsers as $t)
+            // Nếu role là admin, so sánh với username, ngược lại so sánh với email
+            if ($t->email === $login && $t->password === $password) {
+                $user = $t;
+                $role = 'teacher';
+              //  $bool == false;
+                break;
             }
-        }
+
+
+
 
         if ($user) {
-            $displayName = $user->role === 'admin' || $user->role === 'staff' ? $user->username : $user->email;
+            $displayName = $role === 'admin' || $role === 'staff' ? $user->username : $user->email;
             Session::put('username', $displayName);
-            Session::put('role', $user->role);
+            Session::put('role', $role);
 
             // Chuyển hướng dựa trên role
-            switch ($user->role) {
+            switch ($role) {
                 case 'admin':
                     return redirect()->route('admin.index');
                 case 'staff':

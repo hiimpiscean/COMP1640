@@ -28,7 +28,7 @@ class StaffController extends Controller
     public function store(Request $request)
     {
         $validated = $this->formValidate($request)->validate();
-        $validated['password'] = hash('sha1', $request->password);
+        $validated['password'] = $request->password;
 
         StaffRepos::insert((object)$validated);
         return redirect()->route('staff.index')->with('msg', 'Thêm nhân viên thành công!');
@@ -52,7 +52,7 @@ class StaffController extends Controller
         }
 
         if ($request->filled('password')) {
-            if (hash('sha1', $request->old_password) !== $staff->password) {
+            if ($request->old_password !== $staff->password) {
                 return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
             }
             if ($request->password !== $request->password_confirmation) {
@@ -62,7 +62,7 @@ class StaffController extends Controller
 
         $validated = $this->formValidate($request)->validate();
         $validated['id_s'] = $id_s;
-        $validated['password'] = $request->filled('password') ? hash('sha1', $request->password) : $staff->password;
+        $validated['password'] = $request->filled('password') ?  $request->password : $staff->password;
 
         StaffRepos::update((object)$validated);
         return redirect()->route('staff.index')->with('msg', 'Cập nhật thành công!');
