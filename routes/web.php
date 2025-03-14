@@ -22,6 +22,48 @@ use App\Http\Controllers\BlogController;
   //  return view('viewEngine');
 //});
 
+//////////////Staff/////////////
+Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function () {
+    Route::get('', [
+        'uses' => 'StaffController@index',
+        'as' => 'staff.index'
+    ]);
+
+    Route::get('show/{id_t}', [
+        'uses' => 'StaffController@show',
+        'as' => 'staff.show'
+    ]);
+
+    Route::get('create', [
+        'uses' => 'StaffController@create',
+        'as' => 'staff.create'
+    ]);
+
+    Route::post('create', [
+        'uses' => 'StaffController@store',
+        'as' => 'staff.store'
+    ]);
+
+    Route::get('update/{id_t}', [
+        'uses' => 'StaffController@edit',
+        'as' => 'staff.edit'
+    ]);
+
+    Route::put('update/{id_t}', [
+        'uses' => 'StaffController@update',
+        'as' => 'staff.update'
+    ]);
+
+    Route::get('delete/{id_t}', [
+        'uses' => 'StaffController@confirm',
+        'as' => 'staff.confirm'
+    ]);
+
+    Route::DELETE('delete/{id_t}', [
+        'uses' => 'StaffController@destroy',
+        'as' => 'staff.destroy'
+    ]);
+});
 
 //////////////Teacher/////////////
 Route::group(['prefix' => 'teacher', 'middleware' => ['manual.auth']], function () {
@@ -60,7 +102,7 @@ Route::group(['prefix' => 'teacher', 'middleware' => ['manual.auth']], function 
         'as' => 'teacher.confirm'
     ]);
 
-    Route::post('delete/{id_t}', [
+    Route::DELETE('delete/{id_t}', [
         'uses' => 'TeacherController@destroy',
         'as' => 'teacher.destroy'
     ]);

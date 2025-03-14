@@ -11,106 +11,112 @@ class StaffController extends Controller
     public function index()
     {
         $staff = StaffRepos::getAllStaff();
-        return view('staff.index',
-            [
-                'staff' => $staff,
-            ]);
+        return view('staff.index', compact('staff'));
     }
 
     public function show($id_s)
     {
+        $staff = StaffRepos::getStaffById($id_s)[0] ?? null;
+        return $staff ? view('staff.show', compact('staff')) : redirect()->route('staff.index')->with('error', 'Nhân viên không tồn tại');
+    }
 
-        $staff = StaffRepos::getStaffById($id_s); //this is always an array
-        return view('staff.show',
-            [
-                'staff' => $staff[0]
-            ]
-        );
+    public function create()
+    {
+        return view('staff.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $this->formValidate($request)->validate();
+        $validated['password'] = hash('sha1', $request->password);
+
+        StaffRepos::insert((object)$validated);
+        return redirect()->route('staff.index')->with('msg', 'Thêm nhân viên thành công!');
     }
 
     public function edit($id_s)
     {
-        $staff = StaffRepos::getStaffById($id_s); //this is always an array
-        return view(
-            'staff.update',
-            ["staff" => $staff[0]]);
+        $staff = StaffRepos::getStaffById($id_s)[0] ?? null;
+        return $staff ? view('staff.edit', compact('staff')) : redirect()->route('staff.index')->with('error', 'Nhân viên không tồn tại');
     }
 
     public function update(Request $request, $id_s)
     {
-        if ($id_s != $request->input('id_s')) {
-            //id in query string must match id in hidden input
-            return redirect()->action('StaffController@index');
+        if ($id_s != $request->id_s) {
+            return redirect()->route('staff.index')->with('error', 'Dữ liệu không hợp lệ!');
         }
 
-        $old_password_input = hash('sha1',$request->input('old_password'));
-        $sub = '';
-        $passwd = StaffRepos::getStaffById($id_s); //this is always an array
-        foreach($passwd as $cat)
-        {
-            $sub.=$cat->password;
-        }
-        $this->formValidate($request)->validate();
-        if ($old_password_input == $sub) //hash check,
-        {
-            $staff = (object)[
-                'id_s' => $request->input('id_s'),
-                'username' => $request->input('username'),
-                'fullname_s' => $request->input('fullname_s'),
-                'phone_s' => $request->input('phone_s'),
-                'email' => $request->input('email'),
-                'password' =>  hash('sha1', $request->input('new_password')),
-
-
-            ];
-
-            StaffRepos::update($staff);
-
-            return redirect()->action('StaffController@index')
-                ->with('msg', 'Update Successfully');
-
-        }
-        else
-        {
-            return redirect()
-                ->action('StaffController@index')
-                ->withErrors(['msg' => 'Cannot update staff with ID: '.$id_s.'!']);
-
+        $staff = StaffRepos::getStaffById($id_s)[0] ?? null;
+        if (!$staff) {
+            return redirect()->route('staff.index')->with('error', 'Nhân viên không tồn tại!');
         }
 
+        if ($request->filled('password')) {
+            if (hash('sha1', $request->old_password) !== $staff->password) {
+                return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
+            }
+            if ($request->password !== $request->password_confirmation) {
+                return redirect()->back()->with('error', 'Mật khẩu xác nhận không khớp!');
+            }
+        }
 
+        $validated = $this->formValidate($request)->validate();
+        $validated['id_s'] = $id_s;
+        $validated['password'] = $request->filled('password') ? hash('sha1', $request->password) : $staff->password;
 
-
+        StaffRepos::update((object)$validated);
+        return redirect()->route('staff.index')->with('msg', 'Cập nhật thành công!');
     }
 
-    private function formValidate($request)
+    public function confirm($id_s)
     {
-        return Validator::make(
-            $request->all(),
-            [
-                'username' => ['required'],
-                'fullname_s' => ['required','min:5'],
-                'phone_s' => ['required','starts_with:0','digits:10'],
-                'email' => ['required','email'],
-                'old_password' => ['required'],
-                'new_password' => ['required','min:8'],
-                'confirm_password' => ['required_with:new_password','same:new_password'],
+        $staff = StaffRepos::getStaffById($id_s)[0] ?? null;
+        return $staff ? view('staff.confirm', compact('staff')) : redirect()->route('staff.index')->with('error', 'Nhân viên không tồn tại');
+    }
 
+    public function destroy(Request $request, $id_s)
+    {
+        if ($id_s != $request->route('id_s')) {
+            return redirect()->route('staff.index');
+        }
 
-            ],
-            [
+        if (!StaffRepos::getStaffById($id_s)[0] ?? null) {
+            return redirect()->route('staff.index')->with('error', 'Không tìm thấy nhân viên');
+        }
 
-                'fullname_s.required' => 'Please enter Full Name',
-                'phone_s.required' => 'Please enter Phone',
-                'email.required' => 'Please enter Email',
-                'old_password.required' => 'Please enter Password',
-                'fullname_s.min' => 'Enter Full Name up to 5 characters',
-                'phone_s.digits' => 'Please enter phone exactly 10 numbers',
-                'phone_s.starts_with' => 'Enter a phone number starting with 0',
-                'email' => 'Please enter email form',
-                'new_password.min'=>'Password must be equal or more than 8 letters!',
-                'confirm_password.same'=>'Password confirmation mismatch!',
-            ]
-        );
+        StaffRepos::delete($id_s);
+        return redirect()->route('staff.index')->with('msg', 'Xóa thành công');
+    }
+
+    private function formValidate($request, $id_s = null)
+    {
+        $rules = [
+            'username'   => 'required',
+            'fullname_s' => 'required|min:5',
+            'phone_s'    => 'required|digits:10|starts_with:0',
+            'email'      => 'required|email',
+        ];
+
+        if ($request->filled('password')) {
+            $rules['password'] = 'required|min:6|confirmed';
+            if ($id_s) {
+                $rules['old_password'] = 'required';
+            }
+        }
+
+        $messages = [
+            'fullname_s.required' => 'Vui lòng nhập Họ và Tên',
+            'fullname_s.min'      => 'Họ và tên phải có ít nhất 5 ký tự',
+            'phone_s.required'    => 'Vui lòng nhập số điện thoại',
+            'phone_s.digits'      => 'Số điện thoại phải có đúng 10 số',
+            'phone_s.starts_with' => 'Số điện thoại phải bắt đầu bằng 0',
+            'email.required'      => 'Vui lòng nhập Email',
+            'email.email'         => 'Email không hợp lệ',
+            'old_password.required' => 'Vui lòng nhập mật khẩu cũ để đổi mật khẩu',
+            'password.min'    => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'password.confirmed' => 'Mật khẩu xác nhận không khớp',
+        ];
+
+        return Validator::make($request->all(), $rules, $messages);
     }
 }

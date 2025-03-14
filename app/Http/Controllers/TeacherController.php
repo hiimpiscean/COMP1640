@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repository\CustomerRepos;
 use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -79,6 +80,20 @@ class TeacherController extends Controller
     {
         $teacher = TeacherRepos::getTeacherById($id)[0] ?? null;
         return $teacher ? view('teacher.confirm', compact('teacher')) : redirect()->route('teacher.index')->with('error', 'Giáo viên không tồn tại');
+    }
+
+    public function destroy(Request $request, $id_t)
+    {
+        if ($id_t != $request->route('id_t')) {
+            return redirect()->route('teacher.index');
+        }
+
+        if (!TeacherRepos::getTeacherById($id_t)[0] ?? null) {
+            return redirect()->route('teacher.index')->with('error', 'Không tìm thấy giáo viên');
+        }
+
+        TeacherRepos::delete($id_t);
+        return redirect()->route('teacher.index')->with('msg', 'Xóa thành công');
     }
 
     private function formValidate($request, $id_t = null)

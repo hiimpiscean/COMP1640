@@ -1,5 +1,6 @@
-@extends('layouts.app')
-@section('content')
+@extends('masters.dashboardMaster')
+
+@section('main')
   <div class="container">
     <h2>Chi Tiết Giáo Viên</h2>
     <p><strong>ID:</strong> {{ $teacher->id_t }}</p>

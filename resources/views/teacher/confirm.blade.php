@@ -1,5 +1,6 @@
-@extends('layouts.app')
-@section('content')
+@extends('masters.dashboardMaster')
+
+@section('main')
   <div class="container">
     <h2>Xác Nhận Xóa Giáo Viên</h2>
     <p>Bạn có chắc chắn muốn xóa giáo viên <strong>{{ $teacher->fullname_t }}</strong> không?</p>

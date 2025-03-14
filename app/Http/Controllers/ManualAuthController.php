@@ -57,9 +57,8 @@ class ManualAuthController extends Controller
                     return redirect()->route('admin.index');
                 case 'staff':
                     return redirect()->route('staff.index');
-                case 'teacher':
-                    return redirect()->route('teacher.index');
                 case 'customer':
+                case 'teacher':
                     return redirect()->route('ui.index');
                 default:
                     return redirect()->route('home');

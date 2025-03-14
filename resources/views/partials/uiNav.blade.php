@@ -37,9 +37,6 @@
             <a class="dropdown-item" href="#">404 Page</a>
           </div>
         </li>
-        <li class="nav-item {{ request()->routeIs('teacher.index') ? 'active' : '' }}">
-          <a class="nav-link" href="{{ route('teacher.index') }}">TEACHER</a>
-        </li>
       </ul>
 
       <!-- Kiểm tra đăng nhập -->
