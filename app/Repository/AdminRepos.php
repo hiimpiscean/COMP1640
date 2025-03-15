@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\DB;
 class AdminRepos
 {
     public static function getAllAdmin() {
-        // Sử dụng dấu nháy đơn cho literal string 'admin'
-        $sql = "select a.*, 'admin' as role ";
+        $sql = "select a.* ";
         $sql .= "from admin as a ";
         $sql .= "order by a.username";
 
@@ -16,7 +15,7 @@ class AdminRepos
     }
 
     public static function getAdminById($id_a){
-        $sql = "select a.*, 'admin' as role ";
+        $sql = "select a.* ";
         $sql .= "from admin as a ";
         $sql .= "where a.id_a = ? ";
 

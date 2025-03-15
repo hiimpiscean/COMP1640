@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 class TeacherRepos
 {
     public static function getAllTeacher() {
-        $sql = "select t.*, 'teacher' as role ";
+        $sql = "select t.* ";
         $sql .= 'from teacher as t ';
         $sql .= 'order by t.email';
 
@@ -15,7 +15,7 @@ class TeacherRepos
     }
 
     public static function getTeacherById($id_t){
-        $sql = "select t.*, 'teacher' as role ";
+        $sql = "select t.* ";
         $sql .= 'from teacher as t ';
         $sql .= 'where t.id_t = ? ';
 

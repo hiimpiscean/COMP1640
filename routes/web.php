@@ -29,7 +29,7 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'as' => 'staff.index'
     ]);
 
-    Route::get('show/{id_t}', [
+    Route::get('show/{id_s}', [
         'uses' => 'StaffController@show',
         'as' => 'staff.show'
     ]);
@@ -44,22 +44,22 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'as' => 'staff.store'
     ]);
 
-    Route::get('update/{id_t}', [
+    Route::get('update/{id_s}', [
         'uses' => 'StaffController@edit',
         'as' => 'staff.edit'
     ]);
 
-    Route::put('update/{id_t}', [
+    Route::put('update/{id_s}', [
         'uses' => 'StaffController@update',
         'as' => 'staff.update'
     ]);
 
-    Route::get('delete/{id_t}', [
+    Route::get('delete/{id_s}', [
         'uses' => 'StaffController@confirm',
         'as' => 'staff.confirm'
     ]);
 
-    Route::DELETE('delete/{id_t}', [
+    Route::DELETE('delete/{id_s}', [
         'uses' => 'StaffController@destroy',
         'as' => 'staff.destroy'
     ]);

@@ -8,15 +8,14 @@ use Illuminate\Support\Facades\Hash;
 class CustomerRepos
 {
     public static function getAllCustomer() {
-        // Gán mặc định role là 'customer' cho mỗi bản ghi
-        $sql = "select c.*, 'customer' as role ";
+        $sql = "select c.* ";
         $sql .= "from customer as c ";
         $sql .= "order by c.fullname_c ";
         return DB::select($sql);
     }
 
     public static function getCustomerById($id_c){
-        $sql = "select c.*, 'customer' as role ";
+        $sql = "select c.* ";
         $sql .= "from customer as c ";
         $sql .= "where c.id_c = ? ";
         $result = DB::select($sql, [$id_c]);
