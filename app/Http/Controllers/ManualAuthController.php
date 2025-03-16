@@ -93,6 +93,6 @@ class ManualAuthController extends Controller
     {
         Session::forget('username');
         Session::forget('role');
-        return redirect()->action([ManualAuthController::class, 'ask']);
+        return redirect()->action('HomepageController@index');
     }
 }
