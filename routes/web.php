@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\CurriculumController;
+use App\Http\Controllers\ProductController;
+use App\Repository\ProductRepos;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BlogController;
 
@@ -124,15 +127,23 @@ Route::get('/testimonial', function () {
 
 Route::get('/schedule', function () {
     return view('ui.schedule');
-})->name('ui.schedule');
+})->middleware('manual.auth')->name('ui.schedule');
 
-Route::get('/flm', function () {
-    return view('ui.flm');
-})->name('ui.flm');
+Route::get('/listDocument', function () {
+    return view('flm.listDocument');
+})->name('flm.listDocument');
+
+Route::group(['middleware' => 'manual.auth'], function () {
+    Route::get('/curriculum', [ProductController::class, 'curriculumGeneral'])
+        ->name('flm.curriculum');
+
+    Route::get('/curriculum/{productName?}', [ProductController::class, 'curriculum'])
+        ->name('curriculum');
+});
 
 Route::group(['prefix' => 'home'], function () {
 
-    Route::get('products', [
+    Route::get('product', [
         'uses' => 'HomepageController@index',
         'as' => 'ui.home'
     ]);
@@ -202,6 +213,7 @@ Route::group(['prefix' => 'auth'], function (){
     ]);
 });
 
+// Các route cho khách xem blog không cần đăng nhập
 Route::group(['prefix' => 'blog'], function () {
     Route::get('', [
         'uses' => 'BlogController@index',
@@ -212,7 +224,10 @@ Route::group(['prefix' => 'blog'], function () {
         'uses' => 'BlogController@show',
         'as' => 'blog.show'
     ]);
+});
 
+// Các route chỉ dành cho người đã đăng nhập
+Route::group(['prefix' => 'blog', 'middleware' => ['manual.auth']], function () {
     Route::get('create', [
         'uses' => 'BlogController@create',
         'as' => 'blog.create'

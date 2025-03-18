@@ -1,77 +1,119 @@
 @extends('masters.dashboardMaster')
 
 @section('main')
-
   <style>
+    /* Global Reset */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
-      background: #f8f9fa;
+      background: #4e657a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    a {
+      color: inherit;
+      transition: color 0.3s ease;
+    }
+    a:focus, a:hover {
+      text-decoration: none;
     }
 
-    .container {
-      max-width: 500px;
-      margin: 60px auto;
-      padding: 30px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    /* Layout tương tự staff */
+    .form-container {
+      padding: 2rem;
+      width: 1000px;
+      margin: auto;
+      background: #50697f;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .form-title {
-      margin-bottom: 25px;
-      font-weight: bold;
-      color: #343a40;
       text-align: center;
-      font-size: 24px;
+      margin-bottom: 1.5rem;
     }
 
-    .btn-container {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+    /* Form Styling */
+    .form-label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.5rem;
     }
 
-    .btn {
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 6px;
-      transition: all 0.3s ease;
-      border: none;
-      cursor: pointer;
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #415a70;
+      border-radius: 5px;
+      background: #394e64;
+      color: #fff;
+      margin-bottom: 1rem;
+      height: auto !important;
     }
 
+    .btn-primary,
     .btn-dark {
-      background-color: #343a40;
-      color: white;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #f5a623;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 5px;
+      transition: background 0.3s ease, transform 0.2s ease;
+      text-align: center;
     }
 
+    .btn-primary:hover,
     .btn-dark:hover {
-      background-color: #23272b;
+      background: #e6951d;
+      transform: scale(1.05);
     }
 
     .btn-info {
-      background-color: #17a2b8;
-      color: white;
-      text-decoration: none;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #60a6dd;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 5px;
       text-align: center;
-      display: inline-block;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
 
     .btn-info:hover {
-      background-color: #117a8b;
+      background: #394e64;
+      transform: scale(1.05);
+    }
+
+    /* Nếu muốn hai nút Submit - Cancel nằm ngang: */
+    .btn-container {
+      display: flex;
+      gap: 1rem;
     }
   </style>
 
-  <div class="container">
-    <h1 class="form-title">Create New Course</h1>
-
+  <div class="form-container">
+    <h2 class="form-title">Create New Course</h2>
     @include('partials.errors')
 
-    <form action="{{route('product.store')}}" method="post">
+    <form action="{{ route('product.store') }}" method="post">
       @csrf
+
       @include('product.productFieldsNew')
+
       <div class="btn-container">
-        <button type="submit" class="btn btn-dark">Submit</button>
-        <a href="{{route('product.index')}}" class="btn btn-info">Cancel</a>
+        <button type="submit" class="btn-primary">Submit</button>
+        <a href="{{ route('product.index') }}" class="btn-info">Cancel</a>
       </div>
     </form>
   </div>

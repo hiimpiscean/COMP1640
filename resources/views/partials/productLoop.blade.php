@@ -38,16 +38,6 @@
 </div>
 <!-- Courses End -->
 
-<!-- Thêm thư viện AOS vào footer -->
-@section('script')
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-  <script>
-    AOS.init({
-      duration: 1000,
-      once: true,
-    });
-  </script>
-@endsection
 <style>
   .container {
     max-width: 1200px;

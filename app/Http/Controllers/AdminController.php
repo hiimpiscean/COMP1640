@@ -11,8 +11,8 @@ class AdminController extends Controller
 {
     public function index()
     {
-        // Kiểm tra quyền truy cập Admin
-        if (!Session::has('username') || Session::get('role') !== 'admin') {
+        // Kiểm tra quyền truy cập cho admin và staff
+        if (!Session::has('username') || (Session::get('role') !== 'admin' && Session::get('role') !== 'staff')) {
             return redirect('/')->with('error', 'Bạn không có quyền truy cập!');
         }
 

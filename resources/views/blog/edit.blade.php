@@ -38,14 +38,6 @@
           @enderror
         </div>
 
-        <div class="form-group">
-          <label for="author_b">Tác giả</label>
-          <input type="text" name="author_b" id="author_b" class="form-control" value="{{ old('author_b', $blog->author_b) }}">
-          @error('author_b')
-          <div class="text-danger">{{ $message }}</div>
-          @enderror
-        </div>
-
         <button type="submit" class="btn btn-primary">Cập nhật</button>
         <a href="{{ route('blog.index') }}" class="btn btn-secondary">Quay lại</a>
       </form>

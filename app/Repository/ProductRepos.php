@@ -24,6 +24,22 @@ class ProductRepos
 
     }
 
+    public static function getAllProduct()
+    {
+        return DB::table('product')->get(); // Giả sử bảng của bạn tên là 'products'
+    }
+
+    public static function getProductByName($productName)
+    {
+        $product = DB::table('product')->where('name_p', $productName)->first();
+
+        if (!$product) {
+            return (object) ['id_p' => 0, 'name_p' => 'Unknown', 'image_p' => '', 'price_p' => 0];
+        }
+
+        return $product;
+    }
+
     public static function insert($product){
         $sql = 'insert into product ';
         $sql .= '(name_p, image_p, price_p, description_p, categoryid) ';

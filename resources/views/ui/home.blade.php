@@ -171,8 +171,8 @@
         </div>
         <div class="col-lg-3 col-sm-6" data-aos="fade-up" data-aos-delay="700">
           <div class="service-item text-center pt-3">
-            <a href="{{ route('ui.flm') }}">
-              <div class="p-4">
+            <a href="{{ route('flm.curriculum') }}">
+            <div class="p-4">
                 <i class="fa fa-3x fa-book-open text-primary mb-4"></i>
                 <h5 class="mb-3">Book Library</h5>
                 <p>Diam elitr kasd sed at elitr sed very just pain but clita amet diam</p>

@@ -13,6 +13,7 @@
     <div class="blog-list">
       @foreach($blog as $item)
         <div class="blog-item" data-aos="fade-up">
+          <p class="blog-author"><strong>Tác giả:</strong> {{ $item->author_b }}</p>
           <h2 class="blog-title">{{ $item->title_b }}</h2>
 
           @if($item->image_b)
@@ -21,48 +22,58 @@
             </div>
           @endif
 
-          <p class="blog-content">{{ \Illuminate\Support\Str::limit($item->content_b, 150) }}</p>
-          <p class="blog-author"><strong>Tác giả:</strong> {{ $item->author_b }}</p>
+          <p class="blog-content">
+            {{ \Illuminate\Support\Str::limit($item->content_b, 150) }}
+          </p>
 
           <div class="blog-actions">
             <a href="{{ route('blog.show', ['id' => $item->id_b]) }}" class="btn btn-info">Xem chi tiết</a>
+            @if(Session::has('username'))
             <a href="{{ route('blog.edit', ['id' => $item->id_b]) }}" class="btn btn-warning">Sửa</a>
-            <form action="{{ route('blog.destroy', ['id' => $item->id_b]) }}" method="post">
+            <form action="{{ route('blog.destroy', ['id' => $item->id_b]) }}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa Blog này không?');">
               @csrf
               <input type="hidden" name="id_b" value="{{ $item->id_b }}">
-              <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa Blog này không?');">Xóa Blog</button>
+              <button type="submit" class="btn btn-danger">Xóa Blog</button>
             </form>
+            @endif
           </div>
 
           <!-- Phần bình luận -->
           <div class="comment-section">
-            <p class="comment-count">Có {{ isset($item->comment) ? count($item->comment) : 0 }} bình luận</p>
-            <!-- Form thêm bình luận -->
-            <form action="{{ route('blog.comment.store', ['id' => $item->id_b]) }}" method="post" class="comment-form">
-              @csrf
-              <div class="form-group">
-                <textarea name="content_cmt" rows="2" class="form-control" placeholder="Bình luận của bạn"></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary btn-comment">Gửi bình luận</button>
-            </form>
-            <!-- Danh sách bình luận -->
+            <p class="comment-count">
+              Có {{ isset($item->comment) ? count($item->comment) : 0 }} bình luận
+            </p>
+
+            {{-- Nếu người dùng đã đăng nhập thì hiển thị form thêm bình luận --}}
+            @if(Session::has('username'))
+              <form action="{{ route('blog.comment.store', ['id' => $item->id_b]) }}" method="post" class="comment-form">
+                @csrf
+                <div class="form-group">
+                  <textarea name="content_cmt" rows="2" class="form-control" placeholder="Bình luận của bạn"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-comment">Gửi bình luận</button>
+              </form>
+            @endif
+
+            {{-- Danh sách bình luận --}}
             @if(isset($item->comment) && count($item->comment) > 0)
               <div class="comment-list">
                 @foreach($item->comment as $comment)
                   <div class="comment">
                     <p>{{ $comment->content_cmt }}</p>
                     <p><small>{{ $comment->created_at }}</small></p>
-                    <!-- Nút xóa bình luận -->
-                    <form action="{{ route('blog.comment.destroy', ['id' => $item->id_b, 'commentId' => $comment->id_cmt]) }}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này không?');">
-                      @csrf
-                      <button type="submit" class="btn btn-danger btn-comment">Xóa bình luận</button>
-                    </form>
+                    {{-- Cho phép xóa bình luận nếu cần, bạn có thể thêm điều kiện kiểm tra quyền --}}
+                    @if(Session::has('username'))
+                      <form action="{{ route('blog.comment.destroy', ['id' => $item->id_b, 'commentId' => $comment->id_cmt]) }}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này không?');">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-comment">Xóa bình luận</button>
+                      </form>
+                    @endif
                   </div>
                 @endforeach
               </div>
             @endif
           </div>
-
         </div>
       @endforeach
     </div>
@@ -82,13 +93,13 @@
 
 <style>
   .container-blog {
-    max-width: 600px;
-    margin: 40px auto;
+    max-width: 1000px;
+    margin: 100px auto 40px;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     position: relative;
-    margin-top: 100px;
+    background: #fff;
   }
 
   .title {
@@ -125,7 +136,6 @@
   .blog-list {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Căn lề trái */
     gap: 20px;
     padding: 20px;
   }
@@ -135,11 +145,9 @@
     background: #ffffff;
     border-radius: 10px;
     padding: 20px;
+    border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s, box-shadow 0.3s;
-    border: 1px solid #ddd;
-    display: flex;
-    flex-direction: column;
   }
 
   .blog-item:hover {
@@ -147,11 +155,16 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
+  .blog-author {
+    font-style: italic;
+    color: #444;
+    margin-bottom: 10px;
+  }
+
   .blog-title {
     font-size: 1.5rem;
     color: #0056b3;
     margin-bottom: 10px;
-    text-align: left;
   }
 
   .blog-image img {
@@ -159,26 +172,21 @@
     height: auto;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
   }
 
   .blog-content {
     font-size: 1rem;
     color: #666;
     line-height: 1.6;
-    text-align: left;
-  }
-
-  .blog-author {
-    font-style: italic;
-    color: #444;
-    margin-top: 10px;
-    text-align: left;
+    margin-bottom: 15px;
   }
 
   .blog-actions {
     margin-top: 15px;
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
   }
 
   .btn {
@@ -190,7 +198,6 @@
     opacity: 0.85;
   }
 
-  /* Style cho phần bình luận */
   .comment-section {
     margin-top: 20px;
     border-top: 1px solid #ddd;
@@ -207,7 +214,6 @@
   }
 
   .btn-comment {
-    width: auto;
     padding: 5px 10px;
   }
 

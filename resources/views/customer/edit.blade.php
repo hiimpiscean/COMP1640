@@ -1,23 +1,105 @@
 @extends('masters.dashboardMaster')
 
 @section('main')
-
   <style>
-    .but {
-      margin: 30px 20px 40px 280px;
+    /* Global Reset */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .cancel {
-      margin-left: 400px;
+    body {
+      background: #4e657a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .han {
-      margin-top: 50px;
+    a {
+      color: inherit;
+      transition: color 0.3s ease;
+    }
+    a:focus, a:hover {
+      text-decoration: none;
+    }
+
+    /* Layout */
+    .form-container {
+      padding: 2rem;
+      width: 1000px;
+      margin: auto;
+      background: #50697f;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Form Styling */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #415a70;
+      border-radius: 5px;
+      background: #394e64;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: space-around;
+      margin-top: 30px;
+    }
+
+    .btn-dark, .btn-info {
+      width: 120px; /* Đảm bảo cả hai nút có cùng kích thước */
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-dark {
+      background: #f5a623;
+      color: #fff;
+    }
+
+    .btn-dark:hover {
+      background: #e6951d;
+      transform: scale(1.05);
+    }
+
+    .btn-info {
+      background: #60a6dd;
+      color: #fff;
+    }
+
+    .btn-info:hover {
+      background: #394e64;
+      transform: scale(1.05);
     }
   </style>
 
-  <div class="container">
-    <h1 class="display-4 text-center han">Update An Existing Customer</h1>
+  <div class="form-container">
+    <h2 class="text-center">Update An Existing Customer</h2>
 
-    {{-- Hiển thị thông báo thành công hoặc lỗi --}}
     @if (session('msg'))
       <div class="alert alert-success">
         {{ session('msg') }}
@@ -86,9 +168,10 @@
         <input type="password" name="password_confirmation" class="form-control">
       </div>
 
-      <button type="submit" class="btn btn-dark but">Submit</button>
-      <a href="{{ route('customer.index') }}" class="btn btn-info cancel">Cancel</a>
+      <div class="button-group">
+        <button type="submit" class="btn-dark">Submit</button>
+        <a href="{{ route('customer.index') }}" class="btn-info">Cancel</a>
+      </div>
     </form>
   </div>
-
 @endsection

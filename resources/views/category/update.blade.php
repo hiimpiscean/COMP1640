@@ -1,34 +1,114 @@
 @extends('masters.dashboardMaster')
 
 @section('main')
+  <style>
+    /* Global Reset */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #4e657a;
+      color: #fff;
+      font-family: 'Roboto', Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-    <style>
+    /* Container */
+    .form-container {
+      padding: 2rem;
+      width: 1000px;
+      margin: 60px auto;
+      background: #50697f;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
 
-        .but {
-            margin: 30px 20px 40px 280px;
+    .form-title {
+      margin-bottom: 25px;
+      font-weight: bold;
+      color: #fff;
+      font-size: 24px;
+    }
 
-        }
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
 
-        .cancel {
-            margin-left: 400px;
-        }
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
 
-        .han {
-            margin-top: 50px;
-        }
-    </style>
-    <div class="container">
-        <h1 class="display-4 text-center han">Update An Existing Category</h1>
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #415a70;
+      border-radius: 5px;
+      background: #394e64;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
 
+    /* Button Group */
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
 
-        @include('partials.errors')
+    .btn {
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      width: 45%;
+      text-align: center;
+    }
 
-        <form action="{{route('category.update', ['id_cate' => old('id_cate')?? $category->id_cate])}}" method="post">
-            @csrf
-            @include('category.categoryFields')
+    .btn-dark {
+      background-color: #f5a623;
+      color: white;
+    }
 
-            <button type="submit" class="btn btn-dark but">Submit</button>
-            <a href="{{route('category.index')}}" class="btn btn-info cancel">Cancel</a>
-        </form>
-    </div>
+    .btn-dark:hover {
+      background-color: #e6951d;
+      transform: scale(1.05);
+    }
+
+    .btn-info {
+      background-color: #60a6dd;
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-info:hover {
+      background-color: #394e64;
+      transform: scale(1.05);
+    }
+  </style>
+
+  <div class="form-container">
+    <h1 class="form-title">Update An Existing Category</h1>
+    @include('partials.errors')
+    <form action="{{ route('category.update', ['id_cate' => old('id_cate') ?? $category->id_cate]) }}" method="post">
+      @csrf
+      @include('category.categoryFields')
+      <div class="button-group">
+        <button type="submit" class="btn btn-dark">Submit</button>
+        <a href="{{ route('category.index') }}" class="btn btn-info">Cancel</a>
+      </div>
+    </form>
+  </div>
 @endsection

@@ -7,12 +7,11 @@ use Illuminate\Support\Facades\DB;
 class FunctionRepos
 {
     public static function searchForProducts($query) {
-
-        $sql = 'select p.* ';
-        $sql .= 'from product as p ';
-        $sql .= 'WHERE name_p ~* ?';
-        return DB::select($sql, [$query]);
+        return DB::table('product')
+            ->where('name_p', 'like', "%{$query}%")
+            ->paginate(10);
     }
+
     public static function getProductsByCateId($id_c){
             $sql = 'select p.* ';
             $sql .= 'from product as p ';

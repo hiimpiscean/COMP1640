@@ -55,6 +55,9 @@
               <form id="logout-form" action="{{ route('auth.signout') }}" method="GET" style="display: none;">
                 @csrf
               </form>
+              @if(Session::has('role') && (Session::get('role') == 'admin' || Session::get('role') == 'staff'))
+                <a class="nav-link" href="{{ route('admin.index') }}">Back to Admin Web</a>
+              @endif
             </div>
           </div>
         @else

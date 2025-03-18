@@ -5,17 +5,18 @@ namespace App\Http\Controllers;
 use App\Repository\BlogRepos;
 use App\Repository\CommentRepos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 class BlogController extends Controller
 {
     public function index()
     {
-        $blog = BlogRepos::getAllBlogs();
-        foreach ($blog as $b) {
+        $blogs = BlogRepos::getAllBlogs();
+        foreach ($blogs as $b) {
             $b->comment = CommentRepos::getCommentsByBlog($b->id_b);
         }
-        return view('blog.index', ['blog' => $blog]);
+        return view('blog.index', ['blog' => $blogs]);
     }
 
     public function show($id)
@@ -27,19 +28,20 @@ class BlogController extends Controller
 
     public function create()
     {
+        // Vì tác giả sẽ được lấy từ session, không cần truyền giá trị này vào form
         return view('blog.create', [
             "blog" => (object)[
-                'id_b' => '',
-                'title_b' => '',
+                'id_b'      => '',
+                'title_b'   => '',
                 'content_b' => '',
-                'image_b' => '',
-                'author_b' => ''
+                'image_b'   => ''
             ]
         ]);
     }
 
     public function store(Request $request)
     {
+        // Validate dữ liệu từ form
         $this->formValidate($request)->validate();
 
         // Xử lý file upload nếu có
@@ -51,11 +53,13 @@ class BlogController extends Controller
             $fileName = null;
         }
 
+        $currentUser = Session::get('username');
+
         $blog = (object)[
             'title_b'   => $request->input('title_b'),
             'content_b' => $request->input('content_b'),
             'image_b'   => $fileName, // lưu tên file đã upload
-            'author_b'  => $request->input('author_b')
+            'author_b'  => $currentUser
         ];
 
         $newId = BlogRepos::insert($blog);
@@ -76,7 +80,7 @@ class BlogController extends Controller
             return redirect()->action('BlogController@index');
         }
 
-        $this->formValidate($request)->validate();
+        $this->formValidate($request, true)->validate();
 
         // Xử lý file upload nếu có
         if ($request->hasFile('image_b')) {
@@ -87,12 +91,15 @@ class BlogController extends Controller
             $fileName = $request->input('current_image');
         }
 
+        // Cập nhật lại tác giả theo thông tin người dùng hiện hành
+        $currentUser = Session::get('username');
+
         $blog = (object)[
-            'id_b' => $request->input('id_b'),
-            'title_b' => $request->input('title_b'),
+            'id_b'      => $request->input('id_b'),
+            'title_b'   => $request->input('title_b'),
             'content_b' => $request->input('content_b'),
-            'image_b' => $fileName,
-            'author_b' => $request->input('author_b')
+            'image_b'   => $fileName,
+            'author_b'  => $currentUser
         ];
 
         BlogRepos::update($blog);
@@ -124,14 +131,17 @@ class BlogController extends Controller
         $request->validate([
             'content_cmt' => 'required',
         ]);
+
         $data = (object)[
-            'blog_id' => $blogId,
+            'blog_id'     => $blogId,
             'content_cmt' => $request->input('content_cmt')
         ];
+
         $newCommentId = CommentRepos::insertComment($data);
 
         return redirect()->back()->with('msg', 'Comment added successfully!');
     }
+
     // Phương thức xóa bình luận
     public function destroyComment(Request $request, $commentId)
     {
@@ -139,13 +149,15 @@ class BlogController extends Controller
         return redirect()->back()->with('msg', 'Comment deleted successfully!');
     }
 
+    // Hàm validate dữ liệu cho blog
     private function formValidate($request, $isUpdate = false)
     {
         $rules = [
-            'title_b' => ['required'],
+            'title_b'   => ['required'],
             'content_b' => ['required'],
         ];
 
+        // Nếu không phải update thì yêu cầu phải upload ảnh
         if (!$isUpdate) {
             $rules['image_b'] = ['required'];
         }
@@ -154,9 +166,9 @@ class BlogController extends Controller
             $request->all(),
             $rules,
             [
-                'title_b.required' => 'Please enter title',
+                'title_b.required'   => 'Please enter title',
                 'content_b.required' => 'Please enter content!',
-                'image_b.required' => 'Please upload an image',
+                'image_b.required'   => 'Please upload an image',
             ]
         );
     }

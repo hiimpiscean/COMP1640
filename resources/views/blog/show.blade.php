@@ -2,6 +2,7 @@
 
 @section('main')
   <div class="container-blog">
+    <p><strong>Tác giả:</strong> {{ $blog->author_b }}</p>
     <header class="blog-header">
       <h1 class="blog-title">{{ $blog->title_b }}</h1>
     </header>
@@ -17,7 +18,6 @@
     </article>
 
     <footer class="blog-meta">
-      <p><strong>Tác giả:</strong> {{ $blog->author_b }}</p>
       <p><strong>Ngày tạo:</strong> {{ $blog->created_at }}</p>
     </footer>
 

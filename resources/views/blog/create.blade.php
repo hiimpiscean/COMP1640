@@ -29,13 +29,6 @@
           <img src="{{ asset('uploads/' . $blog->image_b) }}" alt="Hình ảnh hiện tại" class="img-thumbnail mt-2" style="max-width: 200px;">
         @endif
       </div>
-      <div class="form-group mb-3">
-        <label for="author_b">Tác giả</label>
-        <input type="text" name="author_b" id="author_b" class="form-control" value="{{ old('author_b', $blog->author_b) }}">
-        @error('author_b')
-        <div class="text-danger">{{ $message }}</div>
-        @enderror
-      </div>
       <button type="submit" class="btn btn-primary">Lưu</button>
     </form>
     <a href="{{ route('blog.index') }}" class="btn btn-secondary mt-3">Quay lại</a>
