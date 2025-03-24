@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\CurriculumController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\TeacherController;
 use App\Repository\ProductRepos;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BlogController;
@@ -133,6 +133,12 @@ Route::get('/listDocument', function () {
     return view('flm.listDocument');
 })->name('flm.listDocument');
 
+//Route::middleware(['auth', 'role:teacher'])->group(function () {
+//    Route::get('/teacher/pending', [TeacherController::class, 'pendingRegistrations'])->name('teacher.pending');
+//    Route::post('/teacher/approve/{id}', [TeacherController::class, 'approveRegistration'])->name('teacher.approve');
+//    Route::post('/teacher/reject/{id}', [TeacherController::class, 'rejectRegistration'])->name('teacher.reject');
+//});
+
 Route::group(['middleware' => 'manual.auth'], function () {
     Route::get('/curriculum', [ProductController::class, 'curriculumGeneral'])
         ->name('flm.curriculum');
@@ -263,7 +269,7 @@ Route::group(['prefix' => 'blog', 'middleware' => ['manual.auth']], function () 
         BlogController::class, 'storeComment'
     ])->name('blog.comment.store');
 
-    Route::post('{id}/comment/{commentId}/destroy', [
+    Route::delete('{id}/comment/{commentId}/destroy', [
         BlogController::class, 'destroyComment'
     ])->name('blog.comment.destroy');
 });

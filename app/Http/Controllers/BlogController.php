@@ -132,9 +132,13 @@ class BlogController extends Controller
             'content_cmt' => 'required',
         ]);
 
+        // Lấy tên tài khoản từ session (hoặc hệ thống xác thực)
+        $currentUser = Session::get('username');
+
         $data = (object)[
             'blog_id'     => $blogId,
-            'content_cmt' => $request->input('content_cmt')
+            'content_cmt' => $request->input('content_cmt'),
+            'author_cmt'  => $currentUser
         ];
 
         $newCommentId = CommentRepos::insertComment($data);
@@ -143,10 +147,15 @@ class BlogController extends Controller
     }
 
     // Phương thức xóa bình luận
-    public function destroyComment(Request $request, $commentId)
+    public function destroyComment(Request $request, $id, $commentId)
     {
-        CommentRepos::deleteComment($commentId);
-        return redirect()->back()->with('msg', 'Comment deleted successfully!');
+        // Nếu cần, bạn có thể kiểm tra xem bình luận có thuộc blog có id = $id hay không.
+        $deleted = CommentRepos::deleteComment($commentId);
+        if ($deleted) {
+            return redirect()->back()->with('msg', 'Comment deleted successfully!');
+        } else {
+            return redirect()->back()->with('msg', 'Không tìm thấy bình luận cần xóa hoặc có lỗi xảy ra!');
+        }
     }
 
     // Hàm validate dữ liệu cho blog

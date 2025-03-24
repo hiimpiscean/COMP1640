@@ -86,7 +86,7 @@
 
       <!-- Search Results -->
       <div class="heading_container heading_center pa">
-        <h1>Your Search Product</h1>
+        <h1>Your Search Courses</h1>
       </div>
 
       <div class="filters-content flexitem">
@@ -95,7 +95,7 @@
             @include('partials.productLoop')
           @else
             <div>
-              <h2>No products found!</h2>
+              <h2>No courses found!</h2>
             </div>
           @endif
         </div>

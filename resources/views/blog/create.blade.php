@@ -1,41 +1,62 @@
 @extends('masters.uiMaster')
 
 @section('main')
-  <div class="container-blog">
-    <h1>Tạo Blog mới</h1>
+  <div class="blog-container">
+    <h1 class="blog-heading">Tạo Blog mới</h1>
+
+    <!-- Thông báo nếu có -->
+    @if(session('msg'))
+      <div class="alert alert-success" data-aos="fade-down">{{ session('msg') }}</div>
+    @endif
+
+    <!-- Form tạo blog -->
     <form action="{{ route('blog.store') }}" method="post" enctype="multipart/form-data">
       @csrf
-      <div class="form-group mb-3">
+      <div class="form-group">
         <label for="title_b">Tiêu đề</label>
-        <input type="text" name="title_b" id="title_b" class="form-control" value="{{ old('title_b', $blog->title_b) }}">
+        <input type="text" name="title_b" id="title_b" class="form-control"
+               value="{{ old('title_b', $blog->title_b) }}">
         @error('title_b')
         <div class="text-danger">{{ $message }}</div>
         @enderror
       </div>
-      <div class="form-group mb-3">
+
+      <div class="form-group">
         <label for="content_b">Nội dung</label>
         <textarea name="content_b" id="content_b" class="form-control" rows="5">{{ old('content_b', $blog->content_b) }}</textarea>
         @error('content_b')
         <div class="text-danger">{{ $message }}</div>
         @enderror
       </div>
-      <div class="form-group mb-3">
+
+      <div class="form-group">
         <label for="image_b">Hình ảnh</label>
-        <input type="file" name="image_b" id="image_b" class="form-control">
+        <input type="file" name="image_b" id="image_b" class="form-control-i">
         @error('image_b')
         <div class="text-danger">{{ $message }}</div>
         @enderror
+
         @if(isset($blog->image_b) && $blog->image_b)
-          <img src="{{ asset('uploads/' . $blog->image_b) }}" alt="Hình ảnh hiện tại" class="img-thumbnail mt-2" style="max-width: 200px;">
+          <img src="{{ asset('uploads/' . $blog->image_b) }}"
+               alt="Hình ảnh hiện tại"
+               class="img-thumbnail mt-2">
         @endif
       </div>
-      <button type="submit" class="btn btn-primary">Lưu</button>
+
+      <button type="submit" class="btn btn-primary" title="Luu">
+        <i class="fa fa-save"></i>
+      </button>
     </form>
-    <a href="{{ route('blog.index') }}" class="btn btn-secondary mt-3">Quay lại</a>
+
+    <!-- Nút quay lại -->
+    <a href="{{ route('blog.index') }}" class="btn btn-secondary mt-3" title="Quay lại">
+      <i class="fa fa-arrow-left"></i>
+    </a>
   </div>
 @endsection
 
 @section('script')
+  <!-- AOS nếu cần -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
     AOS.init({
@@ -47,122 +68,112 @@
 @endsection
 
 <style>
-  /* ======= Thiết lập tổng thể ======= */
   body {
+    background: #121212;
+    color: #e0e0e0;
     font-family: 'Poppins', sans-serif;
-    background: #f4f6f9;
   }
 
-  /* ======= Container chính ======= */
-  .container-blog {
-    max-width: 700px;
-    margin: 50px auto;
-    padding: 35px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    margin-top: 100px;
+  .blog-container {
+    max-width: 1500px;
+    margin: 100px auto 50px;
+    padding: 30px;
+    background: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
   }
 
-  .container:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  /* ======= Tiêu đề ======= */
-  .container h1 {
+  .blog-heading {
+    font-size: 2.0rem;
     text-align: center;
-    color: #007bff;
-    font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    color: #fff;
   }
 
-  /* ======= Form Group ======= */
+  /* ======== Form Group ======== */
   .form-group {
     margin-bottom: 20px;
   }
 
   label {
     font-weight: 600;
-    color: #333;
+    color: #ccc;
     margin-bottom: 8px;
     display: block;
   }
 
-  /* ======= Input và Textarea ======= */
-  .form-control {
-    border-radius: 10px;
-    padding: 12px;
-    font-size: 1rem;
-    border: 1px solid #ced4da;
+  /* ======== Input, Textarea ======== */
+  .form-control-i {
+    background: #2a2a2a;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 10px;
+    width: 100%;
     transition: border-color 0.3s, box-shadow 0.3s;
   }
-
   .form-control:focus {
     border-color: #007bff;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+    outline: none;
   }
 
-  /* ======= Ảnh Preview ======= */
+  /* ======== Ảnh Preview ======== */
   .img-thumbnail {
     display: block;
-    max-width: 100%;
+    max-width: 200px;
     height: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 15px;
-    transition: transform 0.3s ease-in-out;
+    border-radius: 6px;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
   }
 
-  .img-thumbnail:hover {
-    transform: scale(1.05);
-  }
-
-  /* ======= Nút bấm ======= */
+  /* ======== Nút bấm (giống index) ======== */
   .btn {
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    text-transform: uppercase;
-    width: 100%;
-    transition: all 0.3s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s;
+    margin-right: 5px; /* Tạo khoảng cách giữa các nút */
   }
 
-  /* ======= Nút Lưu ======= */
+  .btn i {
+    margin: 0; /* Vì chỉ có icon, không cần margin */
+  }
+
+  .btn:hover {
+    opacity: 0.85;
+  }
+
+  /* Nút Primary */
   .btn-primary {
-    background: linear-gradient(45deg, #007bff, #0056b3);
-    border: none;
+    background-color: #007bff;
     color: #fff;
   }
-
   .btn-primary:hover {
-    background: linear-gradient(45deg, #0056b3, #003d82);
-    transform: scale(1.02);
+    background-color: #0069d9;
   }
 
-  /* ======= Nút Quay Lại ======= */
+  /* Nút Secondary */
   .btn-secondary {
-    background: linear-gradient(45deg, #6c757d, #5a6268);
-    border: none;
+    background-color: #6c757d;
     color: #fff;
   }
-
   .btn-secondary:hover {
-    background: linear-gradient(45deg, #5a6268, #3e4347);
-    transform: scale(1.02);
+    background-color: #5a6268;
   }
 
-  /* ======= Responsive ======= */
+  /* ======== Responsive ======== */
   @media (max-width: 768px) {
-    .container {
-      max-width: 90%;
-      padding: 25px;
-    }
-
-    .btn {
-      width: 100%;
-      margin-top: 10px;
+    .blog-container {
+      margin: 60px auto;
+      padding: 20px;
     }
   }
 </style>

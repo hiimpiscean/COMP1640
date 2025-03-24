@@ -37,6 +37,9 @@
             <a class="dropdown-item" href="#">404 Page</a>
           </div>
         </li>
+{{--        <li class="nav-item {{ request()->routeIs('ui.approval') ? 'active' : '' }}">--}}
+{{--          <a class="nav-link" href="{{ route('ui.approval') }}">TEACHER</a>--}}
+{{--        </li>--}}
       </ul>
 
       <!-- Kiểm tra đăng nhập -->
@@ -48,6 +51,9 @@
               {{ Session::get('username') }}
             </a>
             <div class="dropdown-menu">
+              @if(Session::has('role') && (Session::get('role') == 'admin' || Session::get('role') == 'staff'))
+                <a class="nav-link" href="{{ route('admin.index') }}">Back to Admin Web</a>
+              @endif
               <a class="dropdown-item" href="{{ route('auth.signout') }}"
                  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 Logout
@@ -55,9 +61,6 @@
               <form id="logout-form" action="{{ route('auth.signout') }}" method="GET" style="display: none;">
                 @csrf
               </form>
-              @if(Session::has('role') && (Session::get('role') == 'admin' || Session::get('role') == 'staff'))
-                <a class="nav-link" href="{{ route('admin.index') }}">Back to Admin Web</a>
-              @endif
             </div>
           </div>
         @else
