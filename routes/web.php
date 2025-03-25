@@ -26,6 +26,18 @@ use App\Http\Controllers\BlogController;
 //});
 
 //////////////Staff/////////////
+// Routes dành cho sinh viên
+Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::post('/student/register', [StudentRegistrationController::class, 'register'])->name('student.register');
+    Route::post('/student/confirm-assignment/{id}', [StudentRegistrationController::class, 'confirmAssignment'])->name('student.confirm-assignment');
+});
+
+// Routes dành cho nhân viên
+Route::middleware(['auth', 'role:staff'])->group(function () {
+    Route::get('/staff/registrations', [StaffController::class, 'viewRegistrations'])->name('staff.registrations');
+    Route::post('/staff/assign-class/{id}', [StaffController::class, 'assignClass'])->name('staff.assign-class');
+});
+
 Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function () {
     Route::get('', [
         'uses' => 'StaffController@index',
