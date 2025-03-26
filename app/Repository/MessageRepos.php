@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class MessageRepos
 {
@@ -28,10 +29,13 @@ class MessageRepos
     public static function saveMessage($senderType, $senderId, $receiverType, $receiverId, $content)
     {
         try {
-            // Lưu tin nhắn vào database
-            $sql = "INSERT INTO messages (sender_type, sender_id, receiver_type, receiver_id, content) 
-                    VALUES (?, ?, ?, ?, ?) RETURNING message_id";
-            $result = DB::select($sql, [$senderType, $senderId, $receiverType, $receiverId, $content]);
+            // Lấy thời gian hiện tại theo múi giờ Việt Nam
+            $timestamp = Carbon::now('Asia/Ho_Chi_Minh')->format('Y-m-d H:i:s');
+            
+            // Lưu tin nhắn vào database với timestamp cụ thể
+            $sql = "INSERT INTO messages (sender_type, sender_id, receiver_type, receiver_id, content, timestamp) 
+                    VALUES (?, ?, ?, ?, ?, ?) RETURNING message_id";
+            $result = DB::select($sql, [$senderType, $senderId, $receiverType, $receiverId, $content, $timestamp]);
             
             $messageId = $result[0]->message_id;
             

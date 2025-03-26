@@ -120,12 +120,43 @@ class ChatController extends Controller
                 $senderEmail = $this->getEmailByTypeAndId($msg->sender_type, $msg->sender_id);
                 $receiverEmail = $this->getEmailByTypeAndId($msg->receiver_type, $msg->receiver_id);
 
+                // Xử lý timestamp - Định dạng lại timestamp
+                $timestamp = $msg->timestamp;
+                
+                try {
+                    // Loại bỏ phần microsecond nếu có
+                    if (strpos($timestamp, '.') !== false) {
+                        $timestamp = substr($timestamp, 0, strpos($timestamp, '.'));
+                    }
+                    
+                    // Chuyển đổi timestamp thành đối tượng Carbon
+                    // Giả định rằng timestamp trong database đã là múi giờ Việt Nam
+                    $dt = Carbon::parse($timestamp);
+                    
+                    // Định dạng lại timestamp theo định dạng d/m/Y H:i:s
+                    $timestamp = $dt->format('d/m/Y H:i:s');
+                } catch (\Exception $e) {
+                    // Nếu có lỗi, sử dụng thời gian hiện tại
+                    $timestamp = Carbon::now()->format('d/m/Y H:i:s');
+                }
+
+                // Thêm thông tin về username để dễ dàng xác định người gửi
+                $senderUsername = '';
+                if ($msg->sender_type === 'admin') {
+                    $adminInfo = DB::select('SELECT username FROM admin WHERE id_a = ?', [$msg->sender_id]);
+                    if (!empty($adminInfo)) {
+                        $senderUsername = $adminInfo[0]->username;
+                    }
+                }
+
                 $formattedMessages[] = [
                     'id' => $msg->message_id,
                     'sender' => $senderEmail,
                     'receiver' => $receiverEmail,
+                    'sender_type' => $msg->sender_type,
+                    'receiver_type' => $msg->receiver_type,
                     'text' => $msg->content,
-                    'timestamp' => Carbon::parse($msg->timestamp)->format('d/m/Y H:i:s')
+                    'timestamp' => $timestamp
                 ];
             }
 
@@ -152,14 +183,23 @@ class ChatController extends Controller
                 $result = DB::select('SELECT email FROM staff WHERE id_s = ?', [$id]);
                 break;
             case 'admin':
-                $result = DB::select('SELECT email_a as email FROM admin WHERE id_a = ?', [$id]);
+                $result = DB::select('SELECT email_a FROM admin WHERE id_a = ?', [$id]);
                 break;
             default:
                 return null;
         }
 
         // Trả về email nếu tìm thấy, ngược lại trả về null
-        return !empty($result) ? $result[0]->email : null;
+        if (empty($result)) {
+            return null;
+        }
+        
+        // Xử lý đặc biệt cho admin
+        if ($type === 'admin') {
+            return $result[0]->email_a;
+        }
+        
+        return $result[0]->email;
     }
 
     /**
