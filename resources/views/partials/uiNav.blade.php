@@ -37,9 +37,14 @@
             <a class="dropdown-item" href="#">404 Page</a>
           </div>
         </li>
-{{--        <li class="nav-item {{ request()->routeIs('ui.approval') ? 'active' : '' }}">--}}
-{{--          <a class="nav-link" href="{{ route('ui.approval') }}">TEACHER</a>--}}
-{{--        </li>--}}
+        
+        <!-- <li class="nav-item {{ request()->routeIs('ui.approval') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ route('ui.approval') }}">TEACHER</a>
+        </li> -->
+
+        <li class="nav-item {{ request()->routeIs('chat.index') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ route('chat.index') }}">CHATBOX</a>
+        </li>
       </ul>
 
       <!-- Kiểm tra đăng nhập -->
