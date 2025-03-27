@@ -22,6 +22,92 @@ use App\Http\Controllers\BlogController;
   //  return view('viewEngine');
 //});
 
+//////////////Staff/////////////
+Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function () {
+    Route::get('', [
+        'uses' => 'StaffController@index',
+        'as' => 'staff.index'
+    ]);
+
+    Route::get('show/{id_s}', [
+        'uses' => 'StaffController@show',
+        'as' => 'staff.show'
+    ]);
+
+    Route::get('create', [
+        'uses' => 'StaffController@create',
+        'as' => 'staff.create'
+    ]);
+
+    Route::post('create', [
+        'uses' => 'StaffController@store',
+        'as' => 'staff.store'
+    ]);
+
+    Route::get('update/{id_s}', [
+        'uses' => 'StaffController@edit',
+        'as' => 'staff.edit'
+    ]);
+
+    Route::put('update/{id_s}', [
+        'uses' => 'StaffController@update',
+        'as' => 'staff.update'
+    ]);
+
+    Route::get('delete/{id_s}', [
+        'uses' => 'StaffController@confirm',
+        'as' => 'staff.confirm'
+    ]);
+
+    Route::DELETE('delete/{id_s}', [
+        'uses' => 'StaffController@destroy',
+        'as' => 'staff.destroy'
+    ]);
+});
+
+//////////////Teacher/////////////
+Route::group(['prefix' => 'teacher', 'middleware' => ['manual.auth']], function () {
+    Route::get('', [
+        'uses' => 'TeacherController@index',
+        'as' => 'teacher.index'
+    ]);
+
+    Route::get('show/{id_t}', [
+        'uses' => 'TeacherController@show',
+        'as' => 'teacher.show'
+    ]);
+
+    Route::get('create', [
+        'uses' => 'TeacherController@create',
+        'as' => 'teacher.create'
+    ]);
+
+    Route::post('create', [
+        'uses' => 'TeacherController@store',
+        'as' => 'teacher.store'
+    ]);
+
+    Route::get('update/{id_t}', [
+        'uses' => 'TeacherController@edit',
+        'as' => 'teacher.edit'
+    ]);
+
+    Route::put('update/{id_t}', [
+        'uses' => 'TeacherController@update',
+        'as' => 'teacher.update'
+    ]);
+
+    Route::get('delete/{id_t}', [
+        'uses' => 'TeacherController@confirm',
+        'as' => 'teacher.confirm'
+    ]);
+
+    Route::DELETE('delete/{id_t}', [
+        'uses' => 'TeacherController@destroy',
+        'as' => 'teacher.destroy'
+    ]);
+});
+
 //////////////client////////////
 Route::get('/', [
     'uses' => 'HomepageController@home',
@@ -305,7 +391,7 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
         'as' => 'customer.edit'
     ]);
 
-    Route::post('update/{id_c}',[
+    Route::put('update/{id_c}',[
         'uses' => 'CustomerController@update',
         'as' => 'customer.update'
     ]);
