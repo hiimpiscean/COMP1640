@@ -22,9 +22,21 @@ use Illuminate\Support\Facades\Route;
 //});
 
 //////////////client////////////
-Route::get('/',function(){
-    return view('ui.home');
-})->name('ui.index');
+Route::get('/', [
+    'uses' => 'HomepageController@home',
+    'as' => 'ui.index'
+]);
+
+Route::get('/blog', function () {
+    return view('ui.blog');
+})->name('ui.blog');
+Route::get('/team', function () {
+    return view('ui.team');
+})->name('ui.team');
+Route::get('/testimonial', function () {
+    return view('ui.testimonial');
+})->name('ui.testimonial');
+
 Route::group(['prefix' => 'home'], function () {
 
     Route::get('products', [
@@ -33,15 +45,14 @@ Route::group(['prefix' => 'home'], function () {
     ]);
 // home
 
-
     Route::get('category/{id_cate}',[
         'uses' => 'HomepageController@getproductsfromcate',
         'as' => 'ui.showproducts'
     ]);
-    Route::get('category',[
-        'uses' => 'HomepageController@listcate',
-        'as' => 'ui.category'
-    ]);
+//    Route::get('category',[
+//        'uses' => 'HomepageController@listcate',
+//        'as' => 'ui.category'
+//    ]);
     //details
 
     Route::get('details/{id_p?}',[

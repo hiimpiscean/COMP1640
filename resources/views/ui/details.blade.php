@@ -1,90 +1,158 @@
 @extends('masters.uiMaster')
 
 @section('main')
-    <style>
-        .view {
-            margin-bottom: 60px;
+  <style>
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 30px;
+      animation: fadeInUp 0.8s ease-in-out;
+    }
 
-        }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        .size {
-            width: 70%;
-        }
+    .heading_container h1 {
+      font-size: 40px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      animation: fadeIn 1s ease-in-out;
+    }
 
-        .polaroid {
-            position: relative;
-            height: 400px;
-        }
+    .heading_container h1::after {
+      content: "";
+      display: block;
+      width: 120px;
+      height: 4px;
+      background-color: #007bff;
+      margin: 12px auto 0;
+      border-radius: 2px;
+    }
 
-        .test {
-            position: relative;
-            margin-left: 40px;
-        }
+    .course-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      gap: 50px;
+    }
 
-        .polaroid img {
-            border: 10px solid #fff;
-            -webkit-box-shadow: 3px 3px 3px #777;
-            -moz-box-shadow: 3px 3px 3px #777;
-            box-shadow: 3px 3px 3px #777;
-        }
+    .course-image img {
+      max-width: 380px;
+      border-radius: 15px;
+      box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease-in-out;
+    }
 
-        .polaroid p {
-            position: absolute;
-            text-align: center;
-            width: 100%;
-            bottom: 0px;
-            font: 400 18px/1 'Kaushan Script', cursive;
-            color: #888;
-        }
-    </style>
+    .course-image img:hover {
+      transform: scale(1.05);
+    }
 
-    <div class="container ">
+    .course-info {
+      max-width: 500px;
+    }
 
+    .course-info h3 {
+      font-size: 22px;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 10px;
+    }
 
-        <div class="heading_container heading_center pa"
-             style="margin-bottom: 1rem !important; margin-top: 2rem!important">
-            <h1>
-                Car details
-            </h1>
-        </div>
-        <div class=" d-flex justify-content-center">
-            <div class="polaroid my-3">
-                <img class=" polaroid" src="{{asset('images/handicraf/'. $product->image_p)}}" alt="">
-            </div>
+    .course-info p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #555;
+      margin-bottom: 15px;
+    }
 
-            <div class="test"> {{--ok roi day--}}
-                <h3 class="my-3">Product name</h3>
-                <p>{{$product->name_p}}</p>
-                <h3 class="my-3">About this product</h3>
-                <p>{{$product->description_p}}</p>
-                <h3 class="my-3">Size</h3>
-                <ul>
-                    <li>{{$product->size_p}}</li>
-                </ul>
-                <div><h3>Price</h3></div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <strong>VND {{$product->price_p}}</strong>
-                    </div>
-                    <div class="col-md-8">
-                        <a type="button" href="shoppingbasket.html" data-toggle="modal" data-target="#addToBasketModal"
-                           class="btn btn-success float-right">
-                            Buy now
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    .price {
+      font-size: 26px;
+      color: #e74c3c;
+      font-weight: bold;
+    }
 
+    .btn-register {
+      display: inline-block;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #28a745, #218838);
+      color: #fff;
+      text-decoration: none;
+      transition: 0.3s ease-in-out;
+      box-shadow: 0px 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-register:hover {
+      background: linear-gradient(135deg, #218838, #1e7e34);
+      transform: scale(1.05);
+      box-shadow: 0px 8px 20px rgba(33, 136, 56, 0.4);
+      text-decoration: none;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .course-wrapper {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 30px;
+      }
+      .course-image img {
+        max-width: 100%;
+      }
+      .course-info {
+        max-width: 100%;
+      }
+    }
+  </style>
+
+  <div class="container">
+    <div class="heading_container">
+      <h1>Course Details</h1>
     </div>
-    <div class="view">
 
+    <div class="course-wrapper">
+      <div class="course-image">
+        @if (!empty($product->image_p))
+          <img src="{{ asset('images/handicraf/' . $product->image_p) }}" alt="Product Image">
+        @else
+          <img src="{{ asset('images/default-placeholder.png') }}" alt="No Image Available">
+        @endif
+      </div>
+
+      <div class="course-info">
+        <h3>Course Name</h3>
+        <p>{{ $product->name_p ?? 'N/A' }}</p>
+
+        <h3>About This Course</h3>
+        <p>{{ $product->description_p ?? 'N/A' }}</p>
+
+        <h3>Price</h3>
+        <p class="price">{{ isset($product->price_p) ? number_format($product->price_p, 0, ',', '.') : 'N/A' }} VND</p>
+
+        <a href="{{ url('shoppingbasket') }}" class="btn-register">Register Now</a>
+      </div>
     </div>
-    {{--  ////////////////////////////////////////////////--}}
+  </div>
 @endsection
 
-@section('other')
-
-
-
+@section('script')
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
+  </script>
 @endsection

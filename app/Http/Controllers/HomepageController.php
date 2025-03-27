@@ -11,81 +11,70 @@ use Illuminate\Support\Facades\Validator;
 
 class HomepageController extends Controller
 {
-
+    // Hiển thị trang chủ với sản phẩm và danh mục
     public function index()
     {
+        $product = ProductRepos::getAllProductWithCategory();
+        $category = CategoryRepos::getAllCategory();
 
+        return view('ui.index', [
+            'product' => $product,
+            'category' => $category,
+        ]);
+    }
+
+    // Hiển thị trang chính với danh mục
+    public function home()
+    {
+        $category = CategoryRepos::getAllCategory();
         $product = ProductRepos::getAllProductWithCategory();
 
-        return view('ui.index',
-            [
-                'product' => $product,
-
-            ]);
+        return view('ui.home', ['category' => $category, 'product' => $product,]);
     }
 
+    // Hiển thị một sản phẩm cụ thể và danh mục của nó
     public function show($id_p)
     {
-
         $product = ProductRepos::getProductById($id_p);
-
         $category = CategoryRepos::getCategoryByProductId($id_p);
 
-        return view('ui.show',
-            [
-                'product' => $product[0],//get the first element
-
-                'category' => $category[0],
-
-            ]
-        );
+        return view('ui.show', [
+            'product' => $product[0],
+            'category' => $category[0],
+        ]);
     }
 
-//create customer
+    // Hiển thị form tạo khách hàng mới
     public function create()
     {
-
-        return view(
-            'ui.new',
-            ["customer" => (object)[
+        return view('ui.new', [
+            'customer' => (object)[
                 'id_c' => '',
                 'fullname_c' => '',
                 'dob' => '',
-                'gender'=>'',
+                'gender' => '',
                 'phone_c' => '',
                 'email_c' => '',
-                'address_c' => ''
-            ]]);
-
+                'address_c' => '',
+            ],
+        ]);
     }
 
+    // Tìm kiếm sản phẩm dựa trên từ khóa
     public function search(Request $request)
     {
         $query = $request->input('query');
         $product_search = FunctionRepos::searchForProducts($query);
 
-        return view('ui.search',
-            [
-                'product' => $product_search,
-
-            ]);
+        return view('ui.search', [
+            'product' => $product_search,
+        ]);
     }
 
-    public function listcate()
-    {
-        $category = CategoryRepos::getAllCategory();
-
-        return view('ui.category',
-            [
-                'category' => $category,
-
-            ]);
-    }
-
+    // Lưu khách hàng mới vào cơ sở dữ liệu
     public function storecustomer(Request $request)
     {
-//        dd($request->all());
-        $this->formValidate($request)->validate(); //shortcut
+        $this->formValidate($request)->validate(); // Shortcut cho việc xác thực
 
         $customer = (object)[
             'fullname_c' => $request->input('fullname_c'),
@@ -101,50 +90,44 @@ class HomepageController extends Controller
         return view('ui.success');
     }
 
+    // Lấy sản phẩm theo danh mục ID
     public function getproductsfromcate($id)
     {
         $products = FunctionRepos::getProductsByCateId($id);
         $cat = CategoryRepos::getCategoryById($id);
-        return view('ui.productsfromcategory',
-            [
-                'product' => $products,
-                'category' => $cat[0],
 
-            ]);
+        return view('ui.productsfromcategory', [
+            'product' => $products,
+            'category' => $cat[0],
+        ]);
     }
 
+    // Hiển thị chi tiết của một sản phẩm cụ thể
     public function showdetails($id_p)
     {
         $product = ProductRepos::getProductById($id_p);
-        return view('ui.details',
-            [
-                'product' => $product[0],
 
-            ]);
+        return view('ui.details', [
+            'product' => $product[0],
+        ]);
     }
 
+    // Xác thực dữ liệu của form tạo khách hàng
     private function formValidate($request)
     {
-        return Validator::make(
-            $request->all(),
-            [
-                'fullname_c' => ['required','min:5'],
-                'dob' => ['required','date_format:"Y-m-d"'],
-                'phone_c' => ['required','starts_with:0','digits:10'],
-                'email_c' => ['required','email'],
-
-            ],
-            [
-                'fullname_c.required'=>'Please enter Full name',
-                'fullname_c.min'=>'Enter Full Name up to 5 characters',
-                'phone_c.required'=>'Please enter Phone',
-                'phone_c.starts_with'=>'Enter a phone number starting with 0',
-                'phone_c.digits'=>'Please enter exactly 10 numbers',
-                'email_c.required'=>'Please enter Email',
-                'email_c.email'=>'Please enter email form',
-            ]
-
-        );
+        return Validator::make($request->all(), [
+            'fullname_c' => ['required', 'min:5'],
+            'dob' => ['required', 'date_format:"Y-m-d"'],
+            'phone_c' => ['required', 'starts_with:0', 'digits:10'],
+            'email_c' => ['required', 'email'],
+        ], [
+            'fullname_c.required' => 'Vui lòng nhập tên đầy đủ',
+            'fullname_c.min' => 'Vui lòng nhập tên đầy đủ ít nhất 5 ký tự',
+            'phone_c.required' => 'Vui lòng nhập số điện thoại',
+            'phone_c.starts_with' => 'Vui lòng nhập số điện thoại bắt đầu bằng số 0',
+            'phone_c.digits' => 'Vui lòng nhập đúng 10 chữ số',
+            'email_c.required' => 'Vui lòng nhập email',
+            'email_c.email' => 'Vui lòng nhập đúng định dạng email',
+        ]);
     }
-
 }

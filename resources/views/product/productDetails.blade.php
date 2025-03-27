@@ -24,9 +24,6 @@
   <dt class="col-sm-3">Price</dt>
   <dd class="col-sm-9">VND {{$product->price_p }}</dd>
 
-  <dt class="col-sm-3">Size</dt>
-  <dd class="col-sm-9">{{$product->size_p }}</dd>
-
   <dt class="col-sm-3">Description</dt>
   <dd class="col-sm-9">{{$product->description_p }}</dd>
 

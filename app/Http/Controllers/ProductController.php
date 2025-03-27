@@ -11,144 +11,126 @@ class ProductController extends Controller
 {
     public function index()
     {
-
         $product = ProductRepos::getAllProductWithCategory();
 
-        return view('product.index',
-            [
-                'product' => $product,
+        // Định dạng lại giá tiền trước khi truyền vào View
+        foreach ($product as $p) {
+            $p->price_p = number_format($p->price_p, 0, ',', '.');
+        }
 
-            ]);
+        return view('product.index', ['product' => $product]);
     }
 
     public function show($id_p)
     {
-
-        $product = ProductRepos::getProductById($id_p); //xuống lại Database lấy sản phẩm có ID này
-
+        $product = ProductRepos::getProductById($id_p);
         $category = CategoryRepos::getCategoryByProductId($id_p);
 
-        return view('product.show',
-            [
-                'product' => $product[0],//get the first element
+        // Định dạng giá tiền
+        $product[0]->price_p = number_format($product[0]->price_p, 0, ',', '.');
 
-                'category' => $category[0],
-
-            ]
-        );
+        return view('product.show', [
+            'product' => $product[0],
+            'category' => $category[0]
+        ]);
     }
 
     public function create()
     {
         $category = CategoryRepos::getAllCategory();
 
-        return view(
-            'product.new',
-
-
-            ["product" => (object)[
+        return view('product.new', [
+            "product" => (object)[
                 'id_p' => '',
                 'name_p' => '',
                 'image_p' => '',
                 'price_p' => '',
-                'size_p' => '',
                 'description_p' => '',
                 'id_cate' => ''
             ],
-                "category" => $category
-            ]);
-
+            "category" => $category
+        ]);
     }
 
     public function store(Request $request)
-
     {
-        $this->formValidate($request)->validate(); //shortcut
+        $this->formValidate($request)->validate();
+
+        // Chuyển đổi giá tiền thành số để lưu trữ
+        $price = str_replace('.', '', $request->input('price_p'));
 
         $product = (object)[
             'name_p' => $request->input('name_p'),
             'image_p' => $request->input('image_p'),
-            'price_p' => $request->input('price_p'),
-            'size_p' => $request->input('size_p'),
+            'price_p' => (int)$price,
             'description_p' => $request->input('description_p'),
             'categoryid' => $request->input('category')
         ];
 
         $newId = ProductRepos::insert($product);
 
-
-        return redirect()// chuyển hướng
-        ->action('ProductController@index')
-            ->with('msg', 'New Product with id: '.$newId.' has been inserted');
-
+        return redirect()->route('product.index')
+            ->with('msg', 'New Product with id: ' . $newId . ' has been inserted');
     }
 
     public function edit($id_p)
     {
-        $product = ProductRepos::getProductById($id_p); //this is always an array
-
+        $product = ProductRepos::getProductById($id_p);
         $category = CategoryRepos::getAllCategory();
 
-        return view(
-            'product.update',
-            [
-                "product" => $product[0],
-
-                "category" => $category
-            ]);
-
+        return view('product.update', [
+            "product" => $product[0],
+            "category" => $category
+        ]);
     }
 
     public function update(Request $request, $id_p)
     {
         if ($id_p != $request->input('id_p')) {
-
-            return redirect()->action('ProductController@index');
+            return redirect()->route('product.index');
         }
 
-        $this->formValidate($request)->validate(); //shortcut
+        $this->formValidate($request)->validate();
+
+        $price = str_replace('.', '', $request->input('price_p'));
 
         $product = (object)[
             'id_p' => $request->input('id_p'),
             'name_p' => $request->input('name_p'),
             'image_p' => $request->input('image_p'),
-            'price_p' => $request->input('price_p'),
-            'size_p' => $request->input('size_p'),
+            'price_p' => (int)$price,
             'description_p' => $request->input('description_p'),
             'categoryid' => $request->input('category')
-
         ];
+
         ProductRepos::update($product);
 
-        return redirect()->action('ProductController@index')
-            ->with('msg', 'Update Successfully');;
+        return redirect()->route('product.index')
+            ->with('msg', 'Update Successfully');
     }
 
-    public function confirm($id_p){
-        $product = ProductRepos::getProductById($id_p); //this is always an array
-
-
-
-
-
+    public function confirm($id_p)
+    {
+        $product = ProductRepos::getProductById($id_p);
         $category = CategoryRepos::getCategoryByProductId($id_p);
-        return view('product.confirm',
-            [
-                'product' => $product[0],
-                'category' => $category[0],
-            ]
-        );
+
+        // Định dạng giá tiền
+        $product[0]->price_p = number_format($product[0]->price_p, 0, ',', '.');
+
+        return view('product.confirm', [
+            'product' => $product[0],
+            'category' => $category[0],
+        ]);
     }
 
     public function destroy(Request $request, $id_p)
     {
         if ($request->input('id_p') != $id_p) {
-            //id in query string must match id in hidden input
-            return redirect()->action('ProductController@index');
+            return redirect()->route('product.index');
         }
 
         ProductRepos::delete($id_p);
-        return redirect()->action('ProductController@index')
+        return redirect()->route('product.index')
             ->with('msg', 'Delete Successfully');
     }
 
@@ -157,18 +139,14 @@ class ProductController extends Controller
         return Validator::make(
             $request->all(),
             [
-                'image_p' =>['required'],
-                'name_p'=>['required'],
-                'price_p'=>['required'],
-                'size_p' =>['required'],
+                'image_p' => ['required'],
+                'name_p' => ['required'],
+                'price_p' => ['required'],
             ],
             [
-                'image_p.required' => 'please enter image',
-                'name_p.required' => 'please enter name!',
-
-                'price.required'=>'please enter price',
-                'size_p.required' => 'please enter size',
-
+                'image_p.required' => 'Please enter image',
+                'name_p.required' => 'Please enter name!',
+                'price_p.required' => 'Please enter price',
             ]
         );
     }

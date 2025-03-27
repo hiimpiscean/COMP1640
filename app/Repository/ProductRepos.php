@@ -26,15 +26,14 @@ class ProductRepos
 
     public static function insert($product){
         $sql = 'insert into product ';
-        $sql .= '(name_p, image_p, price_p, size_p, description_p, categoryid) ';
-        $sql .= 'values (?, ?, ?, ?, ?, ?) ';
+        $sql .= '(name_p, image_p, price_p, description_p, categoryid) ';
+        $sql .= 'values (?, ?, ?, ?, ?) ';
 
         $result =  DB::insert($sql,
             [
                 $product->name_p,
                 $product->image_p,
                 $product->price_p ,
-                $product->size_p ,
                 $product->description_p ,
                 $product->categoryid]);
 
@@ -48,7 +47,7 @@ class ProductRepos
 
     public static function update($product){
         $sql = 'update product ';
-        $sql .= 'set name_p = ?, image_p = ?, price_p = ?, size_p = ?, description_p = ?, categoryid = ? ';
+        $sql .= 'set name_p = ?, image_p = ?, price_p = ?, description_p = ?, categoryid = ? ';
         $sql .= 'where id_p = ? ';
 
         DB::update($sql,
@@ -56,7 +55,6 @@ class ProductRepos
                 $product->name_p,
                 $product->image_p,
                 $product->price_p,
-                $product->size_p,
                 $product->description_p,
                 $product->categoryid,
                 $product->id_p]);
