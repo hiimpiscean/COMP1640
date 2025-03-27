@@ -3,8 +3,14 @@
 @section('main')
 
   <style>
+    .container-search {
+        max-width: 1700px;
+      margin: auto;
+    }
+
     .pa {
-      margin-top: 50px;
+      margin-top: 20px;
+      margin-bottom: 20px;
     }
 
     .view {
@@ -36,7 +42,6 @@
 
     .carousel img {
       width: 100%;
-      height: 40vh;
       object-fit: cover;
       filter: brightness(60%);
     }
@@ -66,7 +71,7 @@
 
   <body class="sub_page">
   <section class="food_section">
-    <div class="container">
+    <div class="container-search">
       <!-- Carousel -->
       <div id="carouselExampleInterval" class="carousel slide" data-ride="carousel">
         <div class="carousel-inner">
@@ -81,7 +86,7 @@
 
       <!-- Search Results -->
       <div class="heading_container heading_center pa">
-        <h1>Your Search Product</h1>
+        <h1>Your Search Courses</h1>
       </div>
 
       <div class="filters-content flexitem">
@@ -90,7 +95,7 @@
             @include('partials.productLoop')
           @else
             <div>
-              <h2>No products found!</h2>
+              <h2>No courses found!</h2>
             </div>
           @endif
         </div>
@@ -110,4 +115,11 @@
 @endsection
 
 @section('script')
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
+  </script>
 @endsection

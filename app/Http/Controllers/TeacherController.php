@@ -1,14 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Repository\CustomerRepos;
 use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class TeacherController extends Controller
 {
+
     public function index()
     {
         $teacher = TeacherRepos::getAllTeacher();

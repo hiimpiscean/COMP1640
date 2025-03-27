@@ -20,11 +20,12 @@ class CommentRepos
     public static function insertComment($data)
     {
         $sql = 'insert into comment ';
-        $sql .= '(blog_id, content_cmt, created_at, updated_at)';
-        $sql .= ' values (?, ?, now(), now())';
+        $sql .= '(blog_id, content_cmt, author_cmt, created_at, updated_at)';
+        $sql .= ' values (?, ?, ?, now(), now())';
         $result = DB::insert($sql, [
             $data->blog_id,
             $data->content_cmt,
+            $data->author_cmt,
         ]);
 
         return $result ? DB::getPdo()->lastInsertId() : -1;
@@ -34,6 +35,6 @@ class CommentRepos
     {
         $sql = 'delete from comment ';
         $sql .= 'where id_cmt = ?';
-        DB::delete($sql, [$commentId]);
+        return DB::delete($sql, [$commentId]);
     }
 }

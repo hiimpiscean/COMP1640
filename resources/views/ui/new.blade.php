@@ -2,123 +2,156 @@
 
 @section('main')
   <style>
-    body {
+    /* Global Reset */
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
-      background: #f8f9fa;
-      font-family: 'Poppins', sans-serif;
+      box-sizing: border-box;
     }
-
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 30px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-title {
-      font-size: 1.8em;
-      color: #333;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-
-    .form label {
-      display: block;
-      font-weight: bold;
-      margin-top: 10px;
-      color: #555;
-    }
-
-    .form input, .form select {
-      width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1em;
-      background: #fff;
-      transition: 0.3s;
-    }
-
-    .form input:focus, .form select:focus {
-      border-color: #d4a50c;
-      outline: none;
-      box-shadow: 0 0 5px rgba(212, 165, 12, 0.5);
-    }
-
-    .form input::placeholder {
-      color: #aaa;
-    }
-
-    .btn-container {
+    body {
+      background: #4e657a;
+      color: #fff;
+      min-height: 100vh;
       display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+      justify-content: center;
+      align-items: center;
+    }
+    a {
+      color: inherit;
+      transition: color 0.3s ease;
+    }
+    a:focus, a:hover {
+      text-decoration: none;
     }
 
-    .btn {
-      padding: 10px 20px;
-      font-size: 16px;
+    /* Layout */
+    .form-container {
+      padding: 2rem;
+      width: 1000px;
+      margin: auto;
+      background: #50697f;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Form Styling */
+    .form-label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #415a70;
       border-radius: 5px;
-      transition: all 0.3s ease;
+      background: #394e64;
+      color: #fff;
+      margin-bottom: 1rem;
+      height: auto !important;
     }
 
-    .btn-dark:hover {
-      background-color: #23272b;
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: space-evenly;
+    }
+
+    .btn-primary, .btn-info {
+      width: 120px; /* Đảm bảo cả hai nút có cùng kích thước */
+      text-align: center;
+      padding: 10px;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      background: #f5a623;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #e6951d;
+    }
+
+    .btn-info {
+      background: #60a6dd;
+      color: #fff;
     }
 
     .btn-info:hover {
-      background-color: #117a8b;
+      background: #394e64;
+    }
+
+    .mb-3 {
+      margin-bottom: 1rem;
     }
   </style>
 
-  <div class="container">
-    <h1 class="form-title">New Student</h1>
-
+  <div class="form-container">
+    <h2>New Student</h2>
     @include('partials.errors')
-
     <form action="{{ route('customer.store') }}" method="post">
       @csrf
-      <input type="hidden" name="id_c" value="{{old('id_c')?? $customer->id_c}}">
-      <div class="form">
-        <label>Full Name
-          <input type="text" id="fullname_c" name="fullname_c" placeholder="Enter your full name" value="{{old('fullname_c')?? $customer->fullname_c}}">
-        </label>
-        <label>DOB
-          <input type="date" id="dob" name="dob" value="{{old('dob')?? $customer->dob}}">
-        </label>
-        <label>Gender
-          <select id="gender" name="gender">
-            <option>Female</option>
-            <option>Male</option>
-            <option>Other</option>
-          </select>
-        </label>
-        <label>Email
-          <input type="email" id="email" name="email" placeholder="Enter your email" value="{{old('email')?? $customer->email}}">
-        </label>
-        <label>Address
-          <input type="text" id="address_c" name="address_c" placeholder="Enter your address" value="{{old('address_c')?? $customer->address_c}}">
-        </label>
-        <label>Phone
-          <input type="tel" id="phone_c" name="phone_c" placeholder="Enter your phone number" value="{{old('phone_c')?? $customer->phone_c}}">
-        </label>
-        <label>Password
-          <input type="password" name="password" placeholder="Enter Password"
-                 @if(!isset($customer->id_c)) required @endif>
-        </label>
-        <label>Confirm Password
-          <input type="password" name="password_confirmation" placeholder="Enter Confirm Password"
-                 @if(!isset($customer->id_c)) required @endif>
-        </label>
-        <div class="btn-container">
-          <button type="submit" class="btn btn-dark">Sign up</button>
-          <a href="{{ route('customer.index') }}" class="btn btn-info">Cancel</a>
-        </div>
+      <input type="hidden" name="id_c" value="{{ old('id_c') ?? $customer->id_c }}">
+
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="fullname_c" name="fullname_c" class="form-control" placeholder="Enter your full name" value="{{ old('fullname_c') ?? $customer->fullname_c }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">DOB</label>
+        <input type="date" id="dob" name="dob" class="form-control" value="{{ old('dob') ?? $customer->dob }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Gender</label>
+        <select id="gender" name="gender" class="form-control">
+          <option>Female</option>
+          <option>Male</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" value="{{ old('email') ?? $customer->email }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Address</label>
+        <input type="text" id="address_c" name="address_c" class="form-control" placeholder="Enter your address" value="{{ old('address_c') ?? $customer->address_c }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <input type="tel" id="phone_c" name="phone_c" class="form-control" placeholder="Enter your phone number" value="{{ old('phone_c') ?? $customer->phone_c }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Enter Password" @if(!isset($customer->id_c)) required @endif>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="password_confirmation" class="form-control" placeholder="Enter Confirm Password" @if(!isset($customer->id_c)) required @endif>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-primary">Sign up</button>
+        <a href="{{ route('customer.index') }}" class="btn-info">Cancel</a>
       </div>
     </form>
   </div>

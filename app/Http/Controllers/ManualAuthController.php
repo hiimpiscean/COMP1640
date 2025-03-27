@@ -63,8 +63,6 @@ class ManualAuthController extends Controller
             }
 
 
-
-
         if ($user) {
             $displayName = $role === 'admin' || $role === 'staff' ? $user->username : $user->email;
             Session::put('username', $displayName);

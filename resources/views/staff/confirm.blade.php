@@ -9,7 +9,6 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Roboto', Helvetica, Arial, sans-serif;
       background: #4e657a;
       color: #fff;
     }
@@ -43,15 +42,26 @@
       padding-bottom: 0.5rem;
     }
 
+    .button-group {
+      display: flex;
+      gap: 15px;
+    }
+
     .btn-secondary, .btn-danger {
-      background: #394e64;
-      color: #fff;
-      padding: 10px 20px;
+      width: 120px; /* Đảm bảo cả hai nút có cùng kích thước */
+      text-align: center;
+      padding: 10px;
       border-radius: 5px;
       text-decoration: none;
       transition: background 0.3s ease;
       border: none;
       cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .btn-secondary {
+      background: #394e64;
+      color: #fff;
     }
 
     .btn-secondary:hover {
@@ -60,6 +70,7 @@
 
     .btn-danger {
       background: #d9534f;
+      color: #fff;
     }
 
     .btn-danger:hover {
@@ -82,9 +93,10 @@
     <form action="{{ route('staff.destroy', $staff->id_s) }}" method="POST">
       @csrf
       @method('DELETE')
-
-      <button type="submit" class="btn-danger">Xóa</button>
-      <a href="{{ route('staff.index') }}" class="btn-secondary">Hủy</a>
+      <div class="button-group">
+        <button type="submit" class="btn-danger">Xóa</button>
+        <a href="{{ route('staff.index') }}" class="btn-secondary">Hủy</a>
+      </div>
     </form>
   </div>
 @endsection

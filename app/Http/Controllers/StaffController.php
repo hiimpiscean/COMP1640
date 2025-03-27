@@ -5,9 +5,69 @@ namespace App\Http\Controllers;
 use App\Repository\StaffRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\StudentJoinedClass;
+use Illuminate\Support\Facades\Notification;
+use App\Models\ClassAssignment;
+use App\Models\RegistrationRequest;
+use App\Models\User;
+use App\Notifications\ClassAssigned;
+use App\Notifications\TeacherAssignment;
+use Illuminate\Support\Facades\Auth;
 
 class StaffController extends Controller
 {
+    public function viewRegistrations()
+    {
+        $registrations = RegistrationRequest::where('status', 'pending')
+            ->with(['student', 'requestedClass'])
+            ->latest()
+            ->paginate(20);
+
+        return view('staff.registrations', compact('registrations'));
+    }
+
+    public function assignClass(Request $request, $registrationId)
+    {
+        $validated = $request->validate([
+            'class_id' => 'required|exists:classes,id',
+            'notes' => 'nullable|string'
+        ]);
+
+        $registration = RegistrationRequest::findOrFail($registrationId);
+
+        // Cập nhật registration request
+        $registration->update([
+            'status' => 'assigned',
+            'processed_by' => Auth::id(),
+            'notes' => $request->notes
+        ]);
+        // Tạo class assignment
+        $assignment = ClassAssignment::create([
+            'student_id' => $registration->student_id,
+            'class_id' => $request->class_id,
+            'assigned_by' => Auth::id(),
+            'status' => 'pending'
+        ]);
+
+        // Lấy thông tin sinh viên
+        $student = User::find($registration->student_id);
+
+        // Lấy thông tin giáo viên của lớp
+        $class = Classes::find($request->class_id);
+        $teachers = $class->teachers;
+
+        // Thông báo cho giáo viên
+        foreach ($teachers as $teacher) {
+            $teacher->notify(new TeacherAssignment($assignment));
+        }
+
+        // Thông báo cho sinh viên
+        $student->notify(new ClassAssigned($assignment));
+
+        return redirect()->route('staff.registrations')
+            ->with('success', "Đã xếp lớp {$class->name} cho sinh viên {$student->name}");
+    }
+
     public function index()
     {
         $staff = StaffRepos::getAllStaff();

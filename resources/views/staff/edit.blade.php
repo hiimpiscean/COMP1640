@@ -9,9 +9,12 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Roboto', Helvetica, Arial, sans-serif;
       background: #4e657a;
       color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     a {
       color: inherit;
@@ -24,12 +27,11 @@
     /* Layout */
     .form-container {
       padding: 2rem;
-      max-width: 600px;
+      width: 1000px;
       margin: auto;
       background: #50697f;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      margin-top: 30px;
     }
 
     h2 {
@@ -52,6 +54,7 @@
       background: #394e64;
       color: #fff;
       margin-bottom: 1rem;
+      height: auto !important;
     }
 
     .btn-primary {
@@ -68,6 +71,25 @@
 
     .btn-primary:hover {
       background: #e6951d;
+      transform: scale(1.05);
+    }
+
+    .btn-info {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #60a6dd;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      border-radius: 5px;
+      text-align: center;
+      transition: background 0.3s ease, transform 0.2s ease;
+      margin-top: 10px;
+    }
+
+    .btn-info:hover {
+      background: #394e64;
       transform: scale(1.05);
     }
   </style>

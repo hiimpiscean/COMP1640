@@ -136,7 +136,7 @@
         <p>{{ $product->name_p ?? 'N/A' }}</p>
 
         <h3>About This Course</h3>
-        <p>{{ $product->description_p ?? 'N/A' }}</p>
+        <p style="white-space: pre-wrap;">{{ $product->description_p ?? 'N/A' }}</p>
 
         <h3>Price</h3>
         <p class="price">{{ isset($product->price_p) ? number_format($product->price_p, 0, ',', '.') : 'N/A' }} VND</p>

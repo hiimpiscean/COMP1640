@@ -64,7 +64,7 @@ class HomepageController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
-        $product_search = FunctionRepos::searchForProducts($query)->paginate(6);
+        $product_search = FunctionRepos::searchForProducts($query);
 
         return view('ui.search', [
             'product' => $product_search,
@@ -75,7 +75,7 @@ class HomepageController extends Controller
     // Lưu khách hàng mới vào cơ sở dữ liệu
     public function storecustomer(Request $request)
     {
-        $this->formValidate($request)->validate(); // Shortcut cho việc xác thực
+        $this->formValidate($request)->validate();
 
         $customer = (object)[
             'fullname_c' => $request->input('fullname_c'),

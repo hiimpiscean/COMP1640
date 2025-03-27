@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
+
     public function index()
     {
         $product = ProductRepos::getAllProductWithCategory();
 
-        // Định dạng lại giá tiền trước khi truyền vào View
         foreach ($product as $p) {
             $p->price_p = number_format($p->price_p, 0, ',', '.');
         }
@@ -26,7 +26,6 @@ class ProductController extends Controller
         $product = ProductRepos::getProductById($id_p);
         $category = CategoryRepos::getCategoryByProductId($id_p);
 
-        // Định dạng giá tiền
         $product[0]->price_p = number_format($product[0]->price_p, 0, ',', '.');
 
         return view('product.show', [
@@ -132,6 +131,23 @@ class ProductController extends Controller
         ProductRepos::delete($id_p);
         return redirect()->route('product.index')
             ->with('msg', 'Delete Successfully');
+    }
+
+    public function curriculumGeneral()
+    {
+        $product = ProductRepos::getAllProduct(); // Lấy tất cả sản phẩm
+        return view('flm.curriculum', compact('product'));
+    }
+
+    public function curriculum($productName = null)
+    {
+        if ($productName) {
+            $product = ProductRepos::getProductByName($productName);
+        } else {
+            $product = null;
+        }
+
+        return view('flm.curriculum', compact('product', 'productName'));
     }
 
     private function formValidate($request)

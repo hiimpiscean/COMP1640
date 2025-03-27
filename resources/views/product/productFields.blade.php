@@ -1,15 +1,50 @@
 <style>
-  .boy {
+  /* Global Reset */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    background: #4e657a;
+    color: #fff;
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
+  }
+
+  /* Form Container */
+  .form-container {
     max-width: 800px;
     margin: 20px auto;
     padding: 20px;
+    background: #50697f;
     border-radius: 8px;
-    background: #fff;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
   }
 
+  /* Form Groups */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #415a70;
+    border-radius: 5px;
+    background: #394e64;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+
+  /* Image Styling */
   .img {
-    max-width: 100%;
+    max-width: 300px;
     height: auto;
     display: block;
     border-radius: 8px;
@@ -17,15 +52,16 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   }
 
+  /* Responsive */
   @media (max-width: 768px) {
-    .boy {
+    .form-container {
       width: 90%;
       padding: 15px;
     }
   }
 </style>
 
-<div class="boy">
+<div class="form-container">
   <input type="hidden" name="id_p" value="{{ old('id_p') ?? $product->id_p }}">
 
   <div class="form-group">
