@@ -77,11 +77,11 @@
   </style>
 
   <div class="container">
-    <h1 class="form-title">New Customer</h1>
+    <h1 class="form-title">New Student</h1>
 
     @include('partials.errors')
 
-    <form action="{{route('ui.store')}}" method="post">
+    <form action="{{ route('customer.store') }}" method="post">
       @csrf
       <input type="hidden" name="id_c" value="{{old('id_c')?? $customer->id_c}}">
       <div class="form">
@@ -99,7 +99,7 @@
           </select>
         </label>
         <label>Email
-          <input type="email" id="email_c" name="email_c" placeholder="Enter your email" value="{{old('email_c')?? $customer->email_c}}">
+          <input type="email" id="email" name="email" placeholder="Enter your email" value="{{old('email')?? $customer->email}}">
         </label>
         <label>Address
           <input type="text" id="address_c" name="address_c" placeholder="Enter your address" value="{{old('address_c')?? $customer->address_c}}">
@@ -108,14 +108,16 @@
           <input type="tel" id="phone_c" name="phone_c" placeholder="Enter your phone number" value="{{old('phone_c')?? $customer->phone_c}}">
         </label>
         <label>Password
-          <input type="password" name="password" placeholder="Enter your Password" required>
+          <input type="password" name="password" placeholder="Enter Password"
+                 @if(!isset($customer->id_c)) required @endif>
         </label>
         <label>Confirm Password
-          <input type="password" name="password_confirmation" placeholder="Enter Confirm Password" required>
+          <input type="password" name="password_confirmation" placeholder="Enter Confirm Password"
+                 @if(!isset($customer->id_c)) required @endif>
         </label>
         <div class="btn-container">
           <button type="submit" class="btn btn-dark">Sign up</button>
-          <a href="{{route('ui.index')}}" class="btn btn-info">Cancel</a>
+          <a href="{{ route('customer.index') }}" class="btn btn-info">Cancel</a>
         </div>
       </div>
     </form>

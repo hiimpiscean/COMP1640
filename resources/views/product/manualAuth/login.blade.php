@@ -64,7 +64,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light navbar-laravel">
   <div class="container">
-    <a class="navbar-brand" href="#">ATN portal</a>
+    <a class="navbar-brand" href="{{ route('ui.index') }}">ATN Website Courses</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -98,9 +98,9 @@
             <form action="{{route('auth.signin')}}" method="post">
               @csrf
               <div class="form-group row">
-                <label for="username" class="col-md-4 col-form-label text-md-right">User Name</label>
+                <label for="login" class="col-md-4 col-form-label text-md-right">Email</label>
                 <div class="col-md-6">
-                  <input type="text" id="username" class="form-control" name="username" >
+                  <input type="text" id="login" class="form-control" name="login">
                 </div>
               </div>
 

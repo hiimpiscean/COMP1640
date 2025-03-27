@@ -1,489 +1,143 @@
 @extends('masters.dashboardMaster')
 
 @section('main')
-
   <style>
-    html {
-      font-size: 16px;
-      overflow-x: hidden;
+    /* Global Reset */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-
     body {
-      font-family: Roboto, Helvetica, Arial, sans-serif;
-      background-color: #4e657a;
-      overflow-x: hidden;
+      font-family: 'Roboto', Helvetica, Arial, sans-serif;
+      background: #4e657a;
+      color: #fff;
     }
-
     a {
-      transition: all 0.3s ease;
+      color: inherit;
+      transition: color 0.3s ease;
     }
-
-    a:focus,
-    a:hover {
+    a:focus, a:hover {
       text-decoration: none;
     }
 
-    button:focus {
-      outline: 0;
+    /* Layout */
+    .customer-container {
+      padding: 2rem;
+      max-width: 100%;
+      overflow-x: auto;
     }
 
-
-    .navbar .container {
-      position: relative;
+    /* Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .table-custom {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      background: #50697f;
+      font-size: 0.9rem;
+    }
+    .table-custom thead {
+      background: #486177;
+    }
+    .table-custom th, .table-custom td {
+      padding: 12px 20px;
+      border: 1px solid #415a70;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .table-custom tbody tr:hover {
+      background: rgba(245, 166, 35, 0.1);
     }
 
-    .tm-block-col {
-      margin-bottom: 30px;
-    }
-
-    .tm-block {
-      padding: 40px;
-      -webkit-box-shadow: 1px 1px 5px 0 #455c71;
-      -moz-box-shadow: 1px 1px 5px 0 #455c71;
-      box-shadow: 1px 1px 5px 0 #455c71;
-      min-height: 350px;
-      height: 100%;
-      max-height: 450px;
-    }
-
-
-    .nav-link > i {
-      margin-bottom: 10px;
-      margin-right: 0;
-      font-size: 1.5rem;
-    }
-
-    .navbar-nav .active > .nav-link,
-    .navbar-nav .nav-link.active {
-      background-color: #f5a623;
-      color: #fff;
-    }
-
-    .navbar-nav .nav-link.active i {
-      color: #fff;
-    }
-
-    .navbar-nav a:hover,
-    .navbar-nav a:hover i {
-      color: #f5a623;
-    }
-
-    .tm-content-row {
-      justify-content: space-between;
-      margin-left: -20px;
-      margin-right: -20px;
-    }
-
-
-    .table {
-      background-color: #50697f;
-      color: #fff;
-      font-size: 85%;
-      margin-bottom: 0;
-    }
-
-    thead {
-      background-color: #486177;
-      color: #fff;
-    }
-
-    .table thead th {
-      border-bottom: 0;
-    }
-
-
-    .tm-avatar-container:hover .tm-avatar-delete-link {
-      display: block;
-    }
-
-    .form-group label {
-      color: #fff;
-      margin-bottom: 10px;
-    }
-
-    .tm-list-group > li {
-      list-style-type: none;
-      position: relative;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      padding: 8px;
-    }
-
-    .tm-list-group > li:hover {
-      color: #0266c4;
-    }
-
-    .tm-list-group > li:before {
-      counter-increment: myOrderedListItemsCounter;
-      content: counter(myOrderedListItemsCounter) ".";
-      margin-right: 0.5em;
-    }
-
-    .tm-list > li {
-      margin-bottom: 20px;
-    }
-
-
-    .table td,
-    .table th {
-      border-top: 1px solid #415a70;
-      padding: 15px 25px;
-      vertical-align: middle;
-    }
-
-    .tm-table-small td,
-    .tm-table-small th {
-      padding-left: 12px;
-      padding-right: 12px;
-    }
-
-    .table-hover tbody tr {
-      transition: all 0.2s ease;
-    }
-
-    .table-hover tbody tr:hover {
-      color: #a0c0de;
-    }
-
-    .tm-bg-primary-dark {
-      background-color: #435c70;
-    }
-
-    .page-item:first-child .page-link {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-    }
-
-    .page-item:last-child .page-link {
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-
-    .page-item.active .page-link {
-      background-color: #e9ecef;
-      border-color: #dee2e6;
-      color: #000;
-    }
-
-    input[type="checkbox"] {
-      cursor: pointer;
-      -webkit-appearance: none;
-      appearance: none;
-      background-color: #394e64;
-      background-position: center;
+    /* Action Links */
+    .action-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
-      box-sizing: border-box;
-      position: relative;
-      box-sizing: content-box;
-      width: 24px;
-      height: 24px;
-      transition: all 0.1s linear;
+      background: #394e64;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .action-link:hover {
+      background: #f5a623;
+      transform: scale(1.1);
     }
 
-    input[type="checkbox"]:focus {
-      outline: 0 none;
-      box-shadow: none;
-    }
-
-    .tm-block-products {
-      min-height: 500px;
-      margin-top: 60px;
-      width: 1200px;
-
-
-    }
-
-    .tm-product-table-container {
-      max-height: 465px;
-      margin-bottom: 15px;
-      overflow-y: scroll;
-    }
-
-    .tm-product-table tr {
-      font-weight: 600;
-    }
-
-    .tm-product-delete-link {
-      padding: 10px;
-      border-radius: 50%;
-      background-color: #394e64;
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      text-align: center;
-    }
-
-    .tm-product-delete-link:hover .tm-product-delete-icon {
-      color: #6d8ca6;
-    }
-
-
-    .tm-product-img-edit i {
-      display: none;
-      position: absolute;
-    }
-
-    .tm-product-img-edit:hover i {
-      display: block;
-    }
-
-
-    .navbar-toggler:hover .tm-nav-icon {
-      color: #f5a623;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #394f62;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #6d8da6;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #8ab5d6;
-    }
-
-    .tm-footer-link {
-      color: white;
-    }
-
-    .tm-footer-link:hover,
-    .tm-footer-link:focus {
-      color: #aacbea;
-    }
-
-    @media (min-width: 1200px) {
-      .navbar-expand-xl .navbar-nav .nav-link {
-        padding-left: 20px;
-        padding-right: 20px;
+    /* Responsive */
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: auto;
       }
-
-      .navbar-collapse {
-        height: 100%;
+      .table-custom, .table-custom thead, .table-custom tbody, .table-custom th, .table-custom td, .table-custom tr {
+        display: block;
       }
-    }
-
-    @media (min-width: 992px) {
-      .navbar-expand-lg .navbar-nav .nav-link {
-        padding: 15px 20px;
-      }
-    }
-
-    @media (max-width: 1275px) and (min-width: 1200px) {
-      .nav-item {
-        margin-right: 15px;
-      }
-    }
-
-    @media (max-width: 1350px) {
-      .nav-item {
-        margin-right: 1px;
-      }
-    }
-
-    @media (max-width: 1199px) {
-      .tm-col-big,
-      .tm-col-small {
-        width: 49.65%;
-      }
-
-      .navbar-collapse {
-        padding: 0;
-        box-shadow: rgba(255, 255, 255, 0.1) 0 1px 1px 1px;
-        position: absolute;
-        top: 72px;
-        right: 20px;
-        width: 200px;
-        z-index: 1000;
-      }
-
-      .dropdown-menu {
-        text-align: center;
-      }
-
-      .nav-link {
-        color: #fff;
-        background-color: #567086;
-        padding: 15px;
-        flex-direction: row;
-      }
-
-      .nav-link > i {
-        font-size: 1rem;
-        margin-right: 10px;
-        margin-bottom: 0;
-      }
-
-      .nav-item {
-        margin-right: 0;
-      }
-
-      .tm-block-taller {
-        max-height: 520px;
-      }
-    }
-
-    @media (max-width: 1199.98px) {
-      .navbar-expand-xl > .container,
-      .navbar-expand-xl > .container-fluid {
-        padding-left: 15px;
-        padding-right: 15px;
-      }
-
-      .navbar-collapse {
-        right: 15px;
-      }
-    }
-
-    @media (max-width: 991px) {
-      .tm-col-big,
-      .tm-col-small {
-        width: 100%;
-        min-height: 383px;
-        height: auto;
-      }
-
-      .tm-block {
-        padding: 30px;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .tm-col-account-settings,
-      .tm-col-avatar {
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .tm-block-avatar {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .tm-avatar {
-        align-self: center;
-      }
-
-      .tm-hide-sm {
+      .table-custom th {
         display: none;
       }
-    }
-
-    @media (max-width: 633px) {
-      .page-item {
-        margin-top: 10px;
+      .table-custom td {
+        padding-left: 50%;
+        position: relative;
+        border: none;
+        white-space: normal;
       }
-
-      .custom-select {
-        background-position: 96%;
-      }
-    }
-
-    @media (max-width: 574px) {
-      .navbar-collapse {
-        top: 47px;
-      }
-
-      .navbar {
-        height: 50px;
-      }
-
-      .tm-site-title {
-        font-size: 1.4rem;
-        margin-left: 7px;
-      }
-
-      .tm-site-icon {
-        font-size: 2em;
+      .table-custom td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        padding-left: 1rem;
+        font-weight: bold;
+        white-space: nowrap;
       }
     }
-
-    @media (max-width: 480px) {
-      .tm-mt-big {
-        margin-top: 45px;
-      }
-
-      .tm-mb-big {
-        margin-bottom: 45px;
-      }
-
-      #barChart,
-      #lineChart {
-        max-height: 350px;
-      }
-    }
-
-
-    .header__navbar-item--has-qr .header__qr {
-      position: absolute;
-    }
-
-    .header__navbar-item--has-qr:hover .header__qr {
-      display: block;
-    }
-
-
   </style>
-  <div class="container boy">
-    <h1 class="display-4 cus">Customer Index</h1>
-    <div class="container mt-5">
-      <div class="row tm-content-row">
-        <div class="col-sm-12 col-md-12 col-lg-8 col-xl-8 tm-block-col">
-          @include('customer.sessionmessage')
-          <div class="tm-bg-primary-dark tm-block tm-block-products">
-            <div class="tm-product-table-container">
-              <table class="table table-hover tm-table-small tm-product-table">
-                <thead>
-                <tr>
-                  <th scope="col">Full Name</th>
-                  <th scope="col">DOB</th>
-                  <th scope="col">Gender</th>
-                  <th scope="col">Phone</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Address</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($customer as $c)
-                  <tr>
-                    <td class=" ">{{$c->fullname_c}}</td>
-                    <td class=" ">{{$c->dob}}</td>
-                    <td class=" ">{{$c->gender}}</td>
-                    <td class=" ">{{$c->phone_c}}</td>
-                    <td class=" ">{{$c->email_c}}</td>
-                    <td class=" ">{{$c->address_c}}</td>
-                    <td class="but"><a type="button" class="tm-product-delete-link "
-                                       href="{{route('customer.show', ['id_c' => $c->id_c])}}"
-                      ><i class="bi bi-eye"></i></a>
-                    </td>
-                    <td class="but"><a type="button" class="tm-product-delete-link "
-                                       href="{{route('customer.edit', ['id_c' => $c->id_c])}}"
-                      ><i class="bi bi-plus-square"></i></a>
-                    </td>
-                    <td class="but">
 
-                      <a type="button" class="tm-product-delete-link"
-                         href="{{route('customer.confirm', ['id_c' => $c->id_c])}}"
-                      ><i class="bi bi-trash3-fill"></i></a></td>
-                  </tr>
-                @endforeach
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-      </div>
+  <div class="customer-container">
+    @include('customer.sessionmessage')
+    <div class="table-container">
+      <table class="table-custom">
+        <thead>
+        <tr>
+          <th>Full Name</th>
+          <th>DOB</th>
+          <th>Gender</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Address</th>
+          <th>Password</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($customer as $c)
+          <tr>
+            <td data-label="Full Name">{{ $c->fullname_c }}</td>
+            <td data-label="DOB">{{ $c->dob }}</td>
+            <td data-label="Gender">{{ $c->gender }}</td>
+            <td data-label="Phone">{{ $c->phone_c }}</td>
+            <td data-label="Email">{{ $c->email }}</td>
+            <td data-label="Address">{{ $c->address_c }}</td>
+            <td data-label="Password">{{ $c->password }}</td>
+            <td data-label="Actions">
+              <a class="action-link" href="{{ route('customer.show', ['id_c' => $c->id_c]) }}">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a class="action-link" href="{{ route('customer.edit', ['id_c' => $c->id_c]) }}">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <a class="action-link" href="{{ route('customer.confirm', ['id_c' => $c->id_c]) }}">
+                <i class="bi bi-trash3-fill"></i>
+              </a>
+            </td>
+          </tr>
+        @endforeach
+        </tbody>
+      </table>
     </div>
   </div>
-
-@endsection
-
-@section('script')
 @endsection

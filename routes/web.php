@@ -28,18 +28,21 @@ Route::get('/', [
     'as' => 'ui.index'
 ]);
 
-Route::get('/blog', function () {
-    return view('ui.blog');
-})->name('ui.blog');
 Route::get('/team', function () {
     return view('ui.team');
 })->name('ui.team');
+
 Route::get('/testimonial', function () {
     return view('ui.testimonial');
 })->name('ui.testimonial');
+
 Route::get('/schedule', function () {
     return view('ui.schedule');
 })->name('ui.schedule');
+
+Route::get('/flm', function () {
+    return view('ui.flm');
+})->name('ui.flm');
 
 Route::group(['prefix' => 'home'], function () {
 
@@ -53,10 +56,6 @@ Route::group(['prefix' => 'home'], function () {
         'uses' => 'HomepageController@getproductsfromcate',
         'as' => 'ui.showproducts'
     ]);
-//    Route::get('category',[
-//        'uses' => 'HomepageController@listcate',
-//        'as' => 'ui.category'
-//    ]);
     //details
 
     Route::get('details/{id_p?}',[
@@ -159,8 +158,13 @@ Route::group(['prefix' => 'blog'], function () {
     ]);
 
     // Route cho bình luận
-    Route::post('{id}/comment', [BlogController::class, 'storeComment'])->name('blog.comment.store');
-    Route::post('{id}/comment/{commentId}/destroy', [BlogController::class, 'destroyComment'])->name('blog.comment.destroy');
+    Route::post('{id}/comment', [
+        BlogController::class, 'storeComment'
+    ])->name('blog.comment.store');
+
+    Route::post('{id}/comment/{commentId}/destroy', [
+        BlogController::class, 'destroyComment'
+    ])->name('blog.comment.destroy');
 });
 
 ///////////handicraftRepos/////////////////////////
@@ -314,6 +318,12 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
     Route::post('delete/{id_c}',[
         'uses' => 'CustomerController@destroy',
         'as' => 'customer.destroy'
+    ]);
+
+    // Thêm route POST cho việc tạo mới customer
+    Route::post('create', [
+        'uses' => 'CustomerController@store',
+        'as' => 'customer.store'
     ]);
 });
 

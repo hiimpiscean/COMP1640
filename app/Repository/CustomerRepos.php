@@ -3,71 +3,71 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class CustomerRepos
 {
     public static function getAllCustomer() {
-        $sql = 'select c.* ';
-        $sql .= 'from customer as c ';
-        $sql .= 'order by c.fullname_c';
-
-        return DB::select ($sql);
+        // Gán mặc định role là 'customer' cho mỗi bản ghi
+        $sql = "select c.*, 'customer' as role ";
+        $sql .= "from customer as c ";
+        $sql .= "order by c.fullname_c ";
+        return DB::select($sql);
     }
 
     public static function getCustomerById($id_c){
-        $sql = 'select c.* ';
-        $sql .= 'from customer as c ';
-        $sql .= 'where c.id_c = ? ';
-
-        return DB::select($sql, [$id_c]);
+        $sql = "select c.*, 'customer' as role ";
+        $sql .= "from customer as c ";
+        $sql .= "where c.id_c = ? ";
+        $result = DB::select($sql, [$id_c]);
+        return $result ? $result[0] : null;
     }
 
-    public static function insert($customer){
-        $sql = 'insert into customer ';
-        $sql .= '(fullname_c, dob, gender, phone_c, email_c, address_c) ';
-        $sql .= 'values (?, ?, ?, ?, ?, ?) ';
+    public static function insert($customer): bool
+    {
+        $hashedPassword = Hash::make($customer->password);
 
-        $result =  DB::insert($sql, [
+        $sql = "insert into customer ";
+        $sql .= "(fullname_c, dob, gender, phone_c, email, address_c, password) ";
+        $sql .= "values (?, ?, ?, ?, ?, ?, ?)";
+        return DB::insert($sql, [
             $customer->fullname_c,
             $customer->dob,
             $customer->gender,
             $customer->phone_c,
-            $customer->email_c,
-            $customer->address_c
-
+            $customer->email,
+            $customer->address_c,
+            $hashedPassword
         ]);
-        if($result){
-            return DB::getPdo()->lastInsertId();
-        } else {
-            return -1;
-        }
     }
-
 
     public static function update($customer){
-        $sql = 'update customer ';
-        $sql .= 'set fullname_c = ?, dob = ?, gender = ?, phone_c = ?, email_c = ?, address_c = ? ';
-        $sql .= 'where id_c = ? ';
-
-        DB::update($sql, [
+        $sql = "update customer ";
+        $sql .= "SET fullname_c = ?, dob = ?, gender = ?, phone_c = ?, email = ?, address_c = ? ";
+        $params = [
             $customer->fullname_c,
             $customer->dob,
             $customer->gender,
             $customer->phone_c,
-            $customer->email_c,
-            $customer->address_c,
-            $customer->id_c
-        ]);
+            $customer->email,
+            $customer->address_c
+        ];
 
+        // Nếu mật khẩu mới được nhập, cập nhật nó
+        if (!empty($customer->password)) {
+            $sql .= ", password = ?";
+            $params[] = Hash::make($customer->password);
+        }
+
+        $sql .= " WHERE id_c = ?";
+        $params[] = $customer->id_c;
+
+        return DB::update($sql, $params);
     }
-
 
     public static function delete($id_c){
-        $sql = 'delete from customer ';
-        $sql .= 'where id_c = ? ';
-
-        DB::delete($sql, [$id_c]);
+        $sql = "delete from customer ";
+        $sql .= "where id_c = ?";
+        return DB::delete($sql, [$id_c]);
     }
-
-
 }

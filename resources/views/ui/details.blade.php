@@ -4,9 +4,9 @@
   <style>
     .container {
       max-width: 1000px;
-      margin: auto;
       padding: 30px;
       animation: fadeInUp 0.8s ease-in-out;
+      margin-top: 60px;
     }
 
     @keyframes fadeInUp {
@@ -141,7 +141,7 @@
         <h3>Price</h3>
         <p class="price">{{ isset($product->price_p) ? number_format($product->price_p, 0, ',', '.') : 'N/A' }} VND</p>
 
-        <a href="{{ url('shoppingbasket') }}" class="btn-register">Register Now</a>
+        <a href="{{ route('auth.ask') }}" class="btn-register">Register Now</a>
       </div>
     </div>
   </div>

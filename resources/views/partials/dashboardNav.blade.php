@@ -7,13 +7,13 @@
       <a href="{{route('ui.index')}}">Home Page</a>
     </li>
     <li class="{{ request()->routeIs('product.*') ? 'active' : '' }}">
-      <a href="#">Product</a>
+      <a href="#">Courses</a>
       <ul class="submenu">
         <li class="{{ request()->routeIs('product.index') ? 'active' : '' }}">
           <a href="{{ route('product.index') }}">View All</a>
         </li>
         <li class="{{ request()->routeIs('product.create') ? 'active' : '' }}">
-          <a href="{{ route('product.create') }}">New Product</a>
+          <a href="{{ route('product.create') }}">New Course</a>
         </li>
       </ul>
     </li>
@@ -37,13 +37,13 @@
       </ul>
     </li>
     <li class="{{ request()->routeIs('customer.*') ? 'active' : '' }}">
-      <a href="#">Customer</a>
+      <a href="#">Student</a>
       <ul class="submenu">
         <li class="{{ request()->routeIs('customer.index') ? 'active' : '' }}">
           <a href="{{ route('customer.index') }}">View All</a>
         </li>
         <li class="{{ request()->routeIs('ui.create') ? 'active' : '' }}">
-          <a href="{{route('ui.create')}}">Create Customer</a>
+          <a href="{{route('ui.create')}}">Create Student</a>
         </li>
       </ul>
     </li>
