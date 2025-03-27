@@ -480,6 +480,10 @@ Route::middleware(['manual.auth'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
         Route::post('/learning-materials/approve/{id}', [LearningMaterialController::class, 'approve'])->name('learning_materials.approve');
         Route::post('/learning-materials/reject/{id}', [LearningMaterialController::class, 'reject'])->name('learning_materials.reject');
+        //Timetable function CRUD//
+        Route::post('/timetable', [TimetableController::class, 'addTimetable']); // Add Timetable
+        Route::put('/timetable/{id}', [TimetableController::class, 'updateTimetable']); // Update
+        Route::delete('/timetable/{id}', [TimetableController::class, 'deleteTimetable']); // Delete
     });
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
