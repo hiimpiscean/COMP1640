@@ -9,6 +9,7 @@ use App\Http\Controllers\ManualAuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\GoogleMeetController;
 use App\Http\Controllers\ClassroomController;
+use App\Http\Controllers\LearningMaterialsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,7 +83,7 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'uses' => 'StaffController@destroy',
         'as' => 'staff.destroy'
     ]);
-    
+
     Route::get('/classroom', [ClassroomController::class, 'index'])->name('classroom.index');
     Route::get('/classroom/create', [ClassroomController::class, 'create'])->name('classroom.create');
     Route::post('/classroom', [ClassroomController::class, 'store'])->name('classroom.store');
@@ -467,6 +468,20 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
     Route::get('/test-meet', [GoogleMeetController::class, 'test']);
+});
+
+Route::middleware(['manual.auth'])->group(function () {
+    Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
+    Route::get('/learning-materials/upload', [LearningMaterialController::class, 'create'])->name('learning_materials.create');
+    Route::post('/learning-materials/store', [LearningMaterialController::class, 'store'])->name('learning_materials.store');
+
+    Route::middleware(['role:staff'])->group(function () {
+        Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
+        Route::post('/learning-materials/approve/{id}', [LearningMaterialController::class, 'approve'])->name('learning_materials.approve');
+        Route::post('/learning-materials/reject/{id}', [LearningMaterialController::class, 'reject'])->name('learning_materials.reject');
+    });
+
+    Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
 
 
