@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TimetableController;
 use App\Repository\ProductRepos;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BlogController;
@@ -483,6 +484,8 @@ Route::middleware(['manual.auth'])->group(function () {
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
+
+Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index'); //TODO: chỉnh lại route của timetable.
 
 
 // Route để xem thông tin cơ sở dữ liệu
