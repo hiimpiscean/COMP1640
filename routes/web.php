@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ManualAuthController;
 use App\Http\Controllers\ChatController;
-// use App\Http\Controllers\GoogleMeetController;
-// use App\Http\Controllers\ClassroomController;
+use App\Http\Controllers\GoogleMeetController;
+use App\Http\Controllers\ClassroomController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,11 +83,12 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'as' => 'staff.destroy'
     ]);
     
-    // Route::get('/classroom', [ClassroomController::class, 'index'])->name('classroom.index');
-    // Route::get('/classroom/create', [ClassroomController::class, 'create'])->name('classroom.create');
-    // Route::post('/classroom', [ClassroomController::class, 'store'])->name('classroom.store');
-    // Route::get('/classroom/{id}', [ClassroomController::class, 'show'])->name('classroom.show');
+    Route::get('/classroom', [ClassroomController::class, 'index'])->name('classroom.index');
+    Route::get('/classroom/create', [ClassroomController::class, 'create'])->name('classroom.create');
+    Route::post('/classroom', [ClassroomController::class, 'store'])->name('classroom.store');
+    Route::get('/classroom/{id}', [ClassroomController::class, 'show'])->name('classroom.show');
 });
+
 //////////////Teacher/////////////
 Route::group(['prefix' => 'teacher', 'middleware' => ['manual.auth']], function () {
     Route::get('', [
@@ -462,11 +463,11 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
 });
 
-// Route::middleware(['manual.auth'])->group(function () {
-//     Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
-//     Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
-//     Route::get('/test-meet', [GoogleMeetController::class, 'test']);
-// });
+Route::middleware(['manual.auth'])->group(function () {
+    Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
+    Route::get('/test-meet', [GoogleMeetController::class, 'test']);
+});
 
 
 // Route để xem thông tin cơ sở dữ liệu
