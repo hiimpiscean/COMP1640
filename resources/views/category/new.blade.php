@@ -2,33 +2,77 @@
 
 @section('main')
 
-    <style>
+  <style>
+    body {
+      background: #f8f9fa;
+    }
 
-        .but {
-            margin: 30px 20px 40px 280px;
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
 
-        }
+    .form-title {
+      margin-bottom: 25px;
+      font-weight: bold;
+      color: #343a40;
+      text-align: center;
+      font-size: 24px;
+    }
 
-        .cancel {
-            margin-left: 400px;
-            margin-bottom: 20px;
-        }
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
 
-        .han {
-            margin-top: 50px;
-        }
-    </style>
+    .btn {
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
 
-    <div class="container ">
-        <h1 class="display-4 text-center han ">New Category</h1>
+    .btn-dark {
+      background-color: #343a40;
+      color: white;
+    }
 
-        @include('partials.errors')
+    .btn-dark:hover {
+      background-color: #23272b;
+    }
 
-        <form action="{{route('category.store')}}" method="post">
-            @csrf
-            @include('category.categoryFieldsNew')
-            <button type="submit" class="btn btn-dark but">Submit</button>
-            <a href="{{route('category.index')}}" class="btn btn-info cancel">Cancel</a>
-        </form>
-    </div>
+    .btn-info {
+      background-color: #17a2b8;
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      display: inline-block;
+    }
+
+    .btn-info:hover {
+      background-color: #117a8b;
+    }
+  </style>
+
+  <div class="container">
+    <h1 class="form-title">Create New Category</h1>
+
+    @include('partials.errors')
+
+    <form action="{{route('category.store')}}" method="post">
+      @csrf
+      @include('category.categoryFieldsNew')
+      <div class="btn-container">
+        <button type="submit" class="btn btn-dark">Submit</button>
+        <a href="{{route('category.index')}}" class="btn btn-info">Cancel</a>
+      </div>
+    </form>
+  </div>
 @endsection

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BlogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,9 @@ Route::get('/team', function () {
 Route::get('/testimonial', function () {
     return view('ui.testimonial');
 })->name('ui.testimonial');
+Route::get('/schedule', function () {
+    return view('ui.schedule');
+})->name('ui.schedule');
 
 Route::group(['prefix' => 'home'], function () {
 
@@ -112,6 +116,53 @@ Route::group(['prefix' => 'auth'], function (){
         'as' => 'auth.signout'
     ]);
 });
+
+Route::group(['prefix' => 'blog'], function () {
+    Route::get('', [
+        'uses' => 'BlogController@index',
+        'as' => 'blog.index'
+    ]);
+
+    Route::get('show/{id}', [
+        'uses' => 'BlogController@show',
+        'as' => 'blog.show'
+    ]);
+
+    Route::get('create', [
+        'uses' => 'BlogController@create',
+        'as' => 'blog.create'
+    ]);
+
+    Route::post('create', [
+        'uses' => 'BlogController@store',
+        'as' => 'blog.store'
+    ]);
+
+    Route::get('update/{id}', [
+        'uses' => 'BlogController@edit',
+        'as' => 'blog.edit'
+    ]);
+
+    Route::post('update/{id}', [
+        'uses' => 'BlogController@update',
+        'as' => 'blog.update'
+    ]);
+
+    Route::get('delete/{id}', [
+        'uses' => 'BlogController@confirm',
+        'as' => 'blog.confirm'
+    ]);
+
+    Route::post('delete/{id}', [
+        'uses' => 'BlogController@destroy',
+        'as' => 'blog.destroy'
+    ]);
+
+    // Route cho bình luận
+    Route::post('{id}/comment', [BlogController::class, 'storeComment'])->name('blog.comment.store');
+    Route::post('{id}/comment/{commentId}/destroy', [BlogController::class, 'destroyComment'])->name('blog.comment.destroy');
+});
+
 ///////////handicraftRepos/////////////////////////
 
 Route::group(
