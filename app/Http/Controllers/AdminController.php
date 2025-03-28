@@ -17,7 +17,7 @@ class AdminController extends Controller
         }
 
         // Lấy danh sách admin từ Database
-        $admin = AdminRepos::getAllAdmin(); // Đảm bảo đây là array hoặc collection
+        $admin = AdminRepos::getAllAdmin(); 
 
         return view('admin.index', compact('admin'));
     }
