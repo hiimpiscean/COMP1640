@@ -2,9 +2,15 @@
 
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TimetableController;
 use App\Repository\ProductRepos;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ManualAuthController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\GoogleMeetController;
+use App\Http\Controllers\ClassroomController;
+use App\Http\Controllers\LearningMaterialsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,14 +24,26 @@ use App\Http\Controllers\BlogController;
 */
 
 //Route::get('/', function () {
- //   return view('welcome');
+//   return view('welcome');
 //});
 
 //Route::get('blade', function () {
-  //  return view('viewEngine');
+//  return view('viewEngine');
 //});
 
 //////////////Staff/////////////
+// Routes dành cho sinh viên
+Route::middleware(['auth', 'role:student'])->group(function () {
+    Route::post('/student/register', [StudentRegistrationController::class, 'register'])->name('student.register');
+    Route::post('/student/confirm-assignment/{id}', [StudentRegistrationController::class, 'confirmAssignment'])->name('student.confirm-assignment');
+});
+
+// Routes dành cho nhân viên
+Route::middleware(['auth', 'role:staff'])->group(function () {
+    Route::get('/staff/registrations', [StaffController::class, 'viewRegistrations'])->name('staff.registrations');
+    Route::post('/staff/assign-class/{id}', [StaffController::class, 'assignClass'])->name('staff.assign-class');
+});
+
 Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function () {
     Route::get('', [
         'uses' => 'StaffController@index',
@@ -66,6 +84,11 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'uses' => 'StaffController@destroy',
         'as' => 'staff.destroy'
     ]);
+
+    Route::get('/classroom', [ClassroomController::class, 'index'])->name('classroom.index');
+    Route::get('/classroom/create', [ClassroomController::class, 'create'])->name('classroom.create');
+    Route::post('/classroom', [ClassroomController::class, 'store'])->name('classroom.store');
+    Route::get('/classroom/{id}', [ClassroomController::class, 'show'])->name('classroom.show');
 });
 
 //////////////Teacher/////////////
@@ -133,6 +156,10 @@ Route::get('/listDocument', function () {
     return view('flm.listDocument');
 })->name('flm.listDocument');
 
+Route::get('/approval', function () {
+    return view('ui.approval');
+})->middleware('manual.auth')->name('ui.approval');
+
 //Route::middleware(['auth', 'role:teacher'])->group(function () {
 //    Route::get('/teacher/pending', [TeacherController::class, 'pendingRegistrations'])->name('teacher.pending');
 //    Route::post('/teacher/approve/{id}', [TeacherController::class, 'approveRegistration'])->name('teacher.approve');
@@ -153,67 +180,65 @@ Route::group(['prefix' => 'home'], function () {
         'uses' => 'HomepageController@index',
         'as' => 'ui.home'
     ]);
-// home
+    // home
 
-    Route::get('category/{id_cate}',[
+    Route::get('category/{id_cate}', [
         'uses' => 'HomepageController@getproductsfromcate',
         'as' => 'ui.showproducts'
     ]);
     //details
 
-    Route::get('details/{id_p?}',[
+    Route::get('details/{id_p?}', [
         'uses' => 'HomepageController@showdetails',
         'as' => 'ui.details'
     ]);
-    Route::get('show/{id_p}',[
+    Route::get('show/{id_p}', [
         'uses' => 'HomepageController@show',
         'as' => 'ui.show'
     ]);
 
-     Route::get('create',[
-       'uses' => 'HomepageController@create',
+    Route::get('create', [
+        'uses' => 'HomepageController@create',
         'as' => 'ui.create'
     ]);
 
-    Route::post('create',[
+    Route::post('create', [
         'uses' => 'HomepageController@storecustomer',
         'as' => 'ui.store'
     ]);
 
-    Route::get('update/{id_p}',[
+    Route::get('update/{id_p}', [
         'uses' => 'HomepageController@edit',
         'as' => 'ui.edit'
     ]);
 
-    Route::post('update/{id_p}',[
+    Route::post('update/{id_p}', [
         'uses' => 'HomepageController@update',
         'as' => 'ui.update'
     ]);
 
-    Route::get('search/',[
+    Route::get('search/', [
         'uses' => 'HomepageController@search',
         'as' => 'ui.search'
     ]);
-    Route::get('thanks',function(){
+    Route::get('thanks', function () {
         return view('ui.thankyou');
     })->name('ui.thank');
-
-
 });
 ////////////////Login Admin ////////////////////////////////////
 ///
-Route::group(['prefix' => 'auth'], function (){
-    Route::get('login',[
+Route::group(['prefix' => 'auth'], function () {
+    Route::get('login', [
         'uses' => 'ManualAuthController@ask',
         'as' => 'auth.ask'
     ]);
 
-    Route::post('login',[
+    Route::post('login', [
         'uses' => 'ManualAuthController@signin',
         'as' => 'auth.signin'
     ]);
 
-    Route::get('logout',[
+    Route::get('logout', [
         'uses' => 'ManualAuthController@signout',
         'as' => 'auth.signout'
     ]);
@@ -266,11 +291,13 @@ Route::group(['prefix' => 'blog', 'middleware' => ['manual.auth']], function () 
 
     // Route cho bình luận
     Route::post('{id}/comment', [
-        BlogController::class, 'storeComment'
+        BlogController::class,
+        'storeComment'
     ])->name('blog.comment.store');
 
-    Route::delete('{id}/comment/{commentId}/destroy', [
-        BlogController::class, 'destroyComment'
+    Route::post('{id}/comment/{commentId}/destroy', [
+        BlogController::class,
+        'destroyComment'
     ])->name('blog.comment.destroy');
 });
 
@@ -280,48 +307,47 @@ Route::group(
     ['prefix' => 'product', 'middleware' => ['manual.auth']],
     function () {
 
-    Route::get('', [
-        'uses' => 'ProductController@index',
-        'as' => 'product.index'
-    ]);
+        Route::get('', [
+            'uses' => 'ProductController@index',
+            'as' => 'product.index'
+        ]);
 
-    Route::get('show/{id_p}',[
-        'uses' => 'ProductController@show',
-        'as' => 'product.show'
-    ]);
+        Route::get('show/{id_p}', [
+            'uses' => 'ProductController@show',
+            'as' => 'product.show'
+        ]);
 
-    Route::get('create',[
-        'uses' => 'ProductController@create',
-        'as' => 'product.create'
-    ]);
+        Route::get('create', [
+            'uses' => 'ProductController@create',
+            'as' => 'product.create'
+        ]);
 
-    Route::post('create',[
-        'uses' => 'ProductController@store',
-        'as' => 'product.store'
-    ]);
+        Route::post('create', [
+            'uses' => 'ProductController@store',
+            'as' => 'product.store'
+        ]);
 
-    Route::get('update/{id_p}',[
-        'uses' => 'ProductController@edit',
-        'as' => 'product.edit'
-    ]);
+        Route::get('update/{id_p}', [
+            'uses' => 'ProductController@edit',
+            'as' => 'product.edit'
+        ]);
 
-    Route::post('update/{id_p}',[
-        'uses' => 'ProductController@update',
-        'as' => 'product.update'
-    ]);
+        Route::post('update/{id_p}', [
+            'uses' => 'ProductController@update',
+            'as' => 'product.update'
+        ]);
 
-    Route::get('delete/{id_p}', [
-        'uses' => 'ProductController@confirm',
-        'as' => 'product.confirm'
-    ]);
+        Route::get('delete/{id_p}', [
+            'uses' => 'ProductController@confirm',
+            'as' => 'product.confirm'
+        ]);
 
-    Route::post('delete/{id_p}',[
-        'uses' => 'ProductController@destroy',
-        'as' => 'product.destroy'
-    ]);
-
-
-});
+        Route::post('delete/{id_p}', [
+            'uses' => 'ProductController@destroy',
+            'as' => 'product.destroy'
+        ]);
+    }
+);
 
 /////////////admin///////////////////
 
@@ -331,23 +357,20 @@ Route::group(['prefix' => 'admin', 'middleware' => ['manual.auth']], function ()
         'as' => 'admin.index'
     ]);
 
-    Route::get('show/{id_a}',[
+    Route::get('show/{id_a}', [
         'uses' => 'AdminController@show',
         'as' => 'admin.show'
     ]);
 
-    Route::get('update/{id_a}',[
+    Route::get('update/{id_a}', [
         'uses' => 'AdminController@edit',
         'as' => 'admin.edit'
     ]);
 
-    Route::post('update/{id_a}',[
+    Route::post('update/{id_a}', [
         'uses' => 'AdminController@update',
         'as' => 'admin.update'
     ]);
-
-
-
 });
 ///////////////Category////////////////////
 
@@ -359,27 +382,27 @@ Route::group(['prefix' => 'category', 'middleware' => ['manual.auth']], function
         'as' => 'category.index'
     ]);
 
-    Route::get('show/{id_cate}',[
+    Route::get('show/{id_cate}', [
         'uses' => 'CategoryController@show',
         'as' => 'category.show'
     ]);
 
-    Route::get('create',[
+    Route::get('create', [
         'uses' => 'CategoryController@create',
         'as' => 'category.create'
     ]);
 
-    Route::post('create',[
+    Route::post('create', [
         'uses' => 'CategoryController@store',
         'as' => 'category.store'
     ]);
 
-    Route::get('update/{id_cate}',[
+    Route::get('update/{id_cate}', [
         'uses' => 'CategoryController@edit',
         'as' => 'category.edit'
     ]);
 
-    Route::post('update/{id_cate}',[
+    Route::post('update/{id_cate}', [
         'uses' => 'CategoryController@update',
         'as' => 'category.update'
     ]);
@@ -389,7 +412,7 @@ Route::group(['prefix' => 'category', 'middleware' => ['manual.auth']], function
         'as' => 'category.confirm'
     ]);
 
-    Route::post('delete/{id_cate}',[
+    Route::post('delete/{id_cate}', [
         'uses' => 'CategoryController@destroy',
         'as' => 'category.destroy'
     ]);
@@ -402,17 +425,17 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
         'as' => 'customer.index'
     ]);
 
-    Route::get('show/{id_c}',[
+    Route::get('show/{id_c}', [
         'uses' => 'CustomerController@show',
         'as' => 'customer.show'
     ]);
 
-    Route::get('update/{id_c}',[
+    Route::get('update/{id_c}', [
         'uses' => 'CustomerController@edit',
         'as' => 'customer.edit'
     ]);
 
-    Route::put('update/{id_c}',[
+    Route::put('update/{id_c}', [
         'uses' => 'CustomerController@update',
         'as' => 'customer.update'
     ]);
@@ -422,7 +445,7 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
         'as' => 'customer.confirm'
     ]);
 
-    Route::post('delete/{id_c}',[
+    Route::post('delete/{id_c}', [
         'uses' => 'CustomerController@destroy',
         'as' => 'customer.destroy'
     ]);
@@ -434,6 +457,40 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
     ]);
 });
 
+// Chỉ cho phép user đã đăng nhập vào chat
+Route::middleware(['manual.auth'])->group(function () {
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
+});
 
+Route::middleware(['manual.auth'])->group(function () {
+    Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
+    Route::get('/test-meet', [GoogleMeetController::class, 'test']);
+});
+
+Route::middleware(['manual.auth'])->group(function () {
+    Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
+    Route::get('/learning-materials/upload', [LearningMaterialController::class, 'create'])->name('learning_materials.create');
+    Route::post('/learning-materials/store', [LearningMaterialController::class, 'store'])->name('learning_materials.store');
+
+    Route::middleware(['role:staff'])->group(function () {
+        Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
+        Route::post('/learning-materials/approve/{id}', [LearningMaterialController::class, 'approve'])->name('learning_materials.approve');
+        Route::post('/learning-materials/reject/{id}', [LearningMaterialController::class, 'reject'])->name('learning_materials.reject');
+        //Timetable function CRUD//
+        Route::post('/timetable', [TimetableController::class, 'addTimetable']); // Add Timetable
+        Route::put('/timetable/{id}', [TimetableController::class, 'updateTimetable']); // Update
+        Route::delete('/timetable/{id}', [TimetableController::class, 'deleteTimetable']); // Delete
+    });
+
+    Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
+});
+
+Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index'); //TODO: chỉnh lại route của timetable.
+
+
+// Route để xem thông tin cơ sở dữ liệu
 /////////////////////////////////////////////////
-
