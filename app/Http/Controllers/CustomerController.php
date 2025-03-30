@@ -5,41 +5,15 @@ namespace App\Http\Controllers;
 use App\Repository\CustomerRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Models\ClassAssignment;
-use App\Models\RegistrationRequest;
+
 use App\Models\User;
-use App\Notifications\ClassAssigned;
-use App\Notifications\TeacherAssignment;
+
 use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
-    public function viewRegistrations()
-    {
-        $registrations = RegistrationRequest::where('status', 'pending')
-            ->with(['student', 'requestedClass'])
-            ->latest()
-            ->paginate(20);
-
-        return view('staff.registrations', compact('registrations'));
-    }
-
-    public function assignClass(Request $request, $registrationId)
-    {
-        $validated = $request->validate([
-            'class_id' => 'required|exists:classes,id',
-            'notes' => 'nullable|string'
-        ]);
-
-        $registration = RegistrationRequest::findOrFail($registrationId);
-
-        // Cập nhật registration request
-        $registration->update([
-            'status' => 'assigned',
-            'processed_by' => Auth::id(),
-            'notes' => $request->notes
-        ]);
-    }
+    
+   
     public function index()
     {
         $customer = CustomerRepos::getAllCustomer();

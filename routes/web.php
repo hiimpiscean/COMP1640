@@ -33,6 +33,47 @@ use App\Http\Controllers\LearningMaterialsController;
 
 //////////////Staff/////////////
 // Routes dành cho sinh viên
+Route::get('/', function () {
+    return view('welcome');
+});
+
+// Authentication routes
+Auth::routes();
+
+// Student Routes
+Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    // Course registration routes
+    Route::get('/courses/{course}/register', [StudentRegistrationController::class, 'create'])->name('registrations.create');
+    Route::post('/courses/{course}/register', [StudentRegistrationController::class, 'store'])->name('registrations.store');
+    Route::get('/registrations', [StudentRegistrationController::class, 'index'])->name('registrations.index');
+    
+    // View courses
+    Route::get('/courses', [App\Http\Controllers\Student\CourseController::class, 'index'])->name('courses');
+    Route::get('/courses/{course}', [App\Http\Controllers\Student\CourseController::class, 'show'])->name('courses.show');
+});
+
+// Staff Routes
+Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
+    // Registration management
+    Route::get('/registrations', [StaffRegistrationController::class, 'index'])->name('registrations.index');
+    Route::get('/registrations/{registration}', [StaffRegistrationController::class, 'show'])->name('registrations.show');
+    Route::post('/registrations/{registration}/approve', [StaffRegistrationController::class, 'approve'])->name('registrations.approve');
+    Route::post('/registrations/{registration}/reject', [StaffRegistrationController::class, 'reject'])->name('registrations.reject');
+});
+
+// Teacher Routes
+Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+    Route::get('/courses', [App\Http\Controllers\Teacher\CourseController::class, 'index'])->name('courses');
+    Route::get('/courses/{course}', [App\Http\Controllers\Teacher\CourseController::class, 'show'])->name('courses.show');
+    Route::get('/courses/{course}/students', [App\Http\Controllers\Teacher\CourseController::class, 'students'])->name('courses.students');
+});
+
+// Dashboard
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
+// mail router từ đây lên trên 
+
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::post('/student/register', [StudentRegistrationController::class, 'register'])->name('student.register');
     Route::post('/student/confirm-assignment/{id}', [StudentRegistrationController::class, 'confirmAssignment'])->name('student.confirm-assignment');
