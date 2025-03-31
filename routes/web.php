@@ -46,7 +46,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::get('/courses/{course}/register', [StudentRegistrationController::class, 'create'])->name('registrations.create');
     Route::post('/courses/{course}/register', [StudentRegistrationController::class, 'store'])->name('registrations.store');
     Route::get('/registrations', [StudentRegistrationController::class, 'index'])->name('registrations.index');
-    
+
     // View courses
     Route::get('/courses', [App\Http\Controllers\Student\CourseController::class, 'index'])->name('courses');
     Route::get('/courses/{course}', [App\Http\Controllers\Student\CourseController::class, 'show'])->name('courses.show');
@@ -188,10 +188,6 @@ Route::get('/team', function () {
 Route::get('/testimonial', function () {
     return view('ui.testimonial');
 })->name('ui.testimonial');
-
-Route::get('/schedule', function () {
-    return view('ui.schedule');
-})->middleware('manual.auth')->name('ui.schedule');
 
 Route::get('/listDocument', function () {
     return view('flm.listDocument');
@@ -530,8 +526,30 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
 
-Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index'); //TODO: chỉnh lại route của timetable.
+// Route hiển thị danh sách timetable
+Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
+
+// Route xử lý thêm timetable
+Route::post('/timetable/add', [TimetableController::class, 'addTimetable'])->name('timetable.add');
+
+// Route xử lý cập nhật timetable
+Route::put('/timetable/update/{id}', [TimetableController::class, 'updateTimetable'])->name('timetable.update');
+
+// Route xử lý xóa timetable
+Route::delete('/timetable/delete/{id}', [TimetableController::class, 'deleteTimetable'])->name('timetable.delete');
+Route::post('/generate-meet', function (Request $request, GoogleMeetService $googleMeetService) {
+    try {
+        $meetLink = $googleMeetService->createMeetLink('Online Class', $request->start_time, $request->end_time);
+        return response()->json(['meet_link' => $meetLink]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to generate Meet link'], 500);
+    }
+});
 
 
 // Route để xem thông tin cơ sở dữ liệu
 /////////////////////////////////////////////////
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

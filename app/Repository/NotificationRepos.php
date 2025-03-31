@@ -1,5 +1,5 @@
 <?php
-namespace Repositories;
+namespace App\Repository; 
 
 use PDO;
 use PDOException;

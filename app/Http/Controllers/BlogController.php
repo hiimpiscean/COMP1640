@@ -12,7 +12,7 @@ class BlogController extends Controller
 {
     public function index()
     {
-        $blogs = BlogRepos::getAllBlogs();
+        $blogs = collect(BlogRepos::getAllBlogs())->sortByDesc('created_at'); // Dùng collection để sắp xếp
         foreach ($blogs as $b) {
             $b->comment = CommentRepos::getCommentsByBlog($b->id_b);
         }
@@ -30,11 +30,11 @@ class BlogController extends Controller
     {
         // Vì tác giả sẽ được lấy từ session, không cần truyền giá trị này vào form
         return view('blog.create', [
-            "blog" => (object)[
-                'id_b'      => '',
-                'title_b'   => '',
+            "blog" => (object) [
+                'id_b' => '',
+                'title_b' => '',
                 'content_b' => '',
-                'image_b'   => ''
+                'image_b' => ''
             ]
         ]);
     }
@@ -55,11 +55,11 @@ class BlogController extends Controller
 
         $currentUser = Session::get('username');
 
-        $blog = (object)[
-            'title_b'   => $request->input('title_b'),
+        $blog = (object) [
+            'title_b' => $request->input('title_b'),
             'content_b' => $request->input('content_b'),
-            'image_b'   => $fileName, // lưu tên file đã upload
-            'author_b'  => $currentUser
+            'image_b' => $fileName, // lưu tên file đã upload
+            'author_b' => $currentUser
         ];
 
         $newId = BlogRepos::insert($blog);
@@ -94,12 +94,12 @@ class BlogController extends Controller
         // Cập nhật lại tác giả theo thông tin người dùng hiện hành
         $currentUser = Session::get('username');
 
-        $blog = (object)[
-            'id_b'      => $request->input('id_b'),
-            'title_b'   => $request->input('title_b'),
+        $blog = (object) [
+            'id_b' => $request->input('id_b'),
+            'title_b' => $request->input('title_b'),
             'content_b' => $request->input('content_b'),
-            'image_b'   => $fileName,
-            'author_b'  => $currentUser
+            'image_b' => $fileName,
+            'author_b' => $currentUser
         ];
 
         BlogRepos::update($blog);
@@ -135,10 +135,10 @@ class BlogController extends Controller
         // Lấy tên tài khoản từ session (hoặc hệ thống xác thực)
         $currentUser = Session::get('username');
 
-        $data = (object)[
-            'blog_id'     => $blogId,
+        $data = (object) [
+            'blog_id' => $blogId,
             'content_cmt' => $request->input('content_cmt'),
-            'author_cmt'  => $currentUser
+            'author_cmt' => $currentUser
         ];
 
         $newCommentId = CommentRepos::insertComment($data);
@@ -162,7 +162,7 @@ class BlogController extends Controller
     private function formValidate($request, $isUpdate = false)
     {
         $rules = [
-            'title_b'   => ['required'],
+            'title_b' => ['required'],
             'content_b' => ['required'],
         ];
 
@@ -175,9 +175,9 @@ class BlogController extends Controller
             $request->all(),
             $rules,
             [
-                'title_b.required'   => 'Please enter title',
+                'title_b.required' => 'Please enter title',
                 'content_b.required' => 'Please enter content!',
-                'image_b.required'   => 'Please upload an image',
+                'image_b.required' => 'Please upload an image',
             ]
         );
     }
