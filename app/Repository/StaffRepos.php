@@ -3,10 +3,12 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
 
 class StaffRepos
 {
-    public static function getAllStaff() {
+    public static function getAllStaff()
+    {
         $sql = "select s.* ";
         $sql .= "from staff as s ";
         $sql .= "order by s.username ";
@@ -14,7 +16,8 @@ class StaffRepos
         return DB::select($sql);
     }
 
-    public static function getStaffById($id_s){
+    public static function getStaffById($id_s)
+    {
         $sql = "select s.* ";
         $sql .= "from staff as s ";
         $sql .= "where s.id_s = ? ";
@@ -22,38 +25,47 @@ class StaffRepos
         return DB::select($sql, [$id_s]);
     }
 
-    public static function insert($staff){
+    public static function insert($staff)
+    {
         $sql = "insert into staff ";
         $sql .= "(username, fullname_s, phone_s, email, password) ";
         $sql .= "values(?, ?, ?, ?, ?) ";
+
+        // Mã hóa mật khẩu trước khi chèn vào cơ sở dữ liệu
+        $hashedPassword = Hash::make($staff->password);
 
         DB::insert($sql, [
             $staff->username,
             $staff->fullname_s,
             $staff->phone_s,
             $staff->email,
-            $staff->password
+            $hashedPassword // Lưu mật khẩu đã mã hóa
         ]);
     }
 
-    public static function update($staff){
+    public static function update($staff)
+    {
         $sql = "update staff ";
         $sql .= "set username = ?, fullname_s = ?, phone_s = ?, email = ?, password = ? ";
         $sql .= "where id_s = ? ";
+
+        // Mã hóa mật khẩu trước khi cập nhật vào cơ sở dữ liệu
+        $hashedPassword = Hash::make($staff->password);
 
         DB::update($sql, [
             $staff->username,
             $staff->fullname_s,
             $staff->phone_s,
             $staff->email,
-            $staff->password,
+            $hashedPassword, // Cập nhật mật khẩu đã mã hóa
             $staff->id_s
         ]);
     }
 
-    public static function delete($id_s){
+    public static function delete($id_s)
+    {
         $sql = "delete from staff ";
-        $sql .= "where id_s = ?     ";
+        $sql .= "where id_s = ? ";
 
         return DB::delete($sql, [$id_s]);
     }

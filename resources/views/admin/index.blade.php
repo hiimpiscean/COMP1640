@@ -3,7 +3,7 @@
 @section('main')
   <style>
     body {
-    background: #eef1f5;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     color: #333;
     font-family: 'Poppins', sans-serif;
     margin: 0;
@@ -15,23 +15,21 @@
     min-height: 100vh;
     }
 
-    /* Định dạng Container chính */
     .main-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
+    padding: 20px 0;
     }
 
     .main-container h2 {
     margin-left: 150px;
-    margin-bottom: 10px;
     }
 
-    /* Dashboard Container */
     .dashboard-container {
-    max-width: 1500px;
+    max-width: 800px;
     margin: 20px auto;
     padding: 30px;
     background: #fff;
@@ -44,84 +42,60 @@
     margin-left: 150px;
     }
 
-    /* Dashboard Card */
     .dashboard-card {
+    border-radius: 8px;
     padding: 20px;
-    border-radius: 12px;
     color: white;
     font-weight: bold;
-    font-size: 20px;
     text-align: center;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .dashboard-card h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    }
-
-    .dashboard-card p {
-    font-size: 24px;
-    font-weight: bold;
-    }
-
-    /* Màu sắc cho các card */
     .dashboard-card:nth-child(1) {
-    background: #ff4757;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
     }
 
     .dashboard-card:nth-child(2) {
-    background: #1e90ff;
+    background: linear-gradient(135deg, #a18cd1, #fbc2eb);
     }
 
     .dashboard-card:nth-child(3) {
-    background: #2ed573;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
     }
 
     .dashboard-card:nth-child(4) {
-    background: #ffa502;
+    background: linear-gradient(135deg, #67B26F, #4ca2cd);
     }
 
     .dashboard-card:nth-child(5) {
-    background: #8e44ad;
+    background: linear-gradient(135deg, #ff9966, #ff5e62);
     }
 
     .dashboard-card:nth-child(6) {
-    background: #34495e;
+    background: linear-gradient(135deg, #56CCF2, #2F80ED);
     }
 
-    /* Bảng */
+    .dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
     .table-container {
-    max-width: 1500px;
+    max-width: 1000px;
     margin: 20px auto;
     padding: 20px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
     text-align: center;
+    overflow-x: auto;
     margin-left: 150px;
-    }
-
-    .table-container h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
-    text-align: center;
     }
 
     .table-custom {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 12px;
-    overflow: hidden;
     }
 
     .table-custom th,
@@ -134,8 +108,9 @@
     .table-custom th {
     background: #2c3e50;
     color: white;
-    font-size: 18px;
-    text-transform: uppercase;
+    }
+    a:hover {
+      text-decoration: none;
     }
 
     .table-custom tr:nth-child(even) {
@@ -146,45 +121,10 @@
     background-color: #e9ecef;
     transition: 0.3s ease;
     }
-
-    /* Action Links */
-    .action-link {
-    text-decoration: none;
-    font-size: 22px;
-    padding: 5px 10px;
-    border-radius: 8px;
-    transition: all 0.3s ease-in-out;
-    }
-
-    .action-link:hover {
-    transform: scale(1.2);
-    text-decoration: none;
-    }
-
-    .action-link:first-child {
-    color: #007bff;
-    }
-
-    .action-link:last-child {
-    color: #e67e22;
-    }
-
-    h2 {
-    font-size: 28px;
-    font-weight: bold;
-    color: #2c3e50;
-    text-align: center;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    background: linear-gradient(to right, #3498db, #8e44ad);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    }
   </style>
 
   <div class="main-container">
-    <h2>Dashboard</h2> <!-- Thêm tiêu đề vào đây -->
+    <h2>Dashboard</h2>
 
     <div class="dashboard-container">
     <div class="dashboard-card">
@@ -209,7 +149,7 @@
     </div>
     <div class="dashboard-card">
       <h3>All students account</h3>
-      <p>{{ $totalCustomers }}</p> <!-- Sửa lại biến ở đây cho đúng -->
+      <p>{{ $totalCustomers }}</p>
     </div>
     </div>
   </div>
