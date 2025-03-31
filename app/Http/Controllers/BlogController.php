@@ -12,7 +12,7 @@ class BlogController extends Controller
 {
     public function index()
     {
-        $blogs = collect(BlogRepos::getAllBlogs())->sortByDesc('created_at'); // Dùng collection để sắp xếp
+        $blogs = collect(BlogRepos::getAllBlog())->sortByDesc('created_at'); // Dùng collection để sắp xếp
         foreach ($blogs as $b) {
             $b->comment = CommentRepos::getCommentsByBlog($b->id_b);
         }
