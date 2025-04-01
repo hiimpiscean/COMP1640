@@ -72,7 +72,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
-// mail router từ đây lên trên 
+// mail router từ đây lên trên
 
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::post('/student/register', [StudentRegistrationController::class, 'register'])->name('student.register');
@@ -518,4 +518,14 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
 
+
+//TODO: Notifications for messages
+Route::get('/notifications/unread-count', [MessageController::class, 'getUnreadCount'])->name('get.unread.count');
+Route::get('/notifications/unread-messages', [MessageController::class, 'getUnreadMessages'])->name('get.unread.messages');
+Route::post('/notifications/mark-read', [MessageController::class, 'markMessagesAsRead'])->name('mark.messages.read');
+
+//TODO: routes for message deletion
+Route::delete('/message/{id}', [MessageController::class, 'deleteMessage']);
+//TODO: query all chats
+Route::get('/chat/partners', [MessageController::class, 'getChatPartners']);
 // Auth::routes();
