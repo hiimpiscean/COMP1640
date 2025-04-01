@@ -20,16 +20,16 @@ class ChatController extends Controller
         try {
             // Lấy email của người dùng đang đăng nhập
             $currentUserEmail = Session::get('username');
-            
+
             // Gọi phương thức lấy tất cả người dùng từ MessageRepos
             $allUsers = MessageRepos::getAllUsers();
-            
+
             // Lọc ra tài khoản đang đăng nhập khỏi danh sách
             $users = array_filter($allUsers, function($user) use ($currentUserEmail) {
                 // Kiểm tra cả email và username vì admin có thể đăng nhập bằng username
                 return $user->email !== $currentUserEmail && $user->username !== $currentUserEmail;
             });
-            
+
             // Trả về view 'chat.index' với danh sách người dùng đã lọc
             return view('chat.index', ['users' => array_values($users)]);
         } catch (\Exception $e) {
@@ -47,7 +47,7 @@ class ChatController extends Controller
             // Lấy nội dung tin nhắn và email người nhận từ request
             $content = $request->input('message');
             $receiverEmail = $request->input('receiver');
-            
+
             // Lấy email người gửi từ session
             $senderEmail = Session::get('username');
 
@@ -133,16 +133,16 @@ class ChatController extends Controller
 
                 // Xử lý timestamp - Định dạng lại timestamp
                 $timestamp = $msg->timestamp;
-                
+
                 try {
                     // Loại bỏ phần microsecond nếu có
                     if (strpos($timestamp, '.') !== false) {
                         $timestamp = substr($timestamp, 0, strpos($timestamp, '.'));
                     }
-                    
+
                     // Chuyển đổi timestamp thành đối tượng Carbon
                     $dt = Carbon::parse($timestamp);
-                    
+
                     // Định dạng lại timestamp theo định dạng d/m/Y H:i:s
                     $timestamp = $dt->format('d/m/Y H:i:s');
                 } catch (\Exception $e) {
@@ -194,12 +194,12 @@ class ChatController extends Controller
         if (empty($result)) {
             return null;
         }
-        
+
         // Xử lý đặc biệt cho admin
         if ($type === 'admin') {
             return $result[0]->email_a;
         }
-        
+
         return $result[0]->email;
     }
 
@@ -225,5 +225,42 @@ class ChatController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
+    }
+    //TODO: Notifications for messages
+    public function getUnreadCount(Request $request) {
+        $userId = auth()->id(); // Get logged-in user ID
+        $unreadCount = DB::select('SELECT count_unread_messages(?) AS unread_count', [$userId]);
+
+        return response()->json(['unread_count' => $unreadCount[0]->unread_count]);
+    }
+
+    public function getUnreadMessages(Request $request) {
+        $userId = auth()->id();
+        $messages = DB::select('SELECT * FROM get_unread_messages(?)', [$userId]);
+
+        return response()->json($messages);
+    }
+
+    public function markMessagesAsRead(Request $request) {
+        $receiverId = auth()->id();
+        $senderId = $request->input('sender_id');
+
+        DB::select('SELECT mark_as_read(?, ?)', [$receiverId, $senderId]);
+
+        return response()->json(['message' => 'Messages marked as read']);
+    }
+    //TODO: Retrieve list of chatted users
+    public function getChatPartners()
+    {
+        $userId = auth()->id();
+        $partners = DB::select("SELECT * FROM get_chat_partners(?)", [$userId]);
+        return response()->json($partners);
+    }
+    //TODO: Delete messages
+    public function deleteMessage($messageId)
+    {
+        $userId = auth()->id(); // Get logged-in user ID
+        DB::statement("SELECT delete_message(?, ?)", [$messageId, $userId]);
+        return response()->json(['message' => 'Message deleted successfully']);
     }
 }
