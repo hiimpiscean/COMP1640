@@ -3,60 +3,141 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
+use App\Models\Timetable;
+use Exception;
 
 class TimetableRepos
 {
-    public static function getAllTimetables()
+    /**
+     * Lấy tất cả lịch học
+     */
+    public function getAllTimetables()
     {
-        $sql = 'SELECT t.* FROM timetable AS t ORDER BY t.day_of_week, t.start_time';
-        return DB::select($sql);
+        return Timetable::all();
     }
 
-    public static function getTimetableById($id)
+    /**
+     * Lấy danh sách khóa học
+     */
+    public function getCourses()
     {
-        $sql = 'SELECT t.* FROM timetable AS t WHERE t.id = ?';
-        return DB::select($sql, [$id]);
+        return DB::table('product')
+            ->select('id_p as course_id', 'name_p as course_name')
+            ->get();
     }
 
-    public static function insert($timetable)
+    /**
+     * Lấy danh sách giảng viên
+     */
+    public function getTeachers()
     {
-        $sql = 'INSERT INTO timetable (course_id, teacher_id, day_of_week, start_time, end_time, location, meet_link) ';
-        $sql .= 'VALUES (?, ?, ?, ?, ?, ?, ?)';
-
-        $result = DB::insert($sql, [
-            $timetable->course_id,
-            $timetable->teacher_id,
-            $timetable->day_of_week,
-            $timetable->start_time,
-            $timetable->end_time,
-            $timetable->location,
-            $timetable->meet_link
-        ]);
-
-        return $result ? DB::getPdo()->lastInsertId() : -1;
+        return DB::table('teacher')
+            ->select('id_t', 'fullname_t')
+            ->get();
     }
 
-    public static function update($timetable)
+    /**
+     * Lấy thông tin lịch học theo ID
+     */
+    public function getTimetableById($id)
     {
-        $sql = 'UPDATE timetable ';
-        $sql .= 'SET course_id = ?, teacher_id = ?, day_of_week = ?, start_time = ?, end_time = ?, location = ?, meet_link = ? ';
-        $sql .= 'WHERE id = ?';
-
-        DB::update($sql, [
-            $timetable->course_id,
-            $timetable->teacher_id,
-            $timetable->day_of_week,
-            $timetable->start_time,
-            $timetable->end_time,
-            $timetable->location,
-            $timetable->meet_link,
-            $timetable->id
-        ]);
+        return Timetable::with(['course', 'teacher'])->findOrFail($id);
     }
 
-    public static function delete($id)
+    /**
+     * Tạo lịch học mới
+     */
+    public function create($data)
     {
-        $sql = 'DELETE FROM timetable WHERE id = ?';
-        DB::delete($sql, [$id]);
+        $id = DB::select(
+            "INSERT INTO timetable (course_id, teacher_id, day_of_week, start_time, end_time, location) 
+             VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
+            [
+                $data['course_id'],
+                $data['teacher_id'],
+                $data['day_of_week'],
+                $data['start_time'],
+                $data['end_time'],
+                $data['location']
+            ]
+        );
+
+        return $id[0]->id;
+    }
+
+    /**
+     * Cập nhật meet link cho lịch học
+     */
+    public function updateMeetLink($id, $meetLink)
+    {
+        return DB::table('timetable')
+            ->where('id', $id)
+            ->update(['meet_link' => $meetLink]);
+    }
+
+    /**
+     * Lấy location của lịch học
+     */
+    public function getLocation($id)
+    {
+        return DB::table('timetable')
+            ->where('id', $id)
+            ->value('location');
+    }
+
+    /**
+     * Cập nhật thông tin lịch học
+     */
+    public function update($id, $data)
+    {
+        return DB::table('timetable')
+            ->where('id', $id)
+            ->update([
+                'course_id' => $data['course_id'],
+                'teacher_id' => $data['teacher_id'],
+                'day_of_week' => $data['day_of_week'],
+                'start_time' => $data['start_time'],
+                'end_time' => $data['end_time'],
+                'location' => $data['location'],
+                'meet_link' => $data['meet_link'] ?? null,
+            ]);
+    }
+
+    /**
+     * Xóa lịch học
+     */
+    public function delete($id)
+    {
+        return Timetable::findOrFail($id)->delete();
+    }
+
+    /**
+     * Lấy tất cả lịch học của một khóa học
+     */
+    public function getTimetablesByCourseId($courseId)
+    {
+        return DB::table('timetable')
+            ->where('course_id', $courseId)
+            ->get();
+    }
+
+    /**
+     * Lấy thông tin khóa học
+     */
+    public function getCourseById($courseId)
+    {
+        return DB::table('product')
+            ->where('id_p', $courseId)
+            ->first();
+    }
+
+    /**
+     * Lấy thông tin giảng viên
+     */
+    public function getTeacherById($teacherId)
+    {
+        return DB::table('teacher')
+            ->where('id_t', $teacherId)
+            ->first();
     }
 }

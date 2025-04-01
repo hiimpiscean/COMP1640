@@ -9,18 +9,37 @@ class MessageRepos
 {
     /**
      * Lấy tin nhắn giữa hai người dùng
+     * @param string $senderType Loại người gửi (customer, teacher, staff, admin)
+     * @param int $senderId ID của người gửi
+     * @param string $receiverType Loại người nhận (customer, teacher, staff, admin)
+     * @param int $receiverId ID của người nhận
+     * @param int $lastId ID của tin nhắn cuối cùng đã nhận, mặc định là 0 để lấy tất cả tin nhắn
+     * @return array Danh sách tin nhắn
      */
-    public static function getMessagesBetweenUsers($senderType, $senderId, $receiverType, $receiverId)
+    public static function getMessagesBetweenUsers($senderType, $senderId, $receiverType, $receiverId, $lastId = 0)
     {
         $sql = 'SELECT * FROM messages WHERE 
                 ((sender_type = ? AND sender_id = ? AND receiver_type = ? AND receiver_id = ?) OR 
-                (sender_type = ? AND sender_id = ? AND receiver_type = ? AND receiver_id = ?))
-                ORDER BY timestamp ASC';
+                (sender_type = ? AND sender_id = ? AND receiver_type = ? AND receiver_id = ?))';
         
-        return DB::select($sql, [
+        // Thêm điều kiện để chỉ lấy tin nhắn mới nếu có lastId
+        if ($lastId > 0) {
+            $sql .= ' AND message_id > ?';
+        }
+        
+        $sql .= ' ORDER BY timestamp ASC';
+        
+        $params = [
             $senderType, $senderId, $receiverType, $receiverId,
             $receiverType, $receiverId, $senderType, $senderId
-        ]);
+        ];
+        
+        // Thêm tham số lastId vào mảng tham số nếu có
+        if ($lastId > 0) {
+            $params[] = $lastId;
+        }
+        
+        return DB::select($sql, $params);
     }
     
     /**

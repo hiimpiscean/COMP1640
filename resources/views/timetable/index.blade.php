@@ -53,13 +53,13 @@
     @endif
       </td>
       </tr>
-      @include('timeTable.modal_edit', ['entry' => $entry])
+      @include('timetable.edit', ['entry' => $entry])
     @endforeach
     </tbody>
     </table>
   </div>
 
-  @include('timeTable.modal_add')
+  @include('timetable.add')
 
   <style>
     /* Căn giữa container và tạo khoảng cách */

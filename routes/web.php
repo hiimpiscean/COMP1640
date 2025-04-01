@@ -9,8 +9,8 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ManualAuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\GoogleMeetController;
-use App\Http\Controllers\ClassroomController;
-use App\Http\Controllers\LearningMaterialsController;
+use App\Http\Controllers\LearningMaterialController;
+use App\Http\Controllers\StaffController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,7 +69,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 });
 
 // Dashboard
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
 // mail router từ đây lên trên 
@@ -126,10 +126,11 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'as' => 'staff.destroy'
     ]);
 
-    Route::get('/classroom', [ClassroomController::class, 'index'])->name('classroom.index');
-    Route::get('/classroom/create', [ClassroomController::class, 'create'])->name('classroom.create');
-    Route::post('/classroom', [ClassroomController::class, 'store'])->name('classroom.store');
-    Route::get('/classroom/{id}', [ClassroomController::class, 'show'])->name('classroom.show');
+    Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
+    Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
+    Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
+    Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
+    Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
 });
 
 //////////////Teacher/////////////
@@ -197,11 +198,6 @@ Route::get('/approval', function () {
     return view('ui.approval');
 })->middleware('manual.auth')->name('ui.approval');
 
-//Route::middleware(['auth', 'role:teacher'])->group(function () {
-//    Route::get('/teacher/pending', [TeacherController::class, 'pendingRegistrations'])->name('teacher.pending');
-//    Route::post('/teacher/approve/{id}', [TeacherController::class, 'approveRegistration'])->name('teacher.approve');
-//    Route::post('/teacher/reject/{id}', [TeacherController::class, 'rejectRegistration'])->name('teacher.reject');
-//});
 
 Route::group(['middleware' => 'manual.auth'], function () {
     Route::get('/curriculum', [ProductController::class, 'curriculumGeneral'])
@@ -497,8 +493,8 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
 // Chỉ cho phép user đã đăng nhập vào chat
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
 });
 
@@ -517,39 +513,9 @@ Route::middleware(['manual.auth'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
         Route::post('/learning-materials/approve/{id}', [LearningMaterialController::class, 'approve'])->name('learning_materials.approve');
         Route::post('/learning-materials/reject/{id}', [LearningMaterialController::class, 'reject'])->name('learning_materials.reject');
-        //Timetable function CRUD//
-        Route::post('/timetable', [TimetableController::class, 'addTimetable']); // Add Timetable
-        Route::put('/timetable/{id}', [TimetableController::class, 'updateTimetable']); // Update
-        Route::delete('/timetable/{id}', [TimetableController::class, 'deleteTimetable']); // Delete
     });
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
 
-// Route hiển thị danh sách timetable
-Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
-
-// Route xử lý thêm timetable
-Route::post('/timetable/add', [TimetableController::class, 'addTimetable'])->name('timetable.add');
-
-// Route xử lý cập nhật timetable
-Route::put('/timetable/update/{id}', [TimetableController::class, 'updateTimetable'])->name('timetable.update');
-
-// Route xử lý xóa timetable
-Route::delete('/timetable/delete/{id}', [TimetableController::class, 'deleteTimetable'])->name('timetable.delete');
-Route::post('/generate-meet', function (Request $request, GoogleMeetService $googleMeetService) {
-    try {
-        $meetLink = $googleMeetService->createMeetLink('Online Class', $request->start_time, $request->end_time);
-        return response()->json(['meet_link' => $meetLink]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to generate Meet link'], 500);
-    }
-});
-
-
-// Route để xem thông tin cơ sở dữ liệu
-/////////////////////////////////////////////////
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Auth::routes();
