@@ -584,22 +584,32 @@
         const updateChatBox = debounce((messages) => {
             const fragment = document.createDocumentFragment();
             const chatBox = document.getElementById('chat-box');
-            
+            const existingMessageIds = new Set(Array.from(chatBox.children)
+                .map(el => el.id?.replace('msg-', '')));
+
             messages.forEach(msg => {
-                if ($(`#msg-${msg.id}`).length > 0) return;
-                
+                // Kiểm tra xem tin nhắn đã tồn tại chưa
+                if (existingMessageIds.has(msg.id.toString())) return;
+
                 const messageDiv = document.createElement('div');
                 const isCurrentUser = isMessageFromCurrentUser(msg.sender, msg.sender_type);
                 messageDiv.id = `msg-${msg.id}`;
                 messageDiv.className = `message ${isCurrentUser ? 'sender' : 'receiver'}`;
                 messageDiv.innerHTML = `
-                    ${msg.text}
-                    <span class="timestamp">${msg.timestamp}</span>
-                `;
+            ${msg.text}
+            <span class="timestamp">${msg.timestamp}</span>
+        `;
                 fragment.appendChild(messageDiv);
             });
 
+            // Chỉ cập nhật DOM nếu có tin nhắn mới
             if (fragment.children.length > 0) {
+                // Nếu đang hiển thị "Đang tải tin nhắn...", xóa nó đi
+                const loadingMsg = chatBox.querySelector('.loading-messages');
+                if (loadingMsg) {
+                    chatBox.innerHTML = '';
+                }
+
                 chatBox.appendChild(fragment);
                 requestAnimationFrame(() => {
                     chatBox.scrollTop = chatBox.scrollHeight;
@@ -611,14 +621,14 @@
         function isMessageFromCurrentUser(sender, senderType) {
             const currentUsername = currentUser.toLowerCase().trim();
             const senderEmail = (sender || '').toLowerCase().trim();
-            
+
             if (currentUsername.includes('admin')) {
                 return senderType === 'admin';
             }
-            
+
             return senderEmail === currentUsername ||
-                   senderEmail.startsWith(currentUsername + "@") ||
-                   (senderEmail.includes("@") && currentUsername === senderEmail.split("@")[0]);
+                senderEmail.startsWith(currentUsername + "@") ||
+                (senderEmail.includes("@") && currentUsername === senderEmail.split("@")[0]);
         }
 
         // Tối ưu hàm gửi tin nhắn
@@ -642,11 +652,11 @@
                 timestamp: getCurrentTime(),
                 status: 'sending'
             };
-            
+
             // Thêm vào cache tạm thời
             messageCache.set(tempId, tempMessage);
             updateChatBox([tempMessage]);
-            
+
             // Clear input ngay lập tức
             $('#message-input').val('').focus();
 
@@ -674,7 +684,7 @@
                         ...response.message,
                         status: 'sent'
                     });
-                    
+
                     // Cập nhật UI
                     const tempElement = document.getElementById(tempId);
                     if (tempElement) {
@@ -685,7 +695,7 @@
                             setTimeout(() => statusElement.style.display = 'none', 300);
                         }
                     }
-                    
+
                     lastMessageId = Math.max(lastMessageId, realMessageId);
                 } else {
                     throw new Error(response.error || 'Lỗi gửi tin nhắn');
@@ -719,6 +729,7 @@
             }
             lastPollTime = now;
 
+            // Chỉ hiển thị loading khi load lần đầu
             if (!isBackgroundUpdate) {
                 $('#chat-box').html('<div class="loading-messages">Đang tải tin nhắn...</div>');
             }
@@ -748,24 +759,26 @@
                     return;
                 }
 
-                // Cập nhật cache và UI
-                messages.forEach(msg => {
-                    if (!messageCache.has(msg.id)) {
+                // Thêm kiểm tra trùng lặp tin nhắn
+                const uniqueMessages = messages.filter(msg => {
+                    const isDuplicate = messageCache.has(msg.id);
+                    if (!isDuplicate) {
                         messageCache.set(msg.id, msg);
                         if (msg.id > lastMessageId) {
                             lastMessageId = msg.id;
                         }
                     }
+                    return !isDuplicate;
                 });
 
-                // Cập nhật UI với tin nhắn mới
-                if (messages.length > 0) {
-                    updateChatBox(messages);
+                // Chỉ cập nhật UI nếu có tin nhắn mới
+                if (uniqueMessages.length > 0) {
+                    updateChatBox(uniqueMessages);
                 }
 
                 // Xử lý thông báo cho tin nhắn mới
                 if (isBackgroundUpdate) {
-                    messages.forEach(msg => {
+                    uniqueMessages.forEach(msg => {
                         if (!isMessageFromCurrentUser(msg.sender, msg.sender_type)) {
                             showNotification(msg.sender, msg.text);
                         }
@@ -775,7 +788,8 @@
             } catch (error) {
                 console.error("Lỗi khi tải tin nhắn:", error);
                 if (!isBackgroundUpdate) {
-                    $('#chat-box').html('<div class="error-messages">Không thể tải tin nhắn. Vui lòng thử lại sau.</div>');
+                    $('#chat-box').html(
+                        '<div class="error-messages">Không thể tải tin nhắn. Vui lòng thử lại sau.</div>');
                 }
             }
         }
@@ -811,7 +825,7 @@
                 second: '2-digit',
                 hour12: false
             };
-            
+
             return () => new Date().toLocaleString('vi-VN', options).replace(',', '');
         })();
 
@@ -912,7 +926,7 @@
                         error: function(error) {
                             $('#search-results').html(
                                 '<div class="search-result-item">Lỗi khi tìm kiếm</div>'
-                                );
+                            );
                             $('#search-results').addClass('show');
                         }
                     });
@@ -948,16 +962,16 @@
             const truncatedMessage = message.length > 30 ? message.substring(0, 30) + '...' : message;
 
             const notification = `
-                    <div class="notification">
-                        <div class="notification-icon">
-                            <i class="fas fa-comment"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title">Tin nhắn mới từ ${sender}</div>
-                            <div class="notification-message">${truncatedMessage}</div>
-                        </div>
+                <div class="notification">
+                    <div class="notification-icon">
+                        <i class="fas fa-comment"></i>
                     </div>
-                `;
+                    <div class="notification-content">
+                        <div class="notification-title">Tin nhắn mới từ ${sender}</div>
+                        <div class="notification-message">${truncatedMessage}</div>
+                    </div>
+                </div>
+            `;
 
             notificationContainer.append(notification);
 

@@ -11,6 +11,9 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\GoogleMeetController;
 use App\Http\Controllers\LearningMaterialController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +41,8 @@ Route::get('/', function () {
 });
 
 // Authentication routes
-Auth::routes();
+// Auth::routes();
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Student Routes
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
@@ -125,12 +129,6 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'uses' => 'StaffController@destroy',
         'as' => 'staff.destroy'
     ]);
-
-    Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
-    Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
-    Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
-    Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
-    Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
 });
 
 //////////////Teacher/////////////
@@ -274,6 +272,27 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('logout', [
         'uses' => 'ManualAuthController@signout',
         'as' => 'auth.signout'
+    ]);
+
+    // Routes cho quên mật khẩu
+    Route::get('forgot-password', [
+        'uses' => 'ManualAuthController@showForgotForm',
+        'as' => 'password.request'
+    ]);
+
+    Route::post('forgot-password', [
+        'uses' => 'ManualAuthController@sendResetLink',
+        'as' => 'password.email'
+    ]);
+
+    Route::get('reset-password/{token}', [
+        'uses' => 'ManualAuthController@showResetForm',
+        'as' => 'password.reset'
+    ]);
+
+    Route::post('reset-password', [
+        'uses' => 'ManualAuthController@resetPassword',
+        'as' => 'password.update'
     ]);
 });
 
@@ -490,19 +509,43 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
     ]);
 });
 
+
 // Chỉ cho phép user đã đăng nhập vào chat
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
+    
 });
+
+//TODO: Notifications for messages
+Route::get('/notifications/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
+Route::get('/notifications/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
+Route::post('/notifications/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
+
+// //TODO: routes for message deletion
+// Route::delete('/message/{id}', [MessageController::class, 'deleteMessage']);
+
+//TODO: query all chats
+Route::get('/chat/partners', [ChatController::class, 'getChatPartners']);
+
+
+// Nhóm các route timetable và thêm middleware role
+Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
+    Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
+    Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
+    Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
+    Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
+    Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
+});
+
 
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
-    Route::get('/test-meet', [GoogleMeetController::class, 'test']);
 });
+
 
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
@@ -518,14 +561,3 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
 
-
-//TODO: Notifications for messages
-Route::get('/notifications/unread-count', [MessageController::class, 'getUnreadCount'])->name('get.unread.count');
-Route::get('/notifications/unread-messages', [MessageController::class, 'getUnreadMessages'])->name('get.unread.messages');
-Route::post('/notifications/mark-read', [MessageController::class, 'markMessagesAsRead'])->name('mark.messages.read');
-
-//TODO: routes for message deletion
-Route::delete('/message/{id}', [MessageController::class, 'deleteMessage']);
-//TODO: query all chats
-Route::get('/chat/partners', [MessageController::class, 'getChatPartners']);
-// Auth::routes();

@@ -32,7 +32,7 @@ class CustomerRepos
             $customer->phone_c,
             $customer->email,
             $customer->address_c,
-            Hash::make($customer->password) // 🔒 Mã hóa mật khẩu trước khi lưu
+            $customer->password // Mật khẩu đã được hash từ controller
         ]);
     }
 
@@ -48,10 +48,9 @@ class CustomerRepos
             $customer->address_c
         ];
 
-        // Nếu có mật khẩu mới, mã hóa trước khi cập nhật
         if (!empty($customer->password)) {
             $sql .= ", password = ?";
-            $params[] = Hash::make($customer->password); // 🔒 Mã hóa mật khẩu
+            $params[] = $customer->password; // Mật khẩu đã được hash từ controller
         }
 
         $sql .= " WHERE id_c = ?";

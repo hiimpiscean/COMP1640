@@ -49,15 +49,12 @@ class StaffRepos
         $sql .= "set username = ?, fullname_s = ?, phone_s = ?, email = ?, password = ? ";
         $sql .= "where id_s = ? ";
 
-        // Mã hóa mật khẩu trước khi cập nhật vào cơ sở dữ liệu
-        $hashedPassword = Hash::make($staff->password);
-
         DB::update($sql, [
             $staff->username,
             $staff->fullname_s,
             $staff->phone_s,
             $staff->email,
-            $hashedPassword, // Cập nhật mật khẩu đã mã hóa
+            $staff->password,  // Sử dụng mật khẩu đã được hash từ controller
             $staff->id_s
         ]);
     }

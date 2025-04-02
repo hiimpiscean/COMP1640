@@ -86,7 +86,7 @@
     </div>
     <button type="submit" class="btn btn-primary">Sign In</button>
     <div class="text-center mt-3">
-      <a href="#">Forgot Your Password?</a>
+      <a href="{{ route('password.request') }}">Forgot Your Password?</a>
     </div>
   </form>
 </div>

@@ -7,6 +7,9 @@ use App\Repository\StaffRepos;
 use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ManualAuthController extends Controller
 {
@@ -20,55 +23,61 @@ class ManualAuthController extends Controller
         $login = $request->input('login');
         $password = $request->input('password');
 
-        // Lấy dữ liệu từ cả admin và customer
         $adminUsers = AdminRepos::getAllAdmin();
+        $staffUsers = StaffRepos::getAllStaff();
         $customerUsers = CustomerRepos::getAllCustomer();
         $teacherUsers = TeacherRepos::getAllTeacher();
-        $staffUsers = StaffRepos::getAllStaff();
-
-     //   $allUsers = array_merge($adminUsers, $customerUsers, $teacherUsers, $staffUsers); // add them tập khách hàng là stu, staff
 
         $user = null;
         $role = '';
-        //$bool = true;
 
-        foreach ($adminUsers as $a)
-
+        // Kiểm tra admin
+        foreach ($adminUsers as $a) {
             if ($a->username === $login && $a->password === sha1($password)) {
                 $user = $a;
                 $role = 'admin';
-            //    $bool == false;
-                break;
-            } else foreach ($staffUsers as $s)
-
-                if ($s->username === $login && $s->password === $password) {
-                $user = $s;
-                $role = 'staff';
-             //   $bool == false;
-                break;
-            } else foreach ($customerUsers as $c)
-
-            if ($c->email === $login && $c->password === $password) {
-                $user = $c;
-                $role = 'customer';
-            //    $bool == false;
-                break;
-            } else foreach ($teacherUsers as $t)
-
-            if ($t->email === $login && $t->password === $password) {
-                $user = $t;
-                $role = 'teacher';
-              //  $bool == false;
                 break;
             }
+        }
 
+        // Kiểm tra staff (kiểm tra cả username và email)
+        if (!$user) {
+            foreach ($staffUsers as $s) {
+                if (($s->username === $login || $s->email === $login) && Hash::check($password, $s->password)) {
+                    $user = $s;
+                    $role = 'staff';
+                    break;
+                }
+            }
+        }
+
+        // Kiểm tra customer
+        if (!$user) {
+            foreach ($customerUsers as $c) {
+                if ($c->email === $login && Hash::check($password, $c->password)) {
+                    $user = $c;
+                    $role = 'customer';
+                    break;
+                }
+            }
+        }
+
+        // Kiểm tra teacher
+        if (!$user) {
+            foreach ($teacherUsers as $t) {
+                if ($t->email === $login && Hash::check($password, $t->password)) {
+                    $user = $t;
+                    $role = 'teacher';
+                    break;
+                }
+            }
+        }
 
         if ($user) {
             $displayName = $role === 'admin' || $role === 'staff' ? $user->username : $user->email;
             Session::put('username', $displayName);
             Session::put('role', $role);
 
-            // Chuyển hướng dựa trên role
             switch ($role) {
                 case 'admin':
                     return redirect()->route('admin.index');
@@ -80,17 +89,185 @@ class ManualAuthController extends Controller
                 default:
                     return redirect()->route('home');
             }
-        } else {
-            return redirect()->action([ManualAuthController::class, 'ask'])
-                ->withErrors(['msg' => 'Thông tin đăng nhập không đúng!']);
         }
-    }
 
+        return redirect()->action([ManualAuthController::class, 'ask'])
+            ->withErrors(['msg' => 'Invalid login credentials!']);
+    }
 
     public function signout()
     {
         Session::forget('username');
         Session::forget('role');
         return redirect()->route('ui.index');
+    }
+
+    public function showForgotForm()
+    {
+        return view('product.manualAuth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $email = $request->email;
+        $user = null;
+        $role = '';
+
+        // Kiểm tra staff
+        $staffs = StaffRepos::getAllStaff();
+        foreach ($staffs as $s) {
+            if ($s->email === $email) {
+                $user = $s;
+                $role = 'staff';
+                break;
+            }
+        }
+
+        // Nếu không phải staff, kiểm tra teacher
+        if (!$user) {
+            $teachers = TeacherRepos::getAllTeacher();
+            foreach ($teachers as $t) {
+                if ($t->email === $email) {
+                    $user = $t;
+                    $role = 'teacher';
+                    break;
+                }
+            }
+        }
+
+        // Nếu không phải teacher, kiểm tra customer
+        if (!$user) {
+            $customers = CustomerRepos::getAllCustomer();
+            foreach ($customers as $c) {
+                if ($c->email === $email) {
+                    $user = $c;
+                    $role = 'customer';
+                    break;
+                }
+            }
+        }
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'No account found with this email address']);
+        }
+
+        // Tạo token ngẫu nhiên
+        $token = bin2hex(random_bytes(32));
+        
+        // Lưu token và email vào session
+        Session::put('password_reset', [
+            'email' => $email,
+            'token' => $token,
+            'role' => $role,
+            'created_at' => now()
+        ]);
+
+        // Tạo link reset password
+        $resetLink = route('password.reset', ['token' => $token]);
+
+        return back()->with('status', $resetLink);
+    }
+
+    public function showResetForm(Request $request, $token)
+    {
+        $resetData = Session::get('password_reset');
+        
+        if (!$resetData || $resetData['token'] !== $token) {
+            return redirect()->route('password.request')
+                ->withErrors(['email' => 'Invalid password reset link.']);
+        }
+
+        return view('product.manualAuth.reset-password', [
+            'token' => $token,
+            'email' => $resetData['email']
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'password' => 'required|min:6|confirmed'
+        ]);
+
+        $resetData = Session::get('password_reset');
+        
+        if (!$resetData || $resetData['token'] !== $request->token) {
+            return redirect()->route('password.request')
+                ->withErrors(['email' => 'Link đặt lại mật khẩu không hợp lệ.']);
+        }
+
+        $email = $resetData['email'];
+        $role = $resetData['role'];
+        $user = null;
+        $hashedPassword = Hash::make($request->password);
+
+        // Tìm user theo role và email
+        switch ($role) {
+            case 'staff':
+                foreach (StaffRepos::getAllStaff() as $s) {
+                    if ($s->email === $email) {
+                        $user = $s;
+                        StaffRepos::update((object)[
+                            'id_s' => $s->id_s,
+                            'username' => $s->username,
+                            'fullname_s' => $s->fullname_s,
+                            'phone_s' => $s->phone_s,
+                            'email' => $s->email,
+                            'password' => $hashedPassword
+                        ]);
+                        break;
+                    }
+                }
+                break;
+            case 'teacher':
+                foreach (TeacherRepos::getAllTeacher() as $t) {
+                    if ($t->email === $email) {
+                        $user = $t;
+                        TeacherRepos::update((object)[
+                            'id_t' => $t->id_t,
+                            'fullname_t' => $t->fullname_t,
+                            'phone_t' => $t->phone_t,
+                            'email' => $t->email,
+                            'password' => $hashedPassword
+                        ]);
+                        break;
+                    }
+                }
+                break;
+            case 'customer':
+                foreach (CustomerRepos::getAllCustomer() as $c) {
+                    if ($c->email === $email) {
+                        $user = $c;
+                        CustomerRepos::update((object)[
+                            'id_c' => $c->id_c,
+                            'fullname_c' => $c->fullname_c,
+                            'dob' => $c->dob,
+                            'gender' => $c->gender,
+                            'phone_c' => $c->phone_c,
+                            'email' => $c->email,
+                            'address_c' => $c->address_c,
+                            'password' => $hashedPassword
+                        ]);
+                        break;
+                    }
+                }
+                break;
+        }
+
+        if (!$user) {
+            return redirect()->route('password.request')
+                ->withErrors(['email' => 'Account not found.']);
+        }
+
+        // Xóa token reset password
+        Session::forget('password_reset');
+
+        // Chuyển hướng đến trang thông báo thành công
+        return view('product.manualAuth.reset-success');
     }
 }
