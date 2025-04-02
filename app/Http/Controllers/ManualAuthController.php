@@ -7,6 +7,7 @@ use App\Repository\StaffRepos;
 use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
 
 class ManualAuthController extends Controller
 {
@@ -26,7 +27,7 @@ class ManualAuthController extends Controller
         $teacherUsers = TeacherRepos::getAllTeacher();
         $staffUsers = StaffRepos::getAllStaff();
 
-     //   $allUsers = array_merge($adminUsers, $customerUsers, $teacherUsers, $staffUsers); // add them tập khách hàng là stu, staff
+        //   $allUsers = array_merge($adminUsers, $customerUsers, $teacherUsers, $staffUsers); // add them tập khách hàng là stu, staff
 
         $user = null;
         $role = '';
@@ -37,30 +38,30 @@ class ManualAuthController extends Controller
             if ($a->username === $login && $a->password === sha1($password)) {
                 $user = $a;
                 $role = 'admin';
-            //    $bool == false;
+                //    $bool == false;
                 break;
-            } else foreach ($staffUsers as $s)
+            } else
+                foreach ($staffUsers as $s)
 
-                if ($s->username === $login && $s->password === $password) {
-                $user = $s;
-                $role = 'staff';
-             //   $bool == false;
-                break;
-            } else foreach ($customerUsers as $c)
+                    if ($s->username === $login && Hash::check($password, $s->password)) {
+                        $user = $s;
+                        $role = 'staff';
+                        break;
+                    } else
+                        foreach ($customerUsers as $c)
 
-            if ($c->email === $login && $c->password === $password) {
-                $user = $c;
-                $role = 'customer';
-            //    $bool == false;
-                break;
-            } else foreach ($teacherUsers as $t)
+                            if ($c->email === $login && Hash::check($password, $c->password)) {
+                                $user = $c;
+                                $role = 'customer';
+                                break;
+                            } else
+                                foreach ($teacherUsers as $t)
 
-            if ($t->email === $login && $t->password === $password) {
-                $user = $t;
-                $role = 'teacher';
-              //  $bool == false;
-                break;
-            }
+                                    if ($t->email === $login && Hash::check($password, $t->password)) {
+                                        $user = $t;
+                                        $role = 'teacher';
+                                        break;
+                                    }
 
 
         if ($user) {

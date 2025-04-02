@@ -115,7 +115,7 @@ class StaffController extends Controller
         }
 
         if ($request->filled('password')) {
-            if ($request->old_password !== $staff->password) {
+            if (!Hash::check($request->old_password, $staff->password)) {
                 return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
             }
             if ($request->password !== $request->password_confirmation) {
