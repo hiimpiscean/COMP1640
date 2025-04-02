@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
 
 class StaffRepos
 {
@@ -31,15 +30,12 @@ class StaffRepos
         $sql .= "(username, fullname_s, phone_s, email, password) ";
         $sql .= "values(?, ?, ?, ?, ?) ";
 
-        // Mã hóa mật khẩu trước khi chèn vào cơ sở dữ liệu
-        $hashedPassword = Hash::make($staff->password);
-
         DB::insert($sql, [
             $staff->username,
             $staff->fullname_s,
             $staff->phone_s,
             $staff->email,
-            $hashedPassword // Lưu mật khẩu đã mã hóa
+            $staff->password // Sử dụng mật khẩu đã được hash từ StaffController
         ]);
     }
 
@@ -54,7 +50,7 @@ class StaffRepos
             $staff->fullname_s,
             $staff->phone_s,
             $staff->email,
-            $staff->password,  // Sử dụng mật khẩu đã được hash từ controller
+            $staff->password,
             $staff->id_s
         ]);
     }

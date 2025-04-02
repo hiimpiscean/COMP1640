@@ -117,17 +117,17 @@ class ManualAuthController extends Controller
         $user = null;
         $role = '';
 
-        // Kiểm tra staff
-        $staffs = StaffRepos::getAllStaff();
-        foreach ($staffs as $s) {
-            if ($s->email === $email) {
-                $user = $s;
-                $role = 'staff';
+        // Kiểm tra customer
+        $customers = CustomerRepos::getAllCustomer();
+        foreach ($customers as $c) {
+            if ($c->email === $email) {
+                $user = $c;
+                $role = 'customer';
                 break;
             }
         }
 
-        // Nếu không phải staff, kiểm tra teacher
+        // Nếu không phải customer, kiểm tra teacher
         if (!$user) {
             $teachers = TeacherRepos::getAllTeacher();
             foreach ($teachers as $t) {
@@ -139,20 +139,8 @@ class ManualAuthController extends Controller
             }
         }
 
-        // Nếu không phải teacher, kiểm tra customer
         if (!$user) {
-            $customers = CustomerRepos::getAllCustomer();
-            foreach ($customers as $c) {
-                if ($c->email === $email) {
-                    $user = $c;
-                    $role = 'customer';
-                    break;
-                }
-            }
-        }
-
-        if (!$user) {
-            return back()->withErrors(['email' => 'No account found with this email address']);
+            return back()->withErrors(['email' => 'Không tìm thấy tài khoản với email này']);
         }
 
         // Tạo token ngẫu nhiên
