@@ -20,6 +20,8 @@
         </li>
       </ul>
     </li>
+    
+    @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">
       <a href="#">Admin</a>
       <ul class="submenu">
@@ -28,6 +30,8 @@
         </li>
       </ul>
     </li>
+    @endif
+
     <li class="{{ request()->routeIs('category.*') ? 'active' : '' }}">
       <a href="#">Category</a>
       <ul class="submenu">
@@ -61,6 +65,8 @@
         </li>
       </ul>
     </li>
+    
+    @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('staff.*') ? 'active' : '' }}">
       <a href="#">Staff</a>
       <ul class="submenu">
@@ -72,7 +78,8 @@
         </li>
       </ul>
     </li>
-
+    @endif
+    
   </ul>
   <div class="sidebar-footer">
     <a href="#">
