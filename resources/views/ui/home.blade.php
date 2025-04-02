@@ -172,7 +172,7 @@
       </div>
       <div class="col-lg-3 col-sm-6" data-aos="fade-up" data-aos-delay="700">
       <div class="service-item text-center pt-3">
-        <a href="{{ route('flm.curriculum') }}">
+        <a href="{{ route('learning_materials.curriculum') }}">
         <div class="p-4">
           <i class="fa fa-3x fa-book-open text-primary mb-4"></i>
           <h5 class="mb-3">Book Library</h5>

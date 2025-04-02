@@ -56,9 +56,10 @@ class TeacherController extends Controller
 
         // Nếu nhập mật khẩu mới, kiểm tra mật khẩu cũ
         if ($request->filled('password')) {
-            if (trim($request->old_password) !== trim($teacher->password)) {
+            if (!Hash::check($request->old_password, $teacher->password)) {
                 return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
             }
+
 
             if ($request->password !== $request->password_confirmation) {
                 return redirect()->back()->with('error', 'Mật khẩu xác nhận không khớp!');

@@ -136,7 +136,7 @@ class ProductController extends Controller
     public function curriculumGeneral()
     {
         $product = ProductRepos::getAllProduct(); // Lấy tất cả sản phẩm
-        return view('flm.curriculum', compact('product'));
+        return view('learning_materials.curriculum', compact('product'));
     }
 
     public function curriculum($productName = null)
@@ -147,7 +147,7 @@ class ProductController extends Controller
             $product = null;
         }
 
-        return view('flm.curriculum', compact('product', 'productName'));
+        return view('learning_materials.curriculum', compact('product', 'productName'));
     }
 
     private function formValidate($request)

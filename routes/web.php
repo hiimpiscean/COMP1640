@@ -188,10 +188,6 @@ Route::get('/testimonial', function () {
     return view('ui.testimonial');
 })->name('ui.testimonial');
 
-Route::get('/listDocument', function () {
-    return view('flm.listDocument');
-})->name('flm.listDocument');
-
 Route::get('/approval', function () {
     return view('ui.approval');
 })->middleware('manual.auth')->name('ui.approval');
@@ -199,7 +195,7 @@ Route::get('/approval', function () {
 
 Route::group(['middleware' => 'manual.auth'], function () {
     Route::get('/curriculum', [ProductController::class, 'curriculumGeneral'])
-        ->name('flm.curriculum');
+        ->name('learning_materials.curriculum');
 
     Route::get('/curriculum/{productName?}', [ProductController::class, 'curriculum'])
         ->name('curriculum');
@@ -552,7 +548,7 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials/upload', [LearningMaterialController::class, 'create'])->name('learning_materials.create');
     Route::post('/learning-materials/store', [LearningMaterialController::class, 'store'])->name('learning_materials.store');
 
-    Route::middleware(['role:staff'])->group(function () {
+    Route::middleware(['role:staff,admin'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
         Route::post('/learning-materials/approve/{id}', [LearningMaterialController::class, 'approve'])->name('learning_materials.approve');
         Route::post('/learning-materials/reject/{id}', [LearningMaterialController::class, 'reject'])->name('learning_materials.reject');
@@ -560,4 +556,5 @@ Route::middleware(['manual.auth'])->group(function () {
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
+
 
