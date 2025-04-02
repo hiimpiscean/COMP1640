@@ -4,21 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Repository\TeacherRepos;
 
 class LearningMaterial extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'file_path', 'uploaded_by', 'status', 'approved_by'];
+    protected $fillable = ['title', 'description', 'file_path', 'teacher_id', 'status'];
 
-    public function uploader()
-    {
-        return $this->belongsTo(User::class, 'uploaded_by');
-    }
+    protected $appends = ['teacher_data'];
 
-    public function approver()
+    public function getTeacherDataAttribute()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        if (!$this->teacher_id) {
+            // Trả về đối tượng mặc định nếu không có teacher_id
+            return (object) [
+                'fullname_t' => 'Giáo viên #' . $this->teacher_id
+            ];
+        }
+
+        $teachers = TeacherRepos::getTeacherById($this->teacher_id);
+        if (count($teachers) > 0) {
+            return $teachers[0];
+        } else {
+            // Trả về đối tượng mặc định nếu không tìm thấy giáo viên
+            return (object) [
+                'fullname_t' => 'Giáo viên #' . $this->teacher_id
+            ];
+        }
     }
 
     public function scopeApproved($query)

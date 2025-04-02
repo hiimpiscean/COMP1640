@@ -512,7 +512,7 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
-    
+
 });
 
 //TODO: Notifications for messages
@@ -547,6 +547,10 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
     Route::get('/learning-materials/upload', [LearningMaterialController::class, 'create'])->name('learning_materials.create');
     Route::post('/learning-materials/store', [LearningMaterialController::class, 'store'])->name('learning_materials.store');
+
+    // Routes for editing learning materials
+    Route::get('/learning-materials/edit/{id}', [LearningMaterialController::class, 'edit'])->name('learning_materials.edit');
+    Route::post('/learning-materials/update/{id}', [LearningMaterialController::class, 'update'])->name('learning_materials.update');
 
     Route::middleware(['role:staff,admin'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');

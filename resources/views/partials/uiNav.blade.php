@@ -38,9 +38,9 @@
           </div>
         </li>
 
-        <!-- <li class="nav-item {{ request()->routeIs('ui.approval') ? 'active' : '' }}">
-          <a class="nav-link" href="{{ route('ui.approval') }}">TEACHER</a>
-        </li> -->
+        {{-- <li class="nav-item {{ request()->routeIs('learning_materials.layout') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ route('learning_materials.layout') }}">TEACHER</a>
+        </li> --}}
 
       </ul>
       <ul class="nav-item chatbox-item {{ request()->routeIs('chat.index') ? 'active' : '' }}">
