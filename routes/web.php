@@ -528,20 +528,23 @@ Route::get('/chat/partners', [ChatController::class, 'getChatPartners']);
 
 
 // Nhóm các route timetable và thêm middleware role
-Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
+Route::middleware(['manual.auth'])->group(function () {
     Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
+});
+
+Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
     Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
     Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
     Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
     Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
+    Route::get('/timetable/{id}/generate-meet', [TimetableController::class, 'generateMeetLink'])->name('timetable.generate-meet');
 });
 
-
+// Route cho tất cả người dùng đã đăng nhập để xem timetable (bao gồm cả customer)
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
 });
-
 
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
@@ -560,5 +563,4 @@ Route::middleware(['manual.auth'])->group(function () {
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
-
 

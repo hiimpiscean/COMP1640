@@ -10,16 +10,16 @@ class RegistrationRequest extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'student_id',
+        'customer_id',
         'requested_class_id',
         'status',
         'processed_by',
         'notes',
     ];
 
-    public function student()
+    public function customer()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'customer_id');
     }
 
     public function requestedClass()

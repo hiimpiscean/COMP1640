@@ -59,7 +59,6 @@
   {{--nếu trang nào có scrip riêng thì sẽ loat vào đây--}}
   @yield('script')
 
-
 </body>
 
 </html>

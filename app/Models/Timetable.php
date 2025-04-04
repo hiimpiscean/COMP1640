@@ -4,8 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-
+use App\Models\Teacher;
 
 class Timetable extends Model
 {
@@ -13,7 +12,7 @@ class Timetable extends Model
 
     // Chỉ định tên bảng chính xác trong cơ sở dữ liệu
     protected $table = 'timetable';
-    
+
     // Tắt tính năng timestamps vì bảng không có các cột created_at và updated_at
     public $timestamps = false;
 
@@ -27,13 +26,6 @@ class Timetable extends Model
         'meet_link'
     ];
 
-    public function course()
-    {
-        return $this->belongsTo(Course::class, 'course_id');
-    }
-
-    public function teacher()
-    {
-        return $this->belongsTo(User::class, 'teacher_id');
-    }
+    // Loại bỏ relationships để tránh lỗi class not found
+    // Thay vào đó sử dụng repository pattern để lấy dữ liệu
 }

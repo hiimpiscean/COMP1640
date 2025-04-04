@@ -20,17 +20,17 @@
         </li>
       </ul>
     </li>
-    
+
     @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">
       <a href="#">Admin</a>
       <ul class="submenu">
-        <li class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
-          <a href="{{ route('admin.index') }}">View All</a>
-        </li>
+      <li class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
+        <a href="{{ route('admin.index') }}">View All</a>
+      </li>
       </ul>
     </li>
-    @endif
+  @endif
 
     <li class="{{ request()->routeIs('category.*') ? 'active' : '' }}">
       <a href="#">Category</a>
@@ -65,21 +65,21 @@
         </li>
       </ul>
     </li>
-    
+
     @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('staff.*') ? 'active' : '' }}">
       <a href="#">Staff</a>
       <ul class="submenu">
-        <li class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
-          <a href="{{ route('staff.index') }}">View All</a>
-        </li>
-        <li class="{{ request()->routeIs('staff.create') ? 'active' : '' }}">
-          <a href="{{route('staff.create')}}">Create Staff</a>
-        </li>
+      <li class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
+        <a href="{{ route('staff.index') }}">View All</a>
+      </li>
+      <li class="{{ request()->routeIs('staff.create') ? 'active' : '' }}">
+        <a href="{{route('staff.create')}}">Create Staff</a>
+      </li>
       </ul>
     </li>
-    @endif
-    
+  @endif
+
   </ul>
   <div class="sidebar-footer">
     <a href="#">
