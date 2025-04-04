@@ -62,10 +62,10 @@
         <div class="info">
             <p><span class="info-label">Registration ID:</span> {{ $registrationData->id }}</p>
             @if(isset($registrationData->student))
-            <p><span class="info-label">Student:</span> {{ $registrationData->student->name }}</p>
+            <p><span class="info-label">Student:</span> {{ $registrationData->student->fullname_c ?? 'N/A' }}</p>
             @endif
             @if(isset($registrationData->course))
-            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p }}</p>
+            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p ?? 'N/A' }}</p>
             @endif
             @if(isset($registrationData->status))
             <p><span class="info-label">Status:</span> {{ ucfirst($registrationData->status) }}</p>
