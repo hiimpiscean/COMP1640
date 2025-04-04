@@ -44,7 +44,8 @@
 
                     <div class="mb-3">
                         <label class="form-label">Start Time</label>
-                        <input type="time" name="start_time" class="form-control" value="{{ $entry->start_time }}" required>
+                        <input type="time" name="start_time" class="form-control" value="{{ $entry->start_time }}"
+                            required>
                     </div>
 
                     <div class="mb-3">

@@ -82,6 +82,20 @@ class TimetableController extends Controller
 
             if ($request->location === 'online') {
                 try {
+                    // Lấy thông tin khóa học và giáo viên
+                    $course = $this->timetableRepos->getCourseById($request->course_id);
+                    $teacher = $this->timetableRepos->getTeacherById($request->teacher_id);
+
+                    // Logging để debug
+                    Log::info('Tạo lịch học mới với Google Meet link', [
+                        'timetable_id' => $id,
+                        'course_id' => $request->course_id,
+                        'teacher_id' => $request->teacher_id,
+                        'course' => $course,
+                        'teacher' => $teacher
+                    ]);
+
+                    // Tạo đối tượng Timetable
                     $timetableObj = new Timetable();
                     $timetableObj->id = $id;
                     $timetableObj->course_id = $request->course_id;
@@ -90,22 +104,24 @@ class TimetableController extends Controller
                     $timetableObj->start_time = $request->start_time;
                     $timetableObj->end_time = $request->end_time;
                     $timetableObj->location = $request->location;
-                    
-                    $timetableObj->course = $this->timetableRepos->getCourseById($request->course_id);
-                    $timetableObj->teacher = $this->timetableRepos->getTeacherById($request->teacher_id);
-                    
-                    $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj);
+
+                    // Tạo Google Meet link với đối tượng và thông tin từ repositories
+                    $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj, $course, $teacher);
                     if ($meetLink) {
                         $this->timetableRepos->updateMeetLink($id, $meetLink);
                     }
                 } catch (\Exception $e) {
-                    Log::error('Không thể tạo Google Meet link: ' . $e->getMessage());
+                    Log::error('Không thể tạo Google Meet link: ' . $e->getMessage(), [
+                        'trace' => $e->getTraceAsString()
+                    ]);
                 }
             }
 
             return redirect()->route('timetable.index')->with('success', 'Tạo lịch học mới thành công!');
         } catch (\Exception $e) {
-            Log::error('Lỗi khi tạo lịch học mới: ' . $e->getMessage());
+            Log::error('Lỗi khi tạo lịch học mới: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()
                 ->with('error', 'Có lỗi xảy ra khi tạo lịch học mới: ' . $e->getMessage())
                 ->withInput();
@@ -124,7 +140,6 @@ class TimetableController extends Controller
             $timetable = $this->timetableRepos->getTimetableById($id);
             return view('timetable.show', compact('timetable'));
         } catch (\Exception $e) {
-            Log::error('Lỗi khi hiển thị chi tiết lịch học: ' . $e->getMessage());
             return redirect()->route('timetable.index')->with('error', 'Không tìm thấy lịch học này.');
         }
     }
@@ -170,9 +185,23 @@ class TimetableController extends Controller
         try {
             $oldLocation = $this->timetableRepos->getLocation($id);
             $meetLink = null;
-            
+
             if ($request->location === 'online' && $oldLocation !== 'online') {
                 try {
+                    // Lấy thông tin khóa học và giáo viên
+                    $course = $this->timetableRepos->getCourseById($request->course_id);
+                    $teacher = $this->timetableRepos->getTeacherById($request->teacher_id);
+
+                    // Logging để debug
+                    Log::info('Cập nhật lịch học với Google Meet link', [
+                        'timetable_id' => $id,
+                        'course_id' => $request->course_id,
+                        'teacher_id' => $request->teacher_id,
+                        'course' => $course,
+                        'teacher' => $teacher
+                    ]);
+
+                    // Tạo đối tượng Timetable
                     $timetableObj = new Timetable();
                     $timetableObj->id = $id;
                     $timetableObj->course_id = $request->course_id;
@@ -181,24 +210,26 @@ class TimetableController extends Controller
                     $timetableObj->start_time = $request->start_time;
                     $timetableObj->end_time = $request->end_time;
                     $timetableObj->location = $request->location;
-                    
-                    $timetableObj->course = $this->timetableRepos->getCourseById($request->course_id);
-                    $timetableObj->teacher = $this->timetableRepos->getTeacherById($request->teacher_id);
-                    
-                    $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj);
+
+                    // Tạo Google Meet link với đối tượng và thông tin từ repositories
+                    $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj, $course, $teacher);
                 } catch (\Exception $e) {
-                    Log::error('Không thể tạo Google Meet link: ' . $e->getMessage());
+                    Log::error('Không thể tạo Google Meet link: ' . $e->getMessage(), [
+                        'trace' => $e->getTraceAsString()
+                    ]);
                 }
             }
 
             $data = $request->all();
             $data['meet_link'] = $meetLink;
-            
+
             $this->timetableRepos->update($id, $data);
 
             return redirect()->route('timetable.index')->with('success', 'Cập nhật lịch học thành công!');
         } catch (\Exception $e) {
-            Log::error('Lỗi khi cập nhật lịch học: ' . $e->getMessage());
+            Log::error('Lỗi khi cập nhật lịch học: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()
                 ->with('error', 'Có lỗi xảy ra khi cập nhật lịch học: ' . $e->getMessage())
                 ->withInput();
@@ -233,11 +264,25 @@ class TimetableController extends Controller
     {
         try {
             $timetable = $this->timetableRepos->getTimetableById($id);
-            
+
             if (!$timetable) {
-                return redirect()->back()->with('error', 'Không tìm thấy lịch học này.');
+                return redirect()->route('timetable.index')->with('error', 'Không tìm thấy lịch học này.');
             }
-            
+
+            // Lấy thông tin khóa học và giáo viên từ repository
+            $course = $this->timetableRepos->getCourseById($timetable->course_id);
+            $teacher = $this->timetableRepos->getTeacherById($timetable->teacher_id);
+
+            // Logging để debug
+            Log::info('Tạo Google Meet link cho lịch học', [
+                'timetable_id' => $id,
+                'course_id' => $timetable->course_id,
+                'teacher_id' => $timetable->teacher_id,
+                'course' => $course,
+                'teacher' => $teacher
+            ]);
+
+            // Tạo đối tượng Timetable cho phương thức createMeetLinkForTimetable
             $timetableObj = new Timetable();
             $timetableObj->id = $id;
             $timetableObj->course_id = $timetable->course_id;
@@ -246,22 +291,27 @@ class TimetableController extends Controller
             $timetableObj->start_time = $timetable->start_time;
             $timetableObj->end_time = $timetable->end_time;
             $timetableObj->location = $timetable->location;
-            
-            $timetableObj->course = $this->timetableRepos->getCourseById($timetable->course_id);
-            $timetableObj->teacher = $this->timetableRepos->getTeacherById($timetable->teacher_id);
-            
-            $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj);
-            
+
+            // Truyền timetable, course và teacher vào phương thức createMeetLinkForTimetable
+            $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj, $course, $teacher);
+
             if (!$meetLink) {
-                return redirect()->back()->with('error', 'Không thể tạo Google Meet link.');
+                return redirect()->route('timetable.index')
+                    ->with('error', 'Không thể tạo Google Meet link. Vui lòng đảm bảo dịch vụ Google đã được xác thực.');
             }
 
+            // Cập nhật meet_link trong database
             $this->timetableRepos->updateMeetLink($id, $meetLink);
 
-            return redirect()->back()->with('success', 'Tạo Google Meet link thành công!');
+            return redirect()->route('timetable.index')
+                ->with('success', 'Tạo Google Meet link thành công!');
         } catch (\Exception $e) {
-            Log::error('Lỗi khi tạo Google Meet link: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Có lỗi xảy ra khi tạo Google Meet link: ' . $e->getMessage());
+            Log::error('Lỗi khi tạo Google Meet link: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('timetable.index')
+                ->with('error', 'Có lỗi xảy ra khi tạo Google Meet link: ' . $e->getMessage());
         }
     }
 
@@ -285,6 +335,11 @@ class TimetableController extends Controller
 
             foreach ($timetables as $timetable) {
                 try {
+                    // Lấy thông tin khóa học và giáo viên
+                    $course = $this->timetableRepos->getCourseById($timetable->course_id);
+                    $teacher = $this->timetableRepos->getTeacherById($timetable->teacher_id);
+
+                    // Tạo đối tượng Timetable
                     $timetableObj = new Timetable();
                     $timetableObj->id = $timetable->id;
                     $timetableObj->course_id = $timetable->course_id;
@@ -293,11 +348,9 @@ class TimetableController extends Controller
                     $timetableObj->start_time = $timetable->start_time;
                     $timetableObj->end_time = $timetable->end_time;
                     $timetableObj->location = $timetable->location;
-                    
-                    $timetableObj->course = $this->timetableRepos->getCourseById($timetable->course_id);
-                    $timetableObj->teacher = $this->timetableRepos->getTeacherById($timetable->teacher_id);
-                    
-                    $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj);
+
+                    // Tạo Google Meet link với đối tượng và thông tin từ repositories
+                    $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetableObj, $course, $teacher);
                     if ($meetLink) {
                         $this->timetableRepos->updateMeetLink($timetable->id, $meetLink);
                         $successCount++;
@@ -305,7 +358,9 @@ class TimetableController extends Controller
                         $failCount++;
                     }
                 } catch (\Exception $e) {
-                    Log::error('Lỗi khi tạo Google Meet link cho lịch học ID ' . $timetable->id . ': ' . $e->getMessage());
+                    Log::error('Lỗi khi tạo Google Meet link cho lịch học ID ' . $timetable->id . ': ' . $e->getMessage(), [
+                        'trace' => $e->getTraceAsString()
+                    ]);
                     $failCount++;
                 }
             }
@@ -317,7 +372,9 @@ class TimetableController extends Controller
 
             return redirect()->back()->with('success', "Đã tạo thành công $successCount Google Meet link.");
         } catch (\Exception $e) {
-            Log::error('Lỗi khi tạo Google Meet link cho khóa học: ' . $e->getMessage());
+            Log::error('Lỗi khi tạo Google Meet link cho khóa học: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()
                 ->with('error', 'Có lỗi xảy ra khi tạo Google Meet link: ' . $e->getMessage());
         }

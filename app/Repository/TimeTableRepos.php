@@ -5,6 +5,7 @@ namespace App\Repository;
 use Illuminate\Support\Facades\DB;
 use App\Models\Timetable;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class TimetableRepos
 {
@@ -17,7 +18,7 @@ class TimetableRepos
     }
 
     /**
-     * Lấy danh sách khóa học
+     * Lấy danh sách sản phẩm
      */
     public function getCourses()
     {
@@ -41,7 +42,7 @@ class TimetableRepos
      */
     public function getTimetableById($id)
     {
-        return Timetable::with(['course', 'teacher'])->findOrFail($id);
+        return Timetable::findOrFail($id);
     }
 
     /**
@@ -70,9 +71,24 @@ class TimetableRepos
      */
     public function updateMeetLink($id, $meetLink)
     {
-        return DB::table('timetable')
-            ->where('id', $id)
-            ->update(['meet_link' => $meetLink]);
+        try {
+            Log::info('Cập nhật Google Meet link cho lịch học', [
+                'timetable_id' => $id,
+                'meet_link' => $meetLink
+            ]);
+
+            $result = DB::table('timetable')
+                ->where('id', $id)
+                ->update(['meet_link' => $meetLink]);
+
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi cập nhật Google Meet link: ' . $e->getMessage(), [
+                'timetable_id' => $id,
+                'exception' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -122,7 +138,7 @@ class TimetableRepos
     }
 
     /**
-     * Lấy thông tin khóa học
+     * Lấy thông tin sản phẩm
      */
     public function getCourseById($courseId)
     {
@@ -139,5 +155,61 @@ class TimetableRepos
         return DB::table('teacher')
             ->where('id_t', $teacherId)
             ->first();
+    }
+
+    /**
+     * Lấy danh sách lịch học công khai cho trang schedule
+     */
+    public function getPublicTimetables()
+    {
+        $timetables = DB::table('timetable')
+            ->select(
+                'timetable.*',
+                'product.name_p as course_name',
+                'teacher.fullname_t as teacher_name'
+            )
+            ->join('product', 'timetable.course_id', '=', 'product.id_p')
+            ->join('teacher', 'timetable.teacher_id', '=', 'teacher.id_t')
+            ->orderBy('timetable.day_of_week')
+            ->orderBy('timetable.start_time')
+            ->get();
+
+        return $timetables;
+    }
+
+    /**
+     * Tự động gán học sinh đã đăng ký vào thời khóa biểu sau khi tạo thời khóa biểu mới
+     * 
+     * @param int $timetableId
+     * @param int $courseId
+     * @return bool
+     */
+    public function assignStudentToTimetable($timetableId, $courseId)
+    {
+        try {
+            // Lấy danh sách học sinh đã được phê duyệt nhưng chưa được gán vào thời khóa biểu
+            $pendingRegistrations = DB::table('course_registrations')
+                ->where('course_id', $courseId)
+                ->where('status', 'approved')
+                ->whereNull('timetable_id')
+                ->get();
+
+            // Nếu không có học sinh nào, trả về true (không cần thực hiện thêm)
+            if (count($pendingRegistrations) == 0) {
+                return true;
+            }
+
+            // Gán học sinh vào thời khóa biểu
+            foreach ($pendingRegistrations as $registration) {
+                DB::table('course_registrations')
+                    ->where('id', $registration->id)
+                    ->update(['timetable_id' => $timetableId]);
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi gán học sinh vào thời khóa biểu: ' . $e->getMessage());
+            return false;
+        }
     }
 }

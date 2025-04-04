@@ -203,7 +203,6 @@
             }
           },
           error: function(xhr, status, error) {
-            console.error("Lỗi khi lấy số lượng tin nhắn chưa đọc:", error);
           }
         });
       }
@@ -241,7 +240,6 @@
             }
           },
           error: function(xhr, status, error) {
-            console.error("Lỗi khi lấy tin nhắn chưa đọc:", error);
             $('#unread-messages-dropdown').html('<div class="message-item text-center">Đã xảy ra lỗi</div>');
           }
         });
@@ -310,7 +308,6 @@
               }
             }
           } catch (err) {
-            console.error("Lỗi khi xử lý sự kiện tin nhắn mới:", err);
           }
         }
         
@@ -321,7 +318,6 @@
             // Cập nhật lại UI nếu có tin nhắn được đánh dấu đã đọc
             getUnreadMessageCount();
           } catch (err) {
-            console.error("Lỗi khi xử lý sự kiện messages_marked_read:", err);
           }
         }
       });

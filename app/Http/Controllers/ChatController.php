@@ -440,9 +440,6 @@ class ChatController extends Controller
             // Lấy thông tin người dùng đang đăng nhập
             $userEmail = Session::get('username');
             
-            // Ghi log để debug
-            Log::info('Getting chat partners for', ['userEmail' => $userEmail]);
-            
             // Nếu không có người dùng đăng nhập, trả về lỗi
             if (!$userEmail) {
                 return response()->json(['success' => false, 'error' => 'Người dùng chưa đăng nhập']);
@@ -459,19 +456,13 @@ class ChatController extends Controller
                 ]);
             }
             
-            // Ghi log để debug
-            Log::info('User info for chat partners', [
-                'type' => $userInfo->type, 
-                'id' => $userInfo->id
-            ]);
+            // Phương pháp 1: Sử dụng getChatPartners
             
             // Phương pháp 1: Sử dụng getChatPartners
             $partners = MessageRepos::getChatPartners($userInfo->type, $userInfo->id);
             
             // Nếu không có kết quả, thử phương pháp 2
             if (empty($partners)) {
-                Log::info('No partners found with getChatPartners, trying direct query');
-                
                 // Truy vấn trực tiếp
                 $sql = "SELECT 
                           DISTINCT ON (partner_id, partner_type)
@@ -512,8 +503,6 @@ class ChatController extends Controller
                     ];
                 }
                 
-                // Ghi log kết quả
-                Log::info('Partners from direct query', ['count' => count($partners)]);
             }
             
             // Định dạng dữ liệu trả về
@@ -523,7 +512,6 @@ class ChatController extends Controller
                 
                 // Bỏ qua partners không có email
                 if (empty($partnerData->email)) {
-                    Log::warning('Partner without email', ['partner' => $partnerData]);
                     continue;
                 }
                 
@@ -536,16 +524,10 @@ class ChatController extends Controller
                 ];
             }
             
-            // Ghi log số lượng partners đã định dạng
-            Log::info('Formatted partners', ['count' => count($formattedPartners)]);
             
             return response()->json(['success' => true, 'partners' => $formattedPartners]);
         } catch (\Exception $e) {
-            // Ghi log lỗi chi tiết
-            Log::error('Error in getChatPartners controller', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }

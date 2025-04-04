@@ -22,7 +22,8 @@ class TeacherRepos
         $sql .= 'from teacher as t ';
         $sql .= 'where t.id_t = ? ';
 
-        return DB::select($sql, [$id_t]);
+        $result = DB::select($sql, [$id_t]);
+        return $result ? $result[0] : null;
     }
 
     public static function insert($teacher)
