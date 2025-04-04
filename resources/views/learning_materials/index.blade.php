@@ -16,15 +16,20 @@
 @endphp
 
   <div class="container learning-materials-container">
+    <!-- Nút quay lại trang curriculum -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{{ route('learning_materials.curriculum') }}" class="btn btn-secondary back-btn">
+      <i class="fas fa-arrow-left"></i> Quay lại danh sách sản phẩm
+    </a>
+
     <!-- Nút tạo mới tài liệu - Chỉ hiển thị cho giáo viên -->
     @if(Session::get('role') === 'teacher')
-    <div class="text-right mb-4">
     <a href="{{ route('learning_materials.create', ['product_id' => $productId]) }}"
       class="btn btn-success btn-lg create-btn">
       <i class="fas fa-plus"></i> Tạo mới tài liệu
     </a>
-    </div>
   @endif
+    </div>
 
     <h1 class="mb-4 text-center">
     @if($currentProduct)
@@ -150,6 +155,30 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin-top: 100px;
     margin-bottom: 50px;
+    }
+
+    .back-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    transition: background 0.3s;
+    text-decoration: none;
+    }
+
+    .back-btn:hover {
+    background-color: #5a6268;
+    text-decoration: none;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn i {
+    margin-right: 8px;
     }
 
     .create-btn {

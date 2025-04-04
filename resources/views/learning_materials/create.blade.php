@@ -36,7 +36,15 @@
                 <input type="file" class="form-control" id="file" name="file" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">Tải lên</button>
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ route('learning_materials.index', ['product_id' => $selectedProductId]) }}"
+                    class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Tải lên
+                </button>
+            </div>
         </form>
     </div>
 @endsection
