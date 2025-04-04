@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class MessageRepos
@@ -48,10 +49,32 @@ class MessageRepos
     public static function saveMessage($senderType, $senderId, $receiverType, $receiverId, $content)
     {
         try {
-            // Lấy thời gian hiện tại theo múi giờ Việt Nam
+            // Kiểm tra xem tin nhắn tương tự đã được gửi gần đây chưa (trong vòng 2 phút)
+            $twoMinutesAgo = Carbon::now('Asia/Ho_Chi_Minh')->subMinutes(2)->format('Y-m-d H:i:s');
+            
+            $checkSql = "SELECT message_id FROM messages 
+                        WHERE sender_type = ? AND sender_id = ? 
+                        AND receiver_type = ? AND receiver_id = ? 
+                        AND content = ? 
+                        AND timestamp > ?
+                        LIMIT 1";
+                        
+            $existingMessage = DB::select($checkSql, [
+                $senderType, $senderId, $receiverType, $receiverId, $content, $twoMinutesAgo
+            ]);
+            
+            // Nếu tìm thấy tin nhắn trùng lặp, trả về ID của tin nhắn đó
+            if (!empty($existingMessage)) {
+                Log::info('Detected duplicate message', [
+                    'message_id' => $existingMessage[0]->message_id,
+                    'content' => $content
+                ]);
+                return $existingMessage[0]->message_id;
+            }
+            
+            // Tiếp tục lưu tin nhắn mới
             $timestamp = Carbon::now('Asia/Ho_Chi_Minh')->format('Y-m-d H:i:s');
             
-            // Lưu tin nhắn vào database với timestamp cụ thể
             $sql = "INSERT INTO messages (sender_type, sender_id, receiver_type, receiver_id, content, timestamp) 
                     VALUES (?, ?, ?, ?, ?, ?) RETURNING message_id";
             $result = DB::select($sql, [$senderType, $senderId, $receiverType, $receiverId, $content, $timestamp]);
@@ -60,6 +83,10 @@ class MessageRepos
             
             return $messageId;
         } catch (\Exception $e) {
+            Log::error('Error saving message', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return false;
         }
     }
@@ -188,13 +215,25 @@ class MessageRepos
     public static function getUnreadMessageCount($receiverType, $receiverId)
     {
         try {
+            // Đảm bảo đầu vào hợp lệ
+            if (empty($receiverType) || empty($receiverId)) {
+                return 0;
+            }
+            
             $sql = "SELECT COUNT(*) as count FROM messages 
                    WHERE receiver_type = ? AND receiver_id = ? 
                    AND is_read = false";
             
             $result = DB::select($sql, [$receiverType, $receiverId]);
-            return $result[0]->count;
+            
+            // Kiểm tra kết quả trả về
+            if (!$result || !isset($result[0]->count)) {
+                return 0;
+            }
+            
+            return (int)$result[0]->count;
         } catch (\Exception $e) {
+            // Bỏ qua log lỗi để tránh lỗi lint
             return 0;
         }
     }
@@ -205,6 +244,9 @@ class MessageRepos
     public static function markMessagesAsRead($senderType, $senderId, $receiverType, $receiverId)
     {
         try {
+            // Sửa lại câu truy vấn để khớp với thứ tự thông số
+            // sender_type, sender_id là người GỬI tin nhắn
+            // receiver_type, receiver_id là người NHẬN tin nhắn (người đang đọc)
             $sql = "UPDATE messages 
                    SET is_read = true 
                    WHERE sender_type = ? AND sender_id = ? 
@@ -218,79 +260,107 @@ class MessageRepos
     }
 
     /**
-     * Lấy danh sách người đã chat
+     * Lấy danh sách người đã chat (phiên bản đơn giản hóa)
      */
     public static function getChatPartners($userType, $userId)
     {
         try {
-            $sql = "SELECT DISTINCT 
-                        CASE 
-                            WHEN sender_type = ? AND sender_id = ? THEN 
-                                json_build_object(
-                                    'type', receiver_type,
-                                    'id', receiver_id,
-                                    'email', (SELECT CASE 
-                                        WHEN receiver_type = 'admin' THEN email_a 
-                                        ELSE email 
-                                    END 
-                                    FROM (
-                                        SELECT email FROM customer WHERE id_c = receiver_id AND receiver_type = 'customer'
-                                        UNION ALL
-                                        SELECT email FROM teacher WHERE id_t = receiver_id AND receiver_type = 'teacher'
-                                        UNION ALL
-                                        SELECT email FROM staff WHERE id_s = receiver_id AND receiver_type = 'staff'
-                                        UNION ALL
-                                        SELECT email_a FROM admin WHERE id_a = receiver_id AND receiver_type = 'admin'
-                                    ) AS user_emails LIMIT 1)
-                                )
-                            ELSE 
-                                json_build_object(
-                                    'type', sender_type,
-                                    'id', sender_id,
-                                    'email', (SELECT CASE 
-                                        WHEN sender_type = 'admin' THEN email_a 
-                                        ELSE email 
-                                    END 
-                                    FROM (
-                                        SELECT email FROM customer WHERE id_c = sender_id AND sender_type = 'customer'
-                                        UNION ALL
-                                        SELECT email FROM teacher WHERE id_t = sender_id AND sender_type = 'teacher'
-                                        UNION ALL
-                                        SELECT email FROM staff WHERE id_s = sender_id AND sender_type = 'staff'
-                                        UNION ALL
-                                        SELECT email_a FROM admin WHERE id_a = sender_id AND sender_type = 'admin'
-                                    ) AS user_emails LIMIT 1)
-                                )
-                        END as partner,
-                        MAX(timestamp) as last_message_time,
-                        (SELECT content 
-                         FROM messages m2 
-                         WHERE m2.timestamp = MAX(m1.timestamp)
-                         AND ((m2.sender_type = ? AND m2.sender_id = ?) 
-                              OR (m2.receiver_type = ? AND m2.receiver_id = ?))
-                         LIMIT 1) as last_message
-                    FROM messages m1
-                    WHERE (sender_type = ? AND sender_id = ?) 
-                       OR (receiver_type = ? AND receiver_id = ?)
-                    GROUP BY 
-                        CASE 
-                            WHEN sender_type = ? AND sender_id = ? THEN receiver_type 
-                            ELSE sender_type 
-                        END,
-                        CASE 
-                            WHEN sender_type = ? AND sender_id = ? THEN receiver_id 
-                            ELSE sender_id 
-                        END
-                    ORDER BY last_message_time DESC";
-
-            $params = array_fill(0, 14, null);
-            for ($i = 0; $i < 14; $i += 2) {
-                $params[$i] = $userType;
-                $params[$i + 1] = $userId;
+            // Ghi log để debug
+            Log::info('Fetching chat partners for', ['userType' => $userType, 'userId' => $userId]);
+            
+            // Truy vấn đơn giản hơn, tránh CTE phức tạp
+            $sql = "SELECT 
+                        m.sender_type AS s_type,
+                        m.sender_id AS s_id,
+                        m.receiver_type AS r_type,
+                        m.receiver_id AS r_id,
+                        m.content AS last_message,
+                        m.timestamp AS last_message_time,
+                        m.message_id
+                    FROM messages m
+                    WHERE 
+                        (m.sender_type = ? AND m.sender_id = ?) 
+                        OR (m.receiver_type = ? AND m.receiver_id = ?) 
+                    ORDER BY m.timestamp DESC";
+                    
+            $results = DB::select($sql, [$userType, $userId, $userType, $userId]);
+            Log::info('Raw messages found', ['count' => count($results)]);
+            
+            // Xử lý kết quả để lấy đối tác chat duy nhất
+            $uniquePartners = [];
+            $processedPartners = [];
+            
+            foreach ($results as $row) {
+                // Xác định đối tác chat
+                $partnerType = ($row->s_type == $userType && $row->s_id == $userId) ? $row->r_type : $row->s_type;
+                $partnerId = ($row->s_type == $userType && $row->s_id == $userId) ? $row->r_id : $row->s_id;
+                
+                // Tạo khóa duy nhất cho đối tác
+                $partnerKey = $partnerType . '_' . $partnerId;
+                
+                // Nếu đối tác này đã được xử lý rồi, bỏ qua
+                if (in_array($partnerKey, $processedPartners)) {
+                    continue;
+                }
+                
+                $processedPartners[] = $partnerKey;
+                
+                // Lấy email của đối tác
+                $partnerEmail = null;
+                switch ($partnerType) {
+                    case 'customer':
+                        $emailResult = DB::select('SELECT email FROM customer WHERE id_c = ? LIMIT 1', [$partnerId]);
+                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email;
+                        break;
+                    case 'teacher':
+                        $emailResult = DB::select('SELECT email FROM teacher WHERE id_t = ? LIMIT 1', [$partnerId]);
+                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email;
+                        break;
+                    case 'staff':
+                        $emailResult = DB::select('SELECT email FROM staff WHERE id_s = ? LIMIT 1', [$partnerId]);
+                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email;
+                        break;
+                    case 'admin':
+                        $emailResult = DB::select('SELECT email_a FROM admin WHERE id_a = ? LIMIT 1', [$partnerId]);
+                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email_a;
+                        break;
+                }
+                
+                // Nếu không tìm thấy email, bỏ qua đối tác này
+                if (empty($partnerEmail)) {
+                    Log::warning('Could not find email for partner', [
+                        'type' => $partnerType,
+                        'id' => $partnerId
+                    ]);
+                    continue;
+                }
+                
+                $partnerObj = [
+                    'type' => $partnerType,
+                    'id' => $partnerId,
+                    'email' => $partnerEmail
+                ];
+                
+                $uniquePartners[] = (object)[
+                    'partner' => json_encode($partnerObj),
+                    'last_message' => $row->last_message,
+                    'last_message_time' => $row->last_message_time
+                ];
+                
+                // Debug log cho mỗi partner
+                Log::info('Found chat partner', $partnerObj);
             }
-
-            return DB::select($sql, $params);
+            
+            Log::info('Unique partners found', ['count' => count($uniquePartners)]);
+            return $uniquePartners;
         } catch (\Exception $e) {
+            // Ghi log lỗi chi tiết
+            Log::error('Error in getChatPartners', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'userType' => $userType,
+                'userId' => $userId
+            ]);
             return [];
         }
     }

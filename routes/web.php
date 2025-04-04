@@ -12,8 +12,6 @@ use App\Http\Controllers\GoogleMeetController;
 use App\Http\Controllers\LearningMaterialController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -513,19 +511,13 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
     
+    // Routes cho thông báo tin nhắn - phải đăng nhập để sử dụng
+    Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
+    Route::get('/chat/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
+    Route::post('/chat/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
+    // Route để lấy danh sách người đã nhắn tin
+    Route::get('/chat/partners', [ChatController::class, 'getChatPartners'])->name('chat.partners');
 });
-
-//TODO: Notifications for messages
-Route::get('/notifications/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
-Route::get('/notifications/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
-Route::post('/notifications/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
-
-// //TODO: routes for message deletion
-// Route::delete('/message/{id}', [MessageController::class, 'deleteMessage']);
-
-//TODO: query all chats
-Route::get('/chat/partners', [ChatController::class, 'getChatPartners']);
-
 
 // Nhóm các route timetable và thêm middleware role
 Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
@@ -556,5 +548,3 @@ Route::middleware(['manual.auth'])->group(function () {
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
-
-
