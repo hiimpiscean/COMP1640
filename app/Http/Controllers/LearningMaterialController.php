@@ -48,9 +48,25 @@ class LearningMaterialController extends Controller
                 return redirect()->route('learning_materials.curriculum');
             }
 
-            // Lưu product_id hiện tại vào session để sử dụng sau này
+            // Lấy product_id hiện tại
             $productId = $request->product_id;
+
+            // Lưu product_id vào session
             Session::put('current_product_id', $productId);
+
+            // Tạo mảng để lưu materials được lọc
+            $materialsByProduct = [];
+
+            // Lọc tài liệu theo product_id trong session
+            foreach ($materials as $material) {
+                $materialProductId = Session::get('material_' . $material->id . '_product_id');
+                if ($materialProductId == $productId) {
+                    $materialsByProduct[] = $material;
+                }
+            }
+
+            // Chuyển đổi thành collection
+            $materialsByProduct = collect($materialsByProduct);
 
             // Kiểm tra sản phẩm có tồn tại không
             $productData = app(\App\Repository\ProductRepos::class)->getProductById($productId);
@@ -59,10 +75,10 @@ class LearningMaterialController extends Controller
                     ->with('error', 'Sản phẩm không tồn tại. Vui lòng chọn sản phẩm khác.');
             }
 
-            return view('learning_materials.index', compact('materials', 'request'));
+            return view('learning_materials.index', compact('materialsByProduct', 'request'));
         } catch (\Exception $e) {
             Log::error('Lỗi khi lấy danh sách tài liệu: ' . $e->getMessage());
-            return view('learning_materials.index', ['materials' => collect([])]);
+            return view('learning_materials.index', ['materialsByProduct' => collect([])]);
         }
     }
 
@@ -112,7 +128,7 @@ class LearningMaterialController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'file' => 'required|file|mimes:pdf,doc,docx,jpeg,png|max:10240',
-                'product_id' => 'required', // Vẫn cần product_id nhưng không lưu vào DB
+                'product_id' => 'required',
             ]);
 
             $email = Session::get('email');
@@ -144,12 +160,14 @@ class LearningMaterialController extends Controller
             $material->status = 'pending';
             $material->save();
 
-            // Lưu thông tin product_id vào session để biết tài liệu này thuộc sản phẩm nào
-            // Dùng session thay vì lưu vào database
+            // Lưu thông tin product_id vào session
             Session::put('material_' . $material->id . '_product_id', $request->product_id);
 
-            // Lưu lại thông tin sản phẩm hiện tại
-            Session::put('last_product_id', $request->product_id);
+            // Log để debug
+            Log::info('Đã lưu tài liệu với product_id vào session', [
+                'material_id' => $material->id,
+                'product_id' => $request->product_id
+            ]);
 
             return redirect()->route('learning_materials.index', ['product_id' => $request->product_id])
                 ->with('success', 'Tài liệu đã được tải lên thành công. Đang chờ duyệt.');
@@ -306,10 +324,16 @@ class LearningMaterialController extends Controller
                 'material_data' => $material->toArray()
             ]);
 
-            // Lấy product_id từ session
+            // Lấy product_id từ request hoặc session
             $productId = request('product_id');
             if (empty($productId)) {
-                $productId = session('material_' . $id . '_product_id');
+                $productId = Session::get('material_' . $id . '_product_id');
+
+                // Log để debug
+                Log::info('Lấy product_id từ session', [
+                    'material_id' => $id,
+                    'product_id' => $productId
+                ]);
             }
 
             Log::info('Product ID tìm thấy', [
@@ -364,6 +388,10 @@ class LearningMaterialController extends Controller
             // Cập nhật thông tin cơ bản
             $material->title = $request->title;
             $material->description = $request->description;
+            // Không lưu product_id vào database
+
+            // Cập nhật thông tin product_id trong session
+            Session::put('material_' . $material->id . '_product_id', $request->product_id);
 
             // Nếu có file mới thì cập nhật
             if ($request->hasFile('file') && $request->file('file')->isValid()) {
@@ -390,9 +418,6 @@ class LearningMaterialController extends Controller
                 'material_id' => $material->id,
                 'new_status' => 'pending'
             ]);
-
-            // Cập nhật thông tin product_id trong session
-            Session::put('material_' . $material->id . '_product_id', $request->product_id);
 
             return redirect()->route('learning_materials.index', ['product_id' => $request->product_id])
                 ->with('success', 'Tài liệu đã được cập nhật thành công và đang chờ duyệt.');

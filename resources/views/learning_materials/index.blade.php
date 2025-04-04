@@ -13,22 +13,6 @@
     $productName = $currentProduct->name_p ?? '';
     }
     }
-
-    // Lưu thông tin product_id vào session
-    session(['last_product_id' => $productId]);
-
-    // Tạo thông tin tài liệu cho sản phẩm này - sử dụng cookie/session để nhớ
-    $materialsByProduct = [];
-
-    foreach ($materials as $material) {
-    // Nếu có cookie hoặc session đánh dấu tài liệu này thuộc product_id nào
-    $materialProductId = session('material_' . $material->id . '_product_id');
-
-    // Nếu tài liệu được tạo cho sản phẩm này hoặc chưa được đánh dấu thuộc về sản phẩm nào
-    if ($materialProductId == $productId || !$materialProductId) {
-    $materialsByProduct[] = $material;
-    }
-    }
 @endphp
 
   <div class="container learning-materials-container">
@@ -62,7 +46,7 @@
     </div>
   @endif
 
-    @if(count($materialsByProduct) > 0)
+    @if(isset($materialsByProduct) && count($materialsByProduct) > 0)
     <table class="table table-striped materials-table">
     <thead>
       <tr>

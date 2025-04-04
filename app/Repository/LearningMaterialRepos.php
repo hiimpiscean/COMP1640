@@ -25,6 +25,14 @@ class LearningMaterialRepos
     }
 
     /**
+     * Lấy tất cả tài liệu của một sản phẩm
+     */
+    public function getMaterialsByProductId($productId)
+    {
+        return LearningMaterial::where('product_id', $productId)->get();
+    }
+
+    /**
      * Tạo tài liệu mới
      */
     public function create($data)
@@ -35,6 +43,7 @@ class LearningMaterialRepos
             'file_path' => $data['file_path'],
             'teacher_id' => $data['teacher_id'],
             'status' => 'pending',
+            'product_id' => $data['product_id'],
         ]);
     }
 

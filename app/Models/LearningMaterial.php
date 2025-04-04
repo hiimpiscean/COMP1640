@@ -10,7 +10,7 @@ class LearningMaterial extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'file_path', 'teacher_id', 'status'];
+    protected $fillable = ['title', 'description', 'file_path', 'teacher_id', 'status', 'product_id'];
 
     protected $appends = ['teacher_data'];
 
