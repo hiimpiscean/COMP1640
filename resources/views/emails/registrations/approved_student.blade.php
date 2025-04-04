@@ -55,13 +55,13 @@
     </div>
     
     <div class="content">
-        <p>Dear {{ $registrationData->student->name }},</p>
+        <p>Dear {{ $registrationData->student->fullname_c ?? 'Student' }},</p>
         
         <p>Congratulations! Your registration for the following course has been <strong>approved</strong>.</p>
         
         <div class="info">
-            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p }}</p>
-            <p><span class="info-label">Teacher:</span> {{ $registrationData->teacher->name_t }}</p>
+            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p ?? 'N/A' }}</p>
+            <p><span class="info-label">Teacher:</span> {{ isset($registrationData->teacher->fullname_t) ? $registrationData->teacher->fullname_t : 'N/A' }}</p>
             <p><span class="info-label">Status:</span> Approved</p>
             <p><span class="info-label">Registration Date:</span> {{ date('F j, Y', strtotime($registrationData->created_at)) }}</p>
         </div>

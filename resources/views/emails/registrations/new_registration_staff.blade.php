@@ -61,9 +61,9 @@
         
         <div class="info">
             <p><span class="info-label">Registration ID:</span> {{ $registrationData->id }}</p>
-            <p><span class="info-label">Student:</span> {{ $registrationData->student->name }} ({{ $registrationData->student->email }})</p>
-            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p }}</p>
-            <p><span class="info-label">Teacher:</span> {{ $registrationData->teacher->name_t }}</p>
+            <p><span class="info-label">Student:</span> {{ $registrationData->student->fullname_c ?? 'N/A' }} ({{ $registrationData->student->email ?? 'No email' }})</p>
+            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p ?? 'N/A' }}</p>
+            <p><span class="info-label">Teacher:</span> {{ isset($registrationData->teacher->fullname_t) ? $registrationData->teacher->fullname_t : 'N/A' }}</p>
             <p><span class="info-label">Status:</span> Pending</p>
             <p><span class="info-label">Submitted on:</span> {{ date('F j, Y, g:i a', strtotime($registrationData->created_at)) }}</p>
         </div>

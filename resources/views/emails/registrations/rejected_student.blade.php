@@ -55,12 +55,12 @@
     </div>
     
     <div class="content">
-        <p>Dear {{ $registrationData->student->name }},</p>
+        <p>Dear {{ $registrationData->student->fullname_c ?? 'Student' }},</p>
         
         <p>We regret to inform you that your registration for the following course has been <strong>declined</strong>.</p>
         
         <div class="info">
-            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p }}</p>
+            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p ?? 'N/A' }}</p>
             <p><span class="info-label">Status:</span> Rejected</p>
             <p><span class="info-label">Registration Date:</span> {{ date('F j, Y', strtotime($registrationData->created_at)) }}</p>
         </div>

@@ -43,10 +43,10 @@
                         @foreach($registrations as $registration)
                         <tr>
                             <td>{{ $registration->id }}</td>
-                            <td>{{ $registration->student->name }}</td>
-                            <td>{{ $registration->student->email }}</td>
-                            <td>{{ $registration->course->name_p }}</td>
-                            <td>{{ $registration->teacher->name_t }}</td>
+                            <td>{{ $registration->student->fullname_c ?? 'N/A' }}</td>
+                            <td>{{ $registration->student->email ?? 'N/A' }}</td>
+                            <td>{{ $registration->course->name_p ?? 'N/A' }}</td>
+                            <td>{{ $registration->teacher->fullname_t ?? 'N/A' }}</td>
                             <td>{{ \Carbon\Carbon::parse($registration->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
                                 <div class="d-flex">

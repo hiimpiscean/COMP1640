@@ -55,13 +55,13 @@
     </div>
     
     <div class="content">
-        <p>Dear {{ $registrationData->teacher->name_t }},</p>
+        <p>Dear {{ isset($registrationData->teacher->fullname_t) ? $registrationData->teacher->fullname_t : 'Teacher' }},</p>
         
         <p>A new student has been added to your course.</p>
         
         <div class="info">
-            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p }}</p>
-            <p><span class="info-label">Student:</span> {{ $registrationData->student->name }} ({{ $registrationData->student->email }})</p>
+            <p><span class="info-label">Course:</span> {{ $registrationData->course->name_p ?? 'N/A' }}</p>
+            <p><span class="info-label">Student:</span> {{ $registrationData->student->fullname_c ?? 'N/A' }} ({{ $registrationData->student->email ?? 'No email' }})</p>
             <p><span class="info-label">Registration Date:</span> {{ date('F j, Y', strtotime($registrationData->created_at)) }}</p>
         </div>
         
