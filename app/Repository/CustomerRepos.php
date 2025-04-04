@@ -20,6 +20,33 @@ class CustomerRepos
         return $result ? $result[0] : null;
     }
 
+    /**
+     * Tìm khách hàng theo email
+     * 
+     * @param string $email
+     * @return object|null
+     */
+    public static function getCustomerByEmail($email)
+    {
+        $sql = "SELECT c.* FROM customer AS c WHERE c.email = ?";
+        $result = DB::select($sql, [$email]);
+        return $result ? $result[0] : null;
+    }
+    
+    /**
+     * Tìm khách hàng theo username (trong trường hợp này có thể dùng trường fullname_c hoặc id_c)
+     * 
+     * @param string $username
+     * @return object|null
+     */
+    public static function getCustomerByUsername($username)
+    {
+        // Giả sử username có thể là fullname_c
+        $sql = "SELECT c.* FROM customer AS c WHERE c.fullname_c = ?";
+        $result = DB::select($sql, [$username]);
+        return $result ? $result[0] : null;
+    }
+
     public static function insert($customer): bool
     {
         $sql = "INSERT INTO customer (fullname_c, dob, gender, phone_c, email, address_c, password) ";

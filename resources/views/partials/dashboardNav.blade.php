@@ -66,6 +66,17 @@
       </ul>
     </li>
 
+    @if(Session::get('role') === 'admin' || Session::get('role') === 'staff')
+    <li class="{{ request()->routeIs('staff.registration.*') ? 'active' : '' }}">
+      <a href="#">Course Registrations</a>
+      <ul class="submenu">
+        <li class="{{ request()->routeIs('staff.registrations') ? 'active' : '' }}">
+          <a href="{{ route('staff.registrations') }}">Pending Registrations</a>
+        </li>
+      </ul>
+    </li>
+    @endif
+
     @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('staff.*') ? 'active' : '' }}">
       <a href="#">Staff</a>

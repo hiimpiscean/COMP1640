@@ -14,6 +14,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\CourseRegistrationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -562,5 +563,32 @@ Route::middleware(['manual.auth'])->group(function () {
     });
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
+});
+
+// Routes cho đăng ký khóa học
+Route::group(['middleware' => 'manual.auth'], function () {
+    // Endpoint API đăng ký khóa học
+    Route::post('/course/{id}/register', [
+        'uses' => 'CourseRegistrationController@register',
+        'as' => 'course.register'
+    ]);
+    
+    // Danh sách đăng ký cho nhân viên
+    Route::get('/staff/registrations', [
+        'uses' => 'CourseRegistrationController@staffIndex',
+        'as' => 'staff.registrations'
+    ]);
+    
+    // Phê duyệt đăng ký
+    Route::post('/staff/course-registrations/{id}/approve', [
+        'uses' => 'CourseRegistrationController@approve',
+        'as' => 'staff.registration.approve'
+    ]);
+    
+    // Từ chối đăng ký
+    Route::post('/staff/course-registrations/{id}/reject', [
+        'uses' => 'CourseRegistrationController@reject',
+        'as' => 'staff.registration.reject'
+    ]);
 });
 
