@@ -6,14 +6,18 @@ use Illuminate\Http\Request;
 use App\Services\GoogleMeetService;
 use App\Models\Timetable;
 use App\Models\CourseRegistration;
+use Illuminate\Support\Facades\Log;
+use App\Repository\TimetableRepos;
 
 class GoogleMeetController extends Controller
 {
     protected $googleMeetService;
+    protected $timetableRepos;
 
-    public function __construct(GoogleMeetService $googleMeetService)
+    public function __construct(GoogleMeetService $googleMeetService, TimetableRepos $timetableRepos)
     {
         $this->googleMeetService = $googleMeetService;
+        $this->timetableRepos = $timetableRepos;
     }
 
     /**
@@ -112,11 +116,10 @@ class GoogleMeetController extends Controller
                 'course_id' => 'required|exists:course_registration,course_id'
             ]);
 
-            $timetables = Timetable::with(['course', 'teacher'])
-                ->where('course_id', $request->course_id)
-                ->get();
+            // Sử dụng repository để lấy timetables thay vì Eloquent với relationships
+            $timetables = $this->timetableRepos->getTimetablesByCourseId($request->course_id);
 
-            if ($timetables->isEmpty()) {
+            if (count($timetables) == 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Không tìm thấy lịch học nào cho khóa học này'
@@ -124,12 +127,27 @@ class GoogleMeetController extends Controller
             }
 
             $results = [];
-            foreach ($timetables as $timetable) {
-                $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetable);
+            foreach ($timetables as $timetableData) {
+                // Lấy thông tin course và teacher từ repository
+                $course = $this->timetableRepos->getCourseById($timetableData->course_id);
+                $teacher = $this->timetableRepos->getTeacherById($timetableData->teacher_id);
+                
+                // Tạo đối tượng Timetable mới từ dữ liệu
+                $timetable = new Timetable();
+                $timetable->id = $timetableData->id;
+                $timetable->course_id = $timetableData->course_id;
+                $timetable->teacher_id = $timetableData->teacher_id;
+                $timetable->day_of_week = $timetableData->day_of_week;
+                $timetable->start_time = $timetableData->start_time;
+                $timetable->end_time = $timetableData->end_time;
+                $timetable->location = $timetableData->location;
+                
+                // Truyền đầy đủ tham số
+                $meetLink = $this->googleMeetService->createMeetLinkForTimetable($timetable, $course, $teacher);
                 $results[] = [
-                    'timetable_id' => $timetable->id,
-                    'day_of_week' => $timetable->day_of_week,
-                    'time' => $timetable->start_time . ' - ' . $timetable->end_time,
+                    'timetable_id' => $timetableData->id,
+                    'day_of_week' => $timetableData->day_of_week,
+                    'time' => $timetableData->start_time . ' - ' . $timetableData->end_time,
                     'meet_link' => $meetLink,
                     'success' => $meetLink !== null
                 ];
@@ -169,7 +187,7 @@ class GoogleMeetController extends Controller
             $authUrl = $client->createAuthUrl();
             return redirect($authUrl);
         } catch (\Exception $e) {
-            \Log::error('Google Auth Error: ' . $e->getMessage());
+            Log::error('Google Auth Error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Lỗi xác thực Google: ' . $e->getMessage());
         }
     }
@@ -220,7 +238,7 @@ class GoogleMeetController extends Controller
             
             return redirect()->to('/staff/timetable')->with('success', 'Xác thực Google thành công!');
         } catch (\Exception $e) {
-            \Log::error('Google Callback Error: ' . $e->getMessage());
+            Log::error('Google Callback Error: ' . $e->getMessage());
             return redirect()->to('/staff/timetable')->with('error', 'Xác thực Google thất bại: ' . $e->getMessage());
         }
     }

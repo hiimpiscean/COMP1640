@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use App\Repository\MessageRepos;
-use App\Repository\CustomerRepos;
-use App\Repository\TeacherRepos;
+
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -30,11 +30,42 @@ class ChatController extends Controller
                 return $user->email !== $currentUserEmail && $user->username !== $currentUserEmail;
             });
 
-            // Trả về view 'chat.index' với danh sách người dùng đã lọc
-            return view('chat.index', ['users' => array_values($users)]);
+            // Lấy thông tin người dùng hiện tại
+            $userInfo = MessageRepos::getUserInfoByEmail($currentUserEmail);
+            
+            // Khởi tạo danh sách chat
+            $chatPartners = [];
+            
+            // Chỉ lấy danh sách chat nếu tìm thấy thông tin người dùng
+            if ($userInfo) {
+                // Lấy danh sách người đã chat
+                $partners = MessageRepos::getChatPartners($userInfo->type, $userInfo->id);
+                
+                foreach ($partners as $partner) {
+                    $partnerData = json_decode($partner->partner);
+                    
+                    $chatPartners[] = (object)[
+                        'id' => $partnerData->id,
+                        'email' => $partnerData->email,
+                        'type' => $partnerData->type,
+                        'last_message' => $partner->last_message,
+                        'last_message_time' => Carbon::parse($partner->last_message_time)->format('H:i:s d/m/Y')
+                    ];
+                }
+            }
+
+            // Trả về view 'chat.index' với danh sách người dùng và danh sách chat
+            return view('chat.index', [
+                'users' => array_values($users),
+                'chatPartners' => $chatPartners
+            ]);
         } catch (\Exception $e) {
             // Nếu có lỗi, trả về view với danh sách rỗng và thông báo lỗi
-            return view('chat.index', ['users' => [], 'error' => 'Không thể lấy danh sách người dùng']);
+            return view('chat.index', [
+                'users' => [], 
+                'chatPartners' => [],
+                'error' => 'Không thể lấy danh sách người dùng'
+            ]);
         }
     }
 
@@ -102,11 +133,16 @@ class ChatController extends Controller
             // Lấy email của người nhận từ request và người gửi từ session
             $receiverEmail = $request->input('receiver');
             $senderEmail = Session::get('username');
-            $lastId = $request->input('last_id', 0);
+            $lastId = intval($request->input('last_id', 0));
+            $checkReadStatus = $request->input('check_read_status', false);
 
             // Kiểm tra nếu thiếu thông tin thì trả về lỗi
             if (!$senderEmail || !$receiverEmail) {
-                return response()->json(['success' => false, 'error' => 'Thiếu thông tin người gửi/nhận', 'messages' => []]);
+                return response()->json([
+                    'success' => false, 
+                    'error' => 'Thiếu thông tin người gửi/nhận', 
+                    'messages' => []
+                ]);
             }
 
             // Lấy thông tin người gửi và người nhận từ database
@@ -115,7 +151,11 @@ class ChatController extends Controller
 
             // Kiểm tra nếu không tìm thấy thông tin người gửi hoặc người nhận
             if (!$senderInfo || !$receiverInfo) {
-                return response()->json(['success' => false, 'error' => 'Không tìm thấy thông tin người dùng', 'messages' => []]);
+                return response()->json([
+                    'success' => false, 
+                    'error' => 'Không tìm thấy thông tin người dùng', 
+                    'messages' => []
+                ]);
             }
 
             // Lấy danh sách tin nhắn giữa hai người dùng
@@ -124,6 +164,15 @@ class ChatController extends Controller
                 $receiverInfo->type, $receiverInfo->id,
                 $lastId
             );
+
+            // Đánh dấu tin nhắn từ người khác gửi đến đã đọc
+            // Chỉ đánh dấu nếu không phải là chế độ kiểm tra trạng thái đã đọc
+            if (!$checkReadStatus && count($messages) > 0) {
+                MessageRepos::markMessagesAsRead(
+                    $receiverInfo->type, $receiverInfo->id,
+                    $senderInfo->type, $senderInfo->id
+                );
+            }
 
             // Định dạng lại dữ liệu tin nhắn trước khi trả về
             $formattedMessages = [];
@@ -144,10 +193,11 @@ class ChatController extends Controller
                     $dt = Carbon::parse($timestamp);
 
                     // Định dạng lại timestamp theo định dạng d/m/Y H:i:s
-                    $timestamp = $dt->format('d/m/Y H:i:s');
+                    // Thay đổi định dạng để tránh trùng lặp với thứ tự khác
+                    $timestamp = $dt->format('H:i:s d/m/Y');
                 } catch (\Exception $e) {
                     // Nếu có lỗi, sử dụng thời gian hiện tại
-                    $timestamp = Carbon::now()->format('d/m/Y H:i:s');
+                    $timestamp = Carbon::now()->format('H:i:s d/m/Y');
                 }
 
                 $formattedMessages[] = [
@@ -157,7 +207,8 @@ class ChatController extends Controller
                     'sender_type' => $msg->sender_type,
                     'receiver_type' => $msg->receiver_type,
                     'text' => $msg->content,
-                    'timestamp' => $timestamp
+                    'timestamp' => $timestamp,
+                    'is_read' => (bool)$msg->is_read
                 ];
             }
 
@@ -228,39 +279,256 @@ class ChatController extends Controller
     }
     //TODO: Notifications for messages
     public function getUnreadCount(Request $request) {
-        $userId = auth()->id(); // Get logged-in user ID
-        $unreadCount = DB::select('SELECT count_unread_messages(?) AS unread_count', [$userId]);
+        try {
+            // Lấy email của người dùng đang đăng nhập
+            $userEmail = Session::get('username');
+            
+            // Lấy thông tin người dùng từ email
+            $userInfo = MessageRepos::getUserInfoByEmail($userEmail);
+            
+            if (!$userInfo) {
+                return response()->json(['success' => false, 'error' => 'Không tìm thấy thông tin người dùng', 'unread_count' => 0]);
+            }
+            
+            // Lấy số lượng tin nhắn chưa đọc từ MessageRepos
+            $unreadCount = MessageRepos::getUnreadMessageCount($userInfo->type, $userInfo->id);
+            
+            // Đảm bảo đây là một số nguyên
+            $unreadCount = intval($unreadCount);
+            
+            return response()->json(['success' => true, 'unread_count' => $unreadCount]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage(), 'unread_count' => 0]);
+        }
+    }
 
-        return response()->json(['unread_count' => $unreadCount[0]->unread_count]);
+    /**
+     * Định dạng lại timestamp thành chuẩn H:i:s d/m/Y
+     */
+    private function formatTimestamp($timestamp)
+    {
+        try {
+            // Loại bỏ phần microsecond nếu có
+            if (strpos($timestamp, '.') !== false) {
+                $timestamp = substr($timestamp, 0, strpos($timestamp, '.'));
+            }
+
+            // Chuyển đổi timestamp thành đối tượng Carbon
+            $dt = Carbon::parse($timestamp);
+
+            // Định dạng lại timestamp theo định dạng H:i:s d/m/Y
+            return $dt->format('H:i:s d/m/Y');
+        } catch (\Exception $e) {
+            // Nếu có lỗi, sử dụng thời gian hiện tại
+            return Carbon::now()->format('H:i:s d/m/Y');
+        }
     }
 
     public function getUnreadMessages(Request $request) {
-        $userId = auth()->id();
-        $messages = DB::select('SELECT * FROM get_unread_messages(?)', [$userId]);
-
-        return response()->json($messages);
+        try {
+            // Lấy thông tin người dùng đang đăng nhập
+            $userEmail = Session::get('username');
+            
+            // Nếu không có người dùng đăng nhập, trả về lỗi
+            if (!$userEmail) {
+                return response()->json(['success' => false, 'error' => 'Người dùng chưa đăng nhập', 'messages' => []]);
+            }
+            
+            // Lấy thông tin người dùng từ email
+            $userInfo = MessageRepos::getUserInfoByEmail($userEmail);
+            
+            // Nếu không tìm thấy thông tin người dùng, trả về lỗi
+            if (!$userInfo) {
+                return response()->json(['success' => false, 'error' => 'Không tìm thấy thông tin người dùng', 'messages' => []]);
+            }
+            
+            // Lấy tin nhắn chưa đọc từ database
+            $messages = DB::select(
+                'SELECT m.message_id, m.content, m.timestamp, 
+                        m.sender_type, m.sender_id  
+                 FROM messages m 
+                 WHERE m.receiver_type = ? 
+                 AND m.receiver_id = ? 
+                 AND m.is_read = false
+                 ORDER BY m.timestamp DESC
+                 LIMIT 10',  // Giới hạn 10 tin nhắn mới nhất
+                [$userInfo->type, $userInfo->id]
+            );
+            
+            // Định dạng lại dữ liệu tin nhắn trước khi trả về
+            $formattedMessages = [];
+            foreach ($messages as $msg) {
+                // Lấy email của người gửi
+                $senderEmail = $this->getEmailByTypeAndId($msg->sender_type, $msg->sender_id);
+                
+                // Chỉ thêm vào danh sách nếu có email hợp lệ
+                if ($senderEmail) {
+                    $formattedMessages[] = [
+                        'id' => $msg->message_id,
+                        'sender' => $senderEmail,
+                        'sender_type' => $msg->sender_type,
+                        'sender_id' => $msg->sender_id,
+                        'text' => $msg->content,
+                        'timestamp' => $this->formatTimestamp($msg->timestamp)
+                    ];
+                }
+            }
+            
+            return response()->json([
+                'success' => true, 
+                'messages' => $formattedMessages, 
+                'count' => count($formattedMessages)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'error' => $e->getMessage(), 
+                'messages' => []
+            ]);
+        }
     }
 
     public function markMessagesAsRead(Request $request) {
-        $receiverId = auth()->id();
-        $senderId = $request->input('sender_id');
-
-        DB::select('SELECT mark_as_read(?, ?)', [$receiverId, $senderId]);
-
-        return response()->json(['message' => 'Messages marked as read']);
+        try {
+            $receiverEmail = Session::get('username');
+            $senderId = $request->input('id');
+            $senderType = $request->input('type');
+            
+            if (!$senderId || !$senderType || !$receiverEmail) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Thiếu thông tin người gửi/nhận'
+                ]);
+            }
+            
+            $receiverInfo = MessageRepos::getUserInfoByEmail($receiverEmail);
+            
+            if (!$receiverInfo) {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Không tìm thấy thông tin người dùng'
+                ]);
+            }
+            
+            // Đánh dấu tin nhắn là đã đọc và lưu số lượng cập nhật
+            // QUAN TRỌNG: Thứ tự tham số là (người GỬI, người NHẬN)
+            $updatedCount = MessageRepos::markMessagesAsRead(
+                $senderType, $senderId,
+                $receiverInfo->type, $receiverInfo->id
+            );
+            
+            // Lấy số lượng tin nhắn chưa đọc mới
+            $unreadCount = MessageRepos::getUnreadMessageCount($receiverInfo->type, $receiverInfo->id);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Tin nhắn đã được đánh dấu là đã đọc',
+                'updated_count' => $updatedCount,
+                'unread_count' => $unreadCount
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+        }
     }
     //TODO: Retrieve list of chatted users
+    /**
+     * Lấy danh sách người đã chat với người dùng hiện tại
+     */
     public function getChatPartners()
     {
-        $userId = auth()->id();
-        $partners = DB::select("SELECT * FROM get_chat_partners(?)", [$userId]);
-        return response()->json($partners);
-    }
-    //TODO: Delete messages
-    public function deleteMessage($messageId)
-    {
-        $userId = auth()->id(); // Get logged-in user ID
-        DB::statement("SELECT delete_message(?, ?)", [$messageId, $userId]);
-        return response()->json(['message' => 'Message deleted successfully']);
+        try {
+            // Lấy thông tin người dùng đang đăng nhập
+            $userEmail = Session::get('username');
+            
+            // Nếu không có người dùng đăng nhập, trả về lỗi
+            if (!$userEmail) {
+                return response()->json(['success' => false, 'error' => 'Người dùng chưa đăng nhập']);
+            }
+            
+            // Lấy thông tin người dùng từ email
+            $userInfo = MessageRepos::getUserInfoByEmail($userEmail);
+            
+            // Nếu không tìm thấy thông tin người dùng, trả về lỗi
+            if (!$userInfo) {
+                return response()->json([
+                    'success' => false, 
+                    'error' => 'Không tìm thấy thông tin người dùng'
+                ]);
+            }
+            
+            // Phương pháp 1: Sử dụng getChatPartners
+            
+            // Phương pháp 1: Sử dụng getChatPartners
+            $partners = MessageRepos::getChatPartners($userInfo->type, $userInfo->id);
+            
+            // Nếu không có kết quả, thử phương pháp 2
+            if (empty($partners)) {
+                // Truy vấn trực tiếp
+                $sql = "SELECT 
+                          DISTINCT ON (partner_id, partner_type)
+                          CASE WHEN sender_type = ? AND sender_id = ? THEN receiver_type ELSE sender_type END AS partner_type,
+                          CASE WHEN sender_type = ? AND sender_id = ? THEN receiver_id ELSE sender_id END AS partner_id,
+                          CASE WHEN sender_type = ? AND sender_id = ? THEN 
+                            (SELECT email FROM messages_partners WHERE type = receiver_type AND id = receiver_id LIMIT 1)
+                          ELSE 
+                            (SELECT email FROM messages_partners WHERE type = sender_type AND id = sender_id LIMIT 1)
+                          END AS partner_email,
+                          content AS last_message,
+                          timestamp AS last_message_time
+                        FROM messages
+                        WHERE (sender_type = ? AND sender_id = ?) OR (receiver_type = ? AND receiver_id = ?)
+                        ORDER BY partner_id, partner_type, timestamp DESC";
+                
+                $params = array_fill(0, 10, null);
+                for ($i = 0; $i < 10; $i += 2) {
+                    $params[$i] = $userInfo->type;
+                    $params[$i + 1] = $userInfo->id;
+                }
+                
+                $results = DB::select($sql, $params);
+                
+                // Định dạng kết quả
+                $partners = [];
+                foreach ($results as $row) {
+                    $partnerObj = [
+                        'type' => $row->partner_type,
+                        'id' => $row->partner_id,
+                        'email' => $row->partner_email
+                    ];
+                    
+                    $partners[] = (object)[
+                        'partner' => json_encode($partnerObj),
+                        'last_message' => $row->last_message,
+                        'last_message_time' => $row->last_message_time
+                    ];
+                }
+                
+            }
+            
+            // Định dạng dữ liệu trả về
+            $formattedPartners = [];
+            foreach ($partners as $partner) {
+                $partnerData = json_decode($partner->partner);
+                
+                // Bỏ qua partners không có email
+                if (empty($partnerData->email)) {
+                    continue;
+                }
+                
+                $formattedPartners[] = [
+                    'id' => $partnerData->id,
+                    'email' => $partnerData->email,
+                    'type' => $partnerData->type,
+                    'last_message' => $partner->last_message,
+                    'last_message_time' => date('H:i:s d/m/Y', strtotime($partner->last_message_time))
+                ];
+            }
+            
+            
+            return response()->json(['success' => true, 'partners' => $formattedPartners]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+        }
     }
 }

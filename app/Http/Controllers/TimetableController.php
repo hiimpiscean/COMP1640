@@ -140,7 +140,6 @@ class TimetableController extends Controller
             $timetable = $this->timetableRepos->getTimetableById($id);
             return view('timetable.show', compact('timetable'));
         } catch (\Exception $e) {
-            Log::error('Lỗi khi hiển thị chi tiết lịch học: ' . $e->getMessage());
             return redirect()->route('timetable.index')->with('error', 'Không tìm thấy lịch học này.');
         }
     }

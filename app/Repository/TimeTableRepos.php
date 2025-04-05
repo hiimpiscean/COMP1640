@@ -5,6 +5,7 @@ namespace App\Repository;
 use Illuminate\Support\Facades\DB;
 use App\Models\Timetable;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class TimetableRepos
 {
@@ -71,7 +72,7 @@ class TimetableRepos
     public function updateMeetLink($id, $meetLink)
     {
         try {
-            \Log::info('Cập nhật Google Meet link cho lịch học', [
+            Log::info('Cập nhật Google Meet link cho lịch học', [
                 'timetable_id' => $id,
                 'meet_link' => $meetLink
             ]);
@@ -82,7 +83,7 @@ class TimetableRepos
 
             return $result;
         } catch (\Exception $e) {
-            \Log::error('Lỗi khi cập nhật Google Meet link: ' . $e->getMessage(), [
+            Log::error('Lỗi khi cập nhật Google Meet link: ' . $e->getMessage(), [
                 'timetable_id' => $id,
                 'exception' => $e->getTraceAsString()
             ]);
@@ -207,7 +208,7 @@ class TimetableRepos
 
             return true;
         } catch (\Exception $e) {
-            \Log::error('Lỗi khi gán học sinh vào thời khóa biểu: ' . $e->getMessage());
+            Log::error('Lỗi khi gán học sinh vào thời khóa biểu: ' . $e->getMessage());
             return false;
         }
     }

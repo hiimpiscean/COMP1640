@@ -173,14 +173,7 @@ class GoogleMeetService
             'friday' => 5,
             'saturday' => 6,
             'sunday' => 0,
-            // Thêm hỗ trợ tiếng Việt
-            'thứ 2' => 1,
-            'thứ 3' => 2,
-            'thứ 4' => 3,
-            'thứ 5' => 4,
-            'thứ 6' => 5,
-            'thứ 7' => 6,
-            'chủ nhật' => 0,
+
         ];
 
         $dayNum = $days[strtolower($dayName)] ?? null;
