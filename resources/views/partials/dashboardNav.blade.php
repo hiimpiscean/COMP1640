@@ -67,11 +67,14 @@
     </li>
 
     @if(Session::get('role') === 'admin' || Session::get('role') === 'staff')
-    <li class="{{ request()->routeIs('staff.registration.*') ? 'active' : '' }}">
+    <li class="{{ request()->routeIs('staff.registration.*') || request()->routeIs('staff.course.management') ? 'active' : '' }}">
       <a href="#">Course Registrations</a>
       <ul class="submenu">
         <li class="{{ request()->routeIs('staff.registrations') ? 'active' : '' }}">
           <a href="{{ route('staff.registrations') }}">Pending Registrations</a>
+        </li>
+        <li class="{{ request()->routeIs('staff.course.management') ? 'active' : '' }}">
+          <a href="{{ route('staff.course.management') }}">Course Management</a>
         </li>
       </ul>
     </li>

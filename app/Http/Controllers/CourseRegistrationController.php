@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\CourseRegistrationMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Repository\CourseRegistrationRepos;
 
 class CourseRegistrationController extends Controller
 {
@@ -282,6 +283,121 @@ class CourseRegistrationController extends Controller
         } catch (\Exception $e) {
             Log::error('Lỗi khi tìm timetable_id: ' . $e->getMessage());
             return null;
+        }
+    }
+    
+    /**
+     * Hiển thị danh sách quản lý khóa học và trạng thái đăng ký
+     *
+     * @return \Illuminate\View\View
+     */
+    public function courseManagement()
+    {
+        try {
+            // Kiểm tra quyền nhân viên
+            if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
+                return redirect()->back()
+                    ->with('error', 'Bạn không có quyền truy cập trang này.');
+            }
+            
+            // Lấy danh sách tất cả khóa học
+            $courses = \App\Repository\ProductRepos::getAllProduct();
+            
+            // Lấy số lượng đăng ký cho mỗi khóa học
+            $coursesWithRegistrationData = [];
+            
+            foreach ($courses as $course) {
+                // Kiểm tra trong bảng timetable
+                $timetableId = $this->findTimetableIdByCourseId($course->id_p);
+                $courseId = $timetableId ?? $course->id_p;
+                
+                // Đếm số đăng ký cho khóa học này
+                $pendingCount = 0;
+                $approvedCount = 0;
+                $rejectedCount = 0;
+                
+                try {
+                    $registrations = CourseRegistrationRepos::getByCourseId($courseId);
+                    
+                    foreach ($registrations as $reg) {
+                        if ($reg->status === 'pending') {
+                            $pendingCount++;
+                        } elseif ($reg->status === 'approved') {
+                            $approvedCount++;
+                        } elseif ($reg->status === 'rejected') {
+                            $rejectedCount++;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Lỗi khi đếm đăng ký cho khóa học ' . $course->id_p . ': ' . $e->getMessage());
+                }
+                
+                $course->pending_count = $pendingCount;
+                $course->approved_count = $approvedCount;
+                $course->rejected_count = $rejectedCount;
+                $course->timetable_id = $timetableId;
+                
+                $coursesWithRegistrationData[] = $course;
+            }
+            
+            return view('course_registration.staff.course_management', [
+                'courses' => $coursesWithRegistrationData
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi hiển thị trang quản lý khóa học: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Có lỗi xảy ra khi tải trang quản lý khóa học: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Từ chối tất cả đăng ký đang chờ xử lý cho một khóa học
+     *
+     * @param int $courseId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function rejectAllPendingRegistrations($courseId)
+    {
+        try {
+            // Kiểm tra quyền nhân viên
+            if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn không có quyền thực hiện thao tác này.'
+                ], 403);
+            }
+            
+            // Lấy danh sách đăng ký đang chờ xử lý
+            $registrations = CourseRegistrationRepos::getByCourseId($courseId);
+            $pendingRegistrations = array_filter($registrations, function($reg) {
+                return $reg->status === 'pending';
+            });
+            
+            // Từ chối từng đăng ký một
+            $successCount = 0;
+            $errorCount = 0;
+            
+            foreach ($pendingRegistrations as $registration) {
+                try {
+                    $this->courseRegistrationService->rejectRegistration($registration->id);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    Log::error('Lỗi khi từ chối đăng ký ID ' . $registration->id . ': ' . $e->getMessage());
+                    $errorCount++;
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã từ chối ' . $successCount . ' đăng ký khóa học. ' . 
+                            ($errorCount > 0 ? $errorCount . ' đăng ký gặp lỗi.' : '')
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Lỗi khi từ chối tất cả đăng ký cho khóa học ' . $courseId . ': ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi từ chối đăng ký: ' . $e->getMessage()
+            ], 500);
         }
     }
 } 

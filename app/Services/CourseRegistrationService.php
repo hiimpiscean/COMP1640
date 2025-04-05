@@ -41,41 +41,41 @@ class CourseRegistrationService
             }
             
             // Lấy thông tin khóa học từ ID
-            $course = null;
-            try {
-                $courseId2 = $timetableEntry->course_id ?? $courseId;
-                $courseResults = \App\Repository\ProductRepos::getProductById($courseId2);
-                if (!empty($courseResults)) {
-                    $course = $courseResults[0];
-                }
-                
-                // Nếu không tìm thấy, tạo một object khóa học đơn giản
-                if (!$course) {
-                    $course = new \stdClass();
-                    $course->name_p = "Khóa học #" . $courseId2;
-                    Log::warning('Không tìm thấy thông tin khóa học ID: ' . $courseId2);
-                }
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi lấy thông tin khóa học: ' . $e->getMessage());
+            $course = \App\Repository\ProductRepos::getProductById($timetableEntry->course_id ?? $courseId);
+
+                       if (!$course) {
                 throw new \Exception('Không tìm thấy thông tin khóa học.');
             }
-            
-            // Kiểm tra xem đã đăng ký khóa học này chưa
+             // Kiểm tra xem đã đăng ký khóa học này chưa
             $existingRegistrations = CourseRegistrationRepos::getByStudentAndCourse($studentId, $courseId);
             
             // Không còn liên kết trực tiếp giữa bảng registration và student qua id
             // Kiểm tra thủ công bằng cách duyệt các đăng ký
             $alreadyRegistered = false;
+            $registrationStatus = null;
             foreach ($existingRegistrations as $reg) {
-                // Thực tế không có liên kết nào - bỏ qua kiểm tra này
-                // hoặc có thể thêm dữ liệu vào description để kiểm tra sau này
-                // Hoặc chỉ dựa vào course_id nếu mỗi học viên chỉ được đăng ký một khóa học
+                // Kiểm tra xem học sinh đã đăng ký khóa học này chưa
                 $alreadyRegistered = true;
+                $registrationStatus = $reg->status;
                 break;
             }
             
+            // Thay vì chặn việc đăng ký lại, chỉ ghi log và tiếp tục
             if ($alreadyRegistered) {
-                throw new \Exception('Bạn đã đăng ký khóa học này rồi.');
+                Log::info("Học sinh ID: $studentId đang đăng ký lại khóa học ID: $courseId - Trạng thái hiện tại: $registrationStatus");
+                
+                // Nếu đăng ký cũ đã được phê duyệt, thông báo cho người dùng
+                if ($registrationStatus === 'approved') {
+                    throw new \Exception('Bạn đã được phê duyệt cho khóa học này. Không cần đăng ký lại.');
+                }
+                
+                // Nếu đăng ký cũ đang chờ xử lý, thông báo cho người dùng
+                if ($registrationStatus === 'pending') {
+                    throw new \Exception('Bạn đã đăng ký khóa học này và đang chờ xử lý. Vui lòng đợi phản hồi từ nhân viên.');
+                }
+                
+                // Nếu đăng ký cũ đã bị từ chối, cho phép đăng ký lại
+                // Không làm gì ở đây để tiếp tục quy trình đăng ký
             }
             
             // Trong database course, cột chứa ID của teacher có thể là teacher_id hoặc id_t
@@ -123,25 +123,11 @@ class CourseRegistrationService
             }
             
             // Prepare data for email
-            $emailData = new \stdClass();
+            $emailData = new stdClass();
             $emailData->id = $registrationId;
-            
-            // Cấu trúc đối tượng student
-            $studentObj = new \stdClass();
-            $studentObj->fullname_c = $student->fullname_c ?? 'N/A';
-            $studentObj->email = $student->email ?? 'N/A';
-            $emailData->student = $studentObj;
-            
-            // Cấu trúc đối tượng teacher
-            $teacherObj = new \stdClass();
-            $teacherObj->fullname_t = $teacher ? $teacher->fullname_t : 'N/A';
-            $emailData->teacher = $teacherObj;
-            
-            // Cấu trúc đối tượng course
-            $courseObj = new \stdClass();
-            $courseObj->name_p = $course->name_p ?? 'N/A';
-            $emailData->course = $courseObj;
-            
+            $emailData->student = $student;
+            $emailData->teacher = $teacherId ? \App\Repository\TeacherRepos::getTeacherById($teacherId) : new stdClass();
+            $emailData->course = $course;
             $emailData->status = 'pending';
             $emailData->created_at = $registrationData->created_at;
             
@@ -150,10 +136,10 @@ class CourseRegistrationService
             
             // Kiểm tra có nhân viên không trước khi gửi email
             if (count($staffMembers) > 0) {
-            // Send email to each staff member
-            foreach ($staffMembers as $staff) {
+                // Send email to each staff member
+                foreach ($staffMembers as $staff) {
                     try {
-                Mail::to($staff->email)
+                        Mail::to($staff->email)
                             ->send(new CourseRegistrationMail($emailData, 'new_registration_to_staff'));
                     } catch (\Exception $e) {
                         // Log lỗi nhưng không throw exception để không ảnh hưởng đến quá trình đăng ký
@@ -235,47 +221,18 @@ class CourseRegistrationService
             // Lấy thông tin khóa học từ timetable
             $timetable = $this->getTimetableById($registrationData->course_id);
             $courseId = $timetable ? $timetable->course_id : $registrationData->course_id;
+            $course = \App\Repository\ProductRepos::getProductById($courseId);
             
-            // Lấy thông tin khóa học
-            $course = null;
-            try {
-                $courseResults = \App\Repository\ProductRepos::getProductById($courseId);
-                if (!empty($courseResults)) {
-                    $course = $courseResults[0];
-                }
-                
-                // Nếu không tìm thấy, tạo một object khóa học đơn giản
-                if (!$course) {
-                    $course = new \stdClass();
-                    $course->name_p = "Khóa học #" . $courseId;
-                    Log::warning('Không tìm thấy thông tin khóa học ID: ' . $courseId);
-                }
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi lấy thông tin khóa học: ' . $e->getMessage());
-                $course = new \stdClass();
-                $course->name_p = "Khóa học #" . $courseId;
+            if (!$course) {
+                throw new \Exception('Không tìm thấy thông tin khóa học.');
             }
             
             // Prepare data for email
-            $emailData = new \stdClass();
+            $emailData = new stdClass();
             $emailData->id = $registrationId;
-            
-            // Cấu trúc đối tượng student
-            $studentObj = new \stdClass();
-            $studentObj->fullname_c = $student->fullname_c ?? 'N/A';
-            $studentObj->email = $student->email ?? 'N/A';
-            $emailData->student = $studentObj;
-            
-            // Cấu trúc đối tượng teacher
-            $teacherObj = new \stdClass();
-            $teacherObj->fullname_t = $teacher ? $teacher->fullname_t : 'N/A';
-            $emailData->teacher = $teacherObj;
-            
-            // Cấu trúc đối tượng course
-            $courseObj = new \stdClass();
-            $courseObj->name_p = $course->name_p ?? 'N/A';
-            $emailData->course = $courseObj;
-            
+            $emailData->student = $student;
+            $emailData->teacher = $teacher ? $teacher : new stdClass();
+            $emailData->course = $course;
             $emailData->status = 'approved';
             $emailData->created_at = $registrationData->created_at;
             
@@ -371,42 +328,17 @@ class CourseRegistrationService
             // Lấy thông tin khóa học từ timetable
             $timetable = $this->getTimetableById($registrationData->course_id);
             $courseId = $timetable ? $timetable->course_id : $registrationData->course_id;
+            $course = \App\Repository\ProductRepos::getProductById($courseId);
             
-            // Lấy thông tin khóa học 
-            $course = null;
-            try {
-                $courseResults = \App\Repository\ProductRepos::getProductById($courseId);
-                if (!empty($courseResults)) {
-                    $course = $courseResults[0];
-                }
-                
-                // Nếu không tìm thấy, tạo một object khóa học đơn giản
-                if (!$course) {
-                    $course = new \stdClass();
-                    $course->name_p = "Khóa học #" . $courseId;
-                    Log::warning('Không tìm thấy thông tin khóa học ID: ' . $courseId);
-                }
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi lấy thông tin khóa học: ' . $e->getMessage());
-                $course = new \stdClass();
-                $course->name_p = "Khóa học #" . $courseId;
+            if (!$course) {
+                throw new \Exception('Không tìm thấy thông tin khóa học.');
             }
             
             // Prepare data for email
-            $emailData = new \stdClass();
+            $emailData = new stdClass();
             $emailData->id = $registrationId;
-            
-            // Cấu trúc đối tượng student
-            $studentObj = new \stdClass();
-            $studentObj->fullname_c = $student->fullname_c ?? 'N/A';
-            $studentObj->email = $student->email ?? 'N/A';
-            $emailData->student = $studentObj;
-            
-            // Cấu trúc đối tượng course
-            $courseObj = new \stdClass();
-            $courseObj->name_p = $course->name_p ?? 'N/A';
-            $emailData->course = $courseObj;
-            
+            $emailData->student = $student;
+            $emailData->course = $course;
             $emailData->status = 'rejected';
             $emailData->created_at = $registrationData->created_at;
             
@@ -511,47 +443,18 @@ class CourseRegistrationService
             // Lấy thông tin khóa học từ timetable
             $timetable = $this->getTimetableById($registrationData->course_id);
             $courseId = $timetable ? $timetable->course_id : $registrationData->course_id;
+            $course = \App\Repository\ProductRepos::getProductById($courseId);
             
-            // Lấy thông tin khóa học
-            $course = null;
-            try {
-                $courseResults = \App\Repository\ProductRepos::getProductById($courseId);
-                if (!empty($courseResults)) {
-                    $course = $courseResults[0];
-                }
-                
-                // Nếu không tìm thấy, tạo một object khóa học đơn giản
-                if (!$course) {
-                    $course = new \stdClass();
-                    $course->name_p = "Khóa học #" . $courseId;
-                    Log::warning('Không tìm thấy thông tin khóa học ID: ' . $courseId);
-                }
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi lấy thông tin khóa học: ' . $e->getMessage());
-                $course = new \stdClass();
-                $course->name_p = "Khóa học #" . $courseId;
+            if (!$course) {
+                throw new \Exception('Không tìm thấy thông tin khóa học');
             }
             
             // Prepare email data
-            $emailData = new \stdClass();
+            $emailData = new stdClass();
             $emailData->id = $registrationId;
-            
-            // Cấu trúc đối tượng student
-            $studentObj = new \stdClass();
-            $studentObj->fullname_c = $student->fullname_c ?? 'N/A';
-            $studentObj->email = $student->email ?? 'N/A';
-            $emailData->student = $studentObj;
-            
-            // Cấu trúc đối tượng teacher
-            $teacherObj = new \stdClass();
-            $teacherObj->fullname_t = $teacher ? $teacher->fullname_t : 'N/A';
-            $emailData->teacher = $teacherObj;
-            
-            // Cấu trúc đối tượng course
-            $courseObj = new \stdClass();
-            $courseObj->name_p = $course->name_p ?? 'N/A';
-            $emailData->course = $courseObj;
-            
+            $emailData->student = $student;
+            $emailData->teacher = $teacher ? $teacher : new stdClass();
+            $emailData->course = $course;
             $emailData->status = $status;
             $emailData->created_at = $registrationData->created_at;
             
@@ -759,47 +662,14 @@ class CourseRegistrationService
             // Lấy thông tin khóa học từ timetable
             $timetable = $this->getTimetableById($registrationData->course_id);
             $courseId = $timetable ? $timetable->course_id : $registrationData->course_id;
-            
-            // Lấy thông tin khóa học
-            $course = null;
-            try {
-                $courseResults = \App\Repository\ProductRepos::getProductById($courseId);
-                if (!empty($courseResults)) {
-                    $course = $courseResults[0];
-                }
-                
-                // Nếu không tìm thấy, tạo một object khóa học đơn giản
-                if (!$course) {
-                    $course = new \stdClass();
-                    $course->name_p = "Khóa học #" . $courseId;
-                    Log::warning('Không tìm thấy thông tin khóa học ID: ' . $courseId);
-                }
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi lấy thông tin khóa học: ' . $e->getMessage());
-                $course = new \stdClass();
-                $course->name_p = "Khóa học #" . $courseId;
-            }
+            $course = $courseId ? \App\Repository\ProductRepos::getProductById($courseId) : null;
             
             // Prepare email data
-            $emailData = new \stdClass();
+            $emailData = new stdClass();
             $emailData->id = $registrationId;
-            
-            // Cấu trúc đối tượng student
-            $studentObj = new \stdClass();
-            $studentObj->fullname_c = $student ? ($student->fullname_c ?? 'N/A') : 'N/A';
-            $studentObj->email = $student ? ($student->email ?? 'N/A') : 'N/A';
-            $emailData->student = $studentObj;
-            
-            // Cấu trúc đối tượng teacher
-            $teacherObj = new \stdClass();
-            $teacherObj->fullname_t = $teacher ? ($teacher->fullname_t ?? 'N/A') : 'N/A';
-            $emailData->teacher = $teacherObj;
-            
-            // Cấu trúc đối tượng course
-            $courseObj = new \stdClass();
-            $courseObj->name_p = $course->name_p ?? 'N/A';
-            $emailData->course = $courseObj;
-            
+            $emailData->student = $student ?? new stdClass();
+            $emailData->teacher = $teacher ?? new stdClass();
+            $emailData->course = $course ?? new stdClass();
             $emailData->status = $status;
             $emailData->created_at = $registrationData->created_at;
             
