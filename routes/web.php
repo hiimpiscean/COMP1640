@@ -586,12 +586,6 @@ Route::group(['middleware' => 'manual.auth'], function () {
         'as' => 'staff.registration.reject'
     ]);
     
-    // Trang quản lý khóa học và đăng ký
-    Route::get('/staff/course-management', [
-        'uses' => 'CourseRegistrationController@courseManagement',
-        'as' => 'staff.course.management'
-    ]);
-    
     // Từ chối tất cả đăng ký đang chờ xử lý cho một khóa học
     Route::post('/staff/course/{id}/reject-all-pending', [
         'uses' => 'CourseRegistrationController@rejectAllPendingRegistrations',

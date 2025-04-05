@@ -70,17 +70,19 @@ class CourseRegistrationRepos
      * Get registration by student and course
      *
      * @param int $studentId
-     * @param int $courseId
+     * @param int $courseId ID của khóa học (product.id_p)
      * @return array
      */
     public static function getByStudentAndCourse($studentId, $courseId)
     {
-        // Sử dụng course_id trực tiếp để tìm kiếm 
-        // Lưu ý: course_id trong bảng course_registrations tham chiếu đến timetable.id
+        // LƯU Ý: course_id trong bảng course_registrations tham chiếu đến product.id_p
+        // KHÔNG phải timetable.id như comment cũ
+        // Lọc cả studentId, kiểm tra trong trường description
         $sql = 'SELECT cr.* FROM course_registrations AS cr 
                 WHERE cr.course_id = ?
+                AND cr.description LIKE ?
                 AND cr.status IN (\'pending\', \'approved\')';
-        return DB::select($sql, [$courseId]);
+        return DB::select($sql, [$courseId, 'Student ID: ' . $studentId . '%']);
     }
 
     public static function insert($courseRegistration)
