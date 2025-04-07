@@ -37,15 +37,15 @@ A robust e-learning platform built with Laravel, designed to support digital edu
 
 - **Framework**: Laravel 10+
 - **Database**: PostgreSQL
-- **Frontend**: Blade / Tailwind CSS / (optional: Vue.js or React)
-- **Authentication**: Laravel Breeze / Jetstream / Sanctum
+- **Frontend**: Blade / Tailwind CSS
+- **Authentication**: Laravel Breeze
 - **File Handling**: Laravel Filesystem (local or cloud storage)
-- **Real-time**: Laravel Echo / Pusher / WebSockets
-- **Version Control**: Git + GitHub
+- **Real-time**: Laravel Echo
+- **VCS**: GitHub
 
 ## 📁 Project Structure (Simplified)
 
-```
+
 app/
 ├── Http/
 │   ├── Controllers/
