@@ -1,10 +1,10 @@
 @extends('masters.uiMaster')
 
-@section('title', 'Quản lý đăng ký khóa học')
+@section('title', 'Manager course registration')
 
 @section('main')
 <div class="container mt-4">
-    <h1 class="mb-4 text-center">Quản lý đăng ký khóa học</h1>
+    <h1 class="mb-4 text-center">Manager course registration</h1>
     
     @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -22,34 +22,34 @@
     
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Tổng quan đăng ký</h5>
+            <h5 class="mb-0">Total registration</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
                     <div class="card bg-warning bg-opacity-10 h-100">
                         <div class="card-body text-center">
-                            <h3 class="card-title">Đang chờ duyệt</h3>
+                            <h3 class="card-title">Waiting for approval</h3>
                             <h2 class="mt-3 mb-2" id="pendingCount">{{ count(array_filter($registrations, function($r) { return $r->status === 'pending'; })) }}</h2>
-                            <p class="card-text text-muted">đăng ký đang chờ xử lý</p>
+                            <p class="card-text text-muted">registration is waiting for approval</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card bg-success bg-opacity-10 h-100">
                         <div class="card-body text-center">
-                            <h3 class="card-title">Đã phê duyệt</h3>
+                            <h3 class="card-title">Approved</h3>
                             <h2 class="mt-3 mb-2" id="approvedCount">{{ count(array_filter($registrations, function($r) { return $r->status === 'approved'; })) }}</h2>
-                            <p class="card-text text-muted">đăng ký đã được duyệt</p>
+                            <p class="card-text text-muted">registration is approved</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card bg-danger bg-opacity-10 h-100">
                         <div class="card-body text-center">
-                            <h3 class="card-title">Đã từ chối</h3>
+                            <h3 class="card-title">Rejected</h3>
                             <h2 class="mt-3 mb-2" id="rejectedCount">{{ count(array_filter($registrations, function($r) { return $r->status === 'rejected'; })) }}</h2>
-                            <p class="card-text text-muted">đăng ký đã bị từ chối</p>
+                                    <p class="card-text text-muted">registration is rejected</p>
                         </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
     
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Danh sách đăng ký đang chờ xử lý</h5>
+                <h5 class="mb-0">List of registrations waiting for approval</h5>
         </div>
         <div class="card-body">
             @php
@@ -72,13 +72,13 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Học viên</th>
+                            <th>Student</th>
                             <th>Email</th>
-                            <th>Khóa học</th>
-                            <th>Giáo viên</th>
-                            <th>Ngày đăng ký</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
+                            <th>Course</th>
+                            <th>Teacher</th>
+                            <th>Registration date</th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,17 +91,17 @@
                             <td>{{ $registration->teacher->fullname_t ?? 'N/A' }}</td>
                             <td>{{ \Carbon\Carbon::parse($registration->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
-                                <span class="badge bg-warning status-badge">Chờ duyệt</span>
+                                <span class="badge bg-warning status-badge">Waiting for approval</span>
                             </td>
                             <td>
                                 <div class="d-flex action-buttons">
                                     <button class="btn btn-success btn-sm me-2" 
                                         onclick="confirmApprove({{ $registration->id }})">
-                                        <i class="fas fa-check"></i> Duyệt
+                                        <i class="fas fa-check"></i> Approve
                                     </button>
                                     <button class="btn btn-danger btn-sm"
                                         onclick="confirmReject({{ $registration->id }})">
-                                        <i class="fas fa-times"></i> Từ chối
+                                        <i class="fas fa-times"></i> Reject
                                     </button>
                                 </div>
                             </td>
@@ -112,7 +112,7 @@
             </div>
             @else
             <div class="alert alert-info mb-0">
-                Hiện tại không có đăng ký nào đang chờ xử lý.
+                Currently, there are no registrations waiting for approval.
             </div>
             @endif
         </div>
@@ -120,7 +120,7 @@
     
     <div class="card shadow-sm mt-4">
         <div class="card-header bg-success text-white">
-            <h5 class="mb-0">Danh sách đăng ký đã duyệt</h5>
+            <h5 class="mb-0">List of approved registrations</h5>
         </div>
         <div class="card-body">
             @php
@@ -133,12 +133,12 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Học viên</th>
+                            <th>Student</th>
                             <th>Email</th>
-                            <th>Khóa học</th>
-                            <th>Giáo viên</th>
-                            <th>Ngày đăng ký</th>
-                            <th>Trạng thái</th>
+                            <th>Course</th>
+                            <th>Teacher</th>
+                            <th>Registration date</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -151,7 +151,7 @@
                             <td>{{ $registration->teacher->fullname_t ?? 'N/A' }}</td>
                             <td>{{ \Carbon\Carbon::parse($registration->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
-                                <span class="badge bg-success status-badge">Đã duyệt</span>
+                                <span class="badge bg-success status-badge">Approved</span>
                             </td>
                         </tr>
                         @endforeach
@@ -160,7 +160,7 @@
             </div>
             @else
             <div class="alert alert-info mb-0">
-                Chưa có đăng ký nào được duyệt.
+                Currently, there are no approved registrations.
             </div>
             @endif
         </div>
@@ -168,7 +168,7 @@
     
     <div class="card shadow-sm mt-4">
         <div class="card-header bg-danger text-white">
-            <h5 class="mb-0">Danh sách đăng ký đã từ chối</h5>
+            <h5 class="mb-0">List of rejected registrations</h5>
         </div>
         <div class="card-body">
             @php
@@ -181,12 +181,12 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Học viên</th>
+                            <th>Student</th>
                             <th>Email</th>
-                            <th>Khóa học</th>
-                            <th>Giáo viên</th>
-                            <th>Ngày đăng ký</th>
-                            <th>Trạng thái</th>
+                            <th>Course</th>
+                            <th>Teacher</th>
+                            <th>Registration date</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -199,7 +199,7 @@
                             <td>{{ $registration->teacher->fullname_t ?? 'N/A' }}</td>
                             <td>{{ \Carbon\Carbon::parse($registration->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
-                                <span class="badge bg-danger status-badge">Đã từ chối</span>
+                                <span class="badge bg-danger status-badge">Rejected</span>
                             </td>
                         </tr>
                         @endforeach
@@ -208,7 +208,7 @@
             </div>
             @else
             <div class="alert alert-info mb-0">
-                Chưa có đăng ký nào bị từ chối.
+                Currently, there are no rejected registrations.
             </div>
             @endif
         </div>
@@ -221,14 +221,14 @@
 <script>
     function confirmApprove(registrationId) {
         Swal.fire({
-            title: 'Xác nhận duyệt',
-            text: "Bạn có chắc chắn muốn phê duyệt đăng ký này?",
+            title: 'Confirm approval',
+            text: "Are you sure you want to approve this registration?",
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Xác nhận',
-            cancelButtonText: 'Hủy'
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
                 approveRegistration(registrationId);
@@ -238,14 +238,14 @@
     
     function confirmReject(registrationId) {
         Swal.fire({
-            title: 'Xác nhận từ chối',
-            text: "Bạn có chắc chắn muốn từ chối đăng ký này?",
+            title: 'Confirm rejection',
+            text: "Are you sure you want to reject this registration?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Xác nhận',
-            cancelButtonText: 'Hủy'
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
                 rejectRegistration(registrationId);
@@ -256,8 +256,8 @@
     function approveRegistration(registrationId) {
         // Hiển thị loading
         Swal.fire({
-            title: 'Đang xử lý...',
-            text: 'Vui lòng đợi trong giây lát',
+            title: 'Processing...',
+            text: 'Please wait for a moment',
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -279,8 +279,8 @@
             if (data.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công!',
-                    text: 'Đã phê duyệt đăng ký thành công.',
+                    title: 'Success!',
+                    text: 'The registration has been approved successfully.',
                     confirmButtonText: 'OK'
                 }).then(() => {
                     location.reload();
@@ -288,18 +288,18 @@
             } else {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Thất bại!',
-                    text: data.message || 'Có lỗi xảy ra khi phê duyệt đăng ký.',
-                    confirmButtonText: 'Đóng'
+                    title: 'Failed!',
+                    text: data.message || 'An error occurred while approving the registration.',
+                    confirmButtonText: 'Close'
                 });
             }
         })
         .catch(error => {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi!',
-                text: 'Có lỗi xảy ra trong quá trình xử lý.',
-                confirmButtonText: 'Đóng'
+                title: 'Error!',
+                text: 'An error occurred while processing the registration.',
+                confirmButtonText: 'Close'
             });
         });
     }
@@ -307,8 +307,8 @@
     function rejectRegistration(registrationId) {
         // Hiển thị loading
         Swal.fire({
-            title: 'Đang xử lý...',
-            text: 'Vui lòng đợi trong giây lát',
+            title: 'Processing...',
+            text: 'Please wait for a moment',
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -330,8 +330,8 @@
             if (data.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công!',
-                    text: 'Đã từ chối đăng ký thành công.',
+                    title: 'Success!',
+                    text: 'The registration has been rejected successfully.',
                     confirmButtonText: 'OK'
                 }).then(() => {
                     location.reload();
@@ -339,18 +339,18 @@
             } else {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Thất bại!',
-                    text: data.message || 'Có lỗi xảy ra khi từ chối đăng ký.',
-                    confirmButtonText: 'Đóng'
+                    title: 'Failed!',
+                    text: data.message || 'An error occurred while rejecting the registration.',
+                    confirmButtonText: 'Close'
                 });
             }
         })
         .catch(error => {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi!',
-                text: 'Có lỗi xảy ra trong quá trình xử lý.',
-                confirmButtonText: 'Đóng'
+                title: 'Error!',
+                text: 'An error occurred while processing the registration.',
+                confirmButtonText: 'Close'
             });
         });
     }
