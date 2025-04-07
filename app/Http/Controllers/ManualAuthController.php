@@ -78,6 +78,11 @@ class ManualAuthController extends Controller
             Session::put('username', $displayName);
             Session::put('role', $role);
 
+            // Chỉ lưu email vào session khi role là teacher
+            if ($role === 'teacher') {
+                Session::put('email', $user->email);
+            }
+
             switch ($role) {
                 case 'admin':
                     return redirect()->route('admin.index');
@@ -145,7 +150,7 @@ class ManualAuthController extends Controller
 
         // Tạo token ngẫu nhiên
         $token = bin2hex(random_bytes(32));
-        
+
         // Lưu token và email vào session
         Session::put('password_reset', [
             'email' => $email,
@@ -163,7 +168,7 @@ class ManualAuthController extends Controller
     public function showResetForm(Request $request, $token)
     {
         $resetData = Session::get('password_reset');
-        
+
         if (!$resetData || $resetData['token'] !== $token) {
             return redirect()->route('password.request')
                 ->withErrors(['email' => 'Invalid password reset link.']);
@@ -183,7 +188,7 @@ class ManualAuthController extends Controller
         ]);
 
         $resetData = Session::get('password_reset');
-        
+
         if (!$resetData || $resetData['token'] !== $request->token) {
             return redirect()->route('password.request')
                 ->withErrors(['email' => 'Link đặt lại mật khẩu không hợp lệ.']);
@@ -200,7 +205,7 @@ class ManualAuthController extends Controller
                 foreach (StaffRepos::getAllStaff() as $s) {
                     if ($s->email === $email) {
                         $user = $s;
-                        StaffRepos::update((object)[
+                        StaffRepos::update((object) [
                             'id_s' => $s->id_s,
                             'username' => $s->username,
                             'fullname_s' => $s->fullname_s,
@@ -216,7 +221,7 @@ class ManualAuthController extends Controller
                 foreach (TeacherRepos::getAllTeacher() as $t) {
                     if ($t->email === $email) {
                         $user = $t;
-                        TeacherRepos::update((object)[
+                        TeacherRepos::update((object) [
                             'id_t' => $t->id_t,
                             'fullname_t' => $t->fullname_t,
                             'phone_t' => $t->phone_t,
@@ -231,7 +236,7 @@ class ManualAuthController extends Controller
                 foreach (CustomerRepos::getAllCustomer() as $c) {
                     if ($c->email === $email) {
                         $user = $c;
-                        CustomerRepos::update((object)[
+                        CustomerRepos::update((object) [
                             'id_c' => $c->id_c,
                             'fullname_c' => $c->fullname_c,
                             'dob' => $c->dob,

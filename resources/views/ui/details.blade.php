@@ -166,25 +166,156 @@
 
 @section('script')
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
   <script>
     AOS.init({
-    duration: 1000,
-    once: true,
+      duration: 1000,
+      offset: 100,
+      easing: 'ease-in-out',
+      once: true
     });
-  </script>
-  <script>
-    document.getElementById('confirmRegister').addEventListener('click', function () {
-    var modalElement = document.getElementById('confirmModal');
-    var modal = new bootstrap.Modal(modalElement);
-    document.querySelector("#confirmModal .modal-footer").style.display = "none";
-    modalElement.classList.remove("show");
-    modalElement.style.display = "none";
-    document.body.classList.remove("modal-open");
-    document.querySelector(".modal-backdrop").remove();
-    setTimeout(function () {
-      alert('Bạn đã đăng ký thành công! Đang chờ xét duyệt.');
-      document.querySelector("#confirmModal .modal-footer").style.display = "flex";
-    }, 500);
+
+    // Kiểm tra xem người dùng đã đăng nhập chưa
+    const isLoggedIn = {{ Session::has('username') ? 'true' : 'false' }};
+    const userRole = '{{ Session::get('role') }}';
+    const username = '{{ Session::get('username') }}';
+    
+    console.log('Thông tin đăng nhập:', {
+      isLoggedIn,
+      userRole,
+      username
+    });
+
+    // Đảm bảo modal đã được khởi tạo
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+    // Xử lý sự kiện khi người dùng xác nhận đăng ký
+    document.getElementById('confirmRegister').addEventListener('click', function() {
+      // Kiểm tra trước nếu chưa đăng nhập
+      if (!isLoggedIn) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Bạn chưa đăng nhập',
+          text: 'Vui lòng đăng nhập để đăng ký khóa học.',
+          confirmButtonText: 'Đăng nhập ngay'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '{{ route("auth.ask") }}';
+          }
+        });
+        return;
+      }
+      
+      // Kiểm tra role
+      if (userRole !== 'student' && userRole !== 'customer') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Không có quyền đăng ký',
+          text: 'Chỉ tài khoản học viên mới có thể đăng ký khóa học.',
+          confirmButtonText: 'Đã hiểu'
+        });
+        return;
+      }
+      
+      // Hiển thị trạng thái đang xử lý
+      const confirmButton = this;
+      confirmButton.disabled = true;
+      confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+      
+      // Đóng modal
+      confirmModal.hide();
+      
+      // Lấy timetable_id từ dữ liệu
+      const timetableId = '{{ $timetable_id ?? 0 }}';
+      
+      if (!timetableId || timetableId === '0') {
+        console.warn('Không tìm thấy timetable_id, cần kiểm tra lại dữ liệu');
+      }
+      
+      // Gửi yêu cầu đăng ký khóa học
+      fetch('{{ route("course.register", $product->id_p) }}', {
+        method: 'POST',
+        credentials: 'same-origin', // Đảm bảo gửi cookies và session với request
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          course_id: '{{ $product->id_p }}',
+          timetable_id: timetableId // Thêm timetable_id vào request
+        })
+      })
+      .then(response => {
+        // Lấy response text và cố gắng parse như JSON
+        return response.text().then(text => {
+          try {
+            return JSON.parse(text);
+          } catch(e) {
+            // Nếu không phải JSON, trả về object với error message
+            console.error("Không thể parse JSON:", text);
+            return { 
+              success: false, 
+              message: 'Có lỗi xảy ra: ' + (text || 'Không nhận được phản hồi từ server')
+            };
+          }
+        });
+      })
+      .then(data => {
+        console.log("Dữ liệu phản hồi:", data);
+        
+        if (data.success) {
+          // Hiển thị thông báo thành công
+          Swal.fire({
+            icon: 'success',
+            title: 'Đăng ký thành công!',
+            text: data.message || 'Yêu cầu đăng ký của bạn đã được ghi nhận. Vui lòng chờ xác nhận từ nhân viên.',
+            confirmButtonText: 'Đã hiểu'
+          });
+        } else {
+          // Thêm debug info để dễ dàng xác định vấn đề
+          console.error("Lỗi đăng ký khóa học:", {
+            data,
+            isLoggedIn,
+            userRole,
+            username,
+            courseId: '{{ $product->id_p }}'
+          });
+          
+          // Hiển thị thông báo lỗi
+          Swal.fire({
+            icon: 'error',
+            title: 'Đăng ký thất bại!',
+            text: data.message || 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại sau.',
+            confirmButtonText: 'Đóng'
+          });
+          
+          // Nếu lỗi liên quan đến đăng nhập, chuyển hướng đến trang đăng nhập
+          if (data.message && data.message.includes("chưa đăng nhập")) {
+            setTimeout(function() {
+              window.location.href = '{{ route("auth.ask") }}';
+            }, 2000);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        
+        // Hiển thị thông báo lỗi
+        Swal.fire({
+          icon: 'error',
+          title: 'Đăng ký thất bại!',
+          text: 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại sau.',
+          confirmButtonText: 'Đóng'
+        });
+      })
+      .finally(() => {
+        // Khôi phục trạng thái nút
+        confirmButton.disabled = false;
+        confirmButton.innerHTML = 'Chấp nhận';
+      });
     });
   </script>
 @endsection

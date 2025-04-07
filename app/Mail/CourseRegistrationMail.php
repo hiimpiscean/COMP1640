@@ -6,26 +6,36 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\CourseRegistration;
 
 class CourseRegistrationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $registration;
-    public $mailType;
+    /**
+     * Registration data
+     *
+     * @var object
+     */
+    public $registrationData;
+
+    /**
+     * Email type
+     *
+     * @var string
+     */
+    protected $emailType;
 
     /**
      * Create a new message instance.
      *
-     * @param CourseRegistration $registration
-     * @param string $mailType
+     * @param object $registrationData
+     * @param string $emailType
      * @return void
      */
-    public function __construct(CourseRegistration $registration, $mailType)
+    public function __construct($registrationData, $emailType = 'default')
     {
-        $this->registration = $registration;
-        $this->mailType = $mailType;
+        $this->registrationData = $registrationData;
+        $this->emailType = $emailType;
     }
 
     /**
@@ -35,22 +45,47 @@ class CourseRegistrationMail extends Mailable
      */
     public function build()
     {
-        switch ($this->mailType) {
+        // Thiết lập chủ đề email dựa vào loại email
+        $subject = $this->getSubjectByType();
+
+        // Chọn view dựa vào loại email
+        switch ($this->emailType) {
             case 'new_registration_to_staff':
-                return $this->subject('New Course Registration Request')
-                            ->view('emails.registrations.new_registration_staff');
-            
+                return $this->subject($subject)
+                           ->view('emails.registrations.new_registration_staff');
             case 'approval_to_student':
-                return $this->subject('Your Course Registration Has Been Approved')
-                            ->view('emails.registrations.approved_student');
-            
+                return $this->subject($subject)
+                           ->view('emails.registrations.approved_student');
             case 'approval_to_teacher':
-                return $this->subject('New Student Added To Your Course')
-                            ->view('emails.registrations.approved_teacher');
-            
+                return $this->subject($subject)
+                           ->view('emails.registrations.approved_teacher');
+            case 'rejection_to_student':
+                return $this->subject($subject)
+                           ->view('emails.registrations.rejected_student');
             default:
-                return $this->subject('Course Registration Update')
-                            ->view('emails.registrations.default');
+                return $this->subject($subject)
+                           ->view('emails.registrations.default');
         }
     }
-}
+
+    /**
+     * Get email subject based on email type
+     *
+     * @return string
+     */
+    protected function getSubjectByType()
+    {
+        switch ($this->emailType) {
+            case 'new_registration_to_staff':
+                return 'New Course Registration Request';
+            case 'approval_to_student':
+                return 'Your Course Registration Has Been Approved';
+            case 'approval_to_teacher':
+                return 'New Student Has Been Added To Your Course';
+            case 'rejection_to_student':
+                return 'Your Course Registration Status Update';
+            default:
+                return 'Course Registration Update';
+        }
+    }
+} 

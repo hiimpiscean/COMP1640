@@ -20,7 +20,9 @@
       @foreach($product as $p)
       <tr>
       <td>{{ $p->id_p }}</td>
-      <td><a href="{{ route('learning_materials.index', ['id_p' => $p->id_p]) }}">{{ $p->name_p }}</a></td>
+      <td>
+      <a href="{{ route('learning_materials.index', ['product_id' => $p->id_p]) }}">{{ $p->name_p }}</a>
+      </td>
       <td>{{ $p->issued_date ?? 'N/A' }}</td>
       <td>{{ $p->description ?? 'No description' }}</td>
       <td>{{ $p->decision_no ?? 'N/A' }}</td>

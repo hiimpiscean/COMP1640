@@ -548,12 +548,15 @@
         }
 
         .read-status {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75em;
+            color: #999;
             display: block;
             text-align: right;
             margin-top: 2px;
-            font-style: italic;
+        }
+
+        .message.sender {
+            position: relative;
         }
 
         /* CSS cho nút gửi tin nhắn và các phím tắt */
@@ -1023,20 +1026,41 @@
                     );
                 }
             }
+
+            // Thêm dòng này vào cuối hàm, trước dấu đóng ngoặc nhọn
+            if (!isBackgroundUpdate && !window.readStatusChecker) {
+                startReadStatusChecker();
+            }
         }
 
         // Thêm hàm mới để kiểm tra và cập nhật trạng thái đã đọc
         function checkAndUpdateMessageReadStatus(messages) {
+            // Lấy tất cả tin nhắn đã gửi
             const senderMessages = document.querySelectorAll('.message.sender');
             
-            senderMessages.forEach(messageElement => {
-                const messageId = messageElement.id.replace('msg-', '');
-                const message = messages.find(msg => String(msg.id) === messageId);
-                
-                if (message && message.is_read && !messageElement.querySelector('.read-status')) {
-                    addReadStatusWithAnimation(messageElement);
-                }
-            });
+            // Nếu có thông tin trạng thái 'đã đọc' từ bất kỳ tin nhắn nào
+            const anyMessageRead = messages.some(msg => 
+                isMessageFromCurrentUser(msg.sender, msg.sender_type) && msg.is_read
+            );
+            
+            // Nếu có tin nhắn đã đọc, áp dụng trạng thái này cho TẤT CẢ tin nhắn từ người gửi
+            if (anyMessageRead) {
+                senderMessages.forEach(messageElement => {
+                    if (!messageElement.querySelector('.read-status')) {
+                        addReadStatusWithAnimation(messageElement);
+                    }
+                });
+            } else {
+                // Cách cũ - chỉ cập nhật trạng thái cho từng tin nhắn cụ thể
+                senderMessages.forEach(messageElement => {
+                    const messageId = messageElement.id.replace('msg-', '');
+                    const message = messages.find(msg => String(msg.id) === messageId);
+                    
+                    if (message && message.is_read && !messageElement.querySelector('.read-status')) {
+                        addReadStatusWithAnimation(messageElement);
+                    }
+                });
+            }
         }
 
         // Tối ưu hàm gửi tin nhắn
@@ -1048,7 +1072,7 @@
             
             const messageKey = `${message}|${chatWith}`;
             if (pendingMessageContents.has(messageKey)) {
-                console.log('Tin nhắn đã đang được gửi:', message);
+               
                 return;
             }
             
@@ -1332,13 +1356,11 @@
                     
                     // Chỉ xử lý tin nhắn gửi trong vòng 10 giây gần đây
                     if (data && now - data.timestamp < 10000) {
-                        console.log('Đã nhận thông báo tin nhắn mới từ localStorage:', data);
                         
                         // Nếu người nhận là người dùng hiện tại
                         if (data.receiver === currentUser) {
                             // Nếu đang chat với người gửi, tải tin nhắn mới ngay lập tức
                             if (chatWith === data.sender) {
-                                console.log('Đang chat với người gửi tin nhắn, tải tin nhắn mới');
                                 
                                 // Ngừng polling hiện tại để tránh xung đột
                                 if (messagePollingInterval) {
@@ -1421,7 +1443,7 @@
                 
                 // Chỉ xử lý nếu sự kiện liên quan đến cuộc hội thoại hiện tại
                 if (data && data.sender === chatWith && data.receiver === currentUser) {
-                    console.log('Tin nhắn được đánh dấu đã đọc:', data);
+
                     updateReadStatus();
                 }
             });
@@ -1438,7 +1460,6 @@
                             // Nếu người NHẬN tin nhắn là người dùng hiện tại
                             // và đang chat với người gửi tin nhắn
                             if (data.sender === chatWith && data.receiver === currentUser) {
-                                console.log('Tin nhắn đã được đọc (từ tab khác):', data);
                                 updateReadStatus();
                                 
                                 // Cập nhật giao diện ngay lập tức
@@ -1628,6 +1649,12 @@
                 messagePollingInterval = null;
             }
             
+            // Ngừng ReadStatusChecker hiện tại
+            if (window.readStatusChecker) {
+                clearInterval(window.readStatusChecker);
+                window.readStatusChecker = null;
+            }
+            
             // Ẩn badge thông báo
             $(`.user-item[data-email="${email}"]`).find('.message-badge').text('0').hide();
             
@@ -1640,10 +1667,10 @@
             $('#chat-header-info').show();
             $('#message-input, #send-button').prop('disabled', false);
             
-            // Hiển thị loading ngay lập tức
+            // Hiển thị loading
             $('#chat-box').html('<div class="loading-messages">Đang tải tin nhắn...</div>');
             
-            // Sử dụng setTimeout để đảm bảo UI được cập nhật trước khi load tin nhắn
+            // Tải tin nhắn và khởi động các polling
             setTimeout(() => {
                 loadMessages();
                 $('#message-input').focus();
@@ -1651,8 +1678,11 @@
                 // Đánh dấu tin nhắn đã đọc
                 markMessagesAsRead(email);
                 
-                // Thiết lập polling mới
+                // Thiết lập polling
                 setupMessagePolling();
+                
+                // Khởi động ReadStatusChecker
+                startReadStatusChecker();
             }, 0);
         }
 
@@ -1746,7 +1776,6 @@
                                 
                                 // Nếu có tin nhắn mới, cập nhật UI
                                 if (newMessages.length > 0) {
-                                    console.log('Đã nhận được tin nhắn mới:', newMessages.length);
                                     
                                     // Cập nhật UI với tin nhắn mới
                                     requestAnimationFrame(() => {
@@ -1776,7 +1805,7 @@
                                 
                                 if (hasReadMessages) {
                                     // Cập nhật trạng thái tin nhắn
-                                    checkAndUpdateMessageReadStatus(response.messages);
+                                    updateReadStatus();
                                 }
                                 
                                 // Cập nhật lastMessageId
@@ -1816,9 +1845,6 @@
             if (!chatBox || !chatBox.querySelector('.message[id^="msg-"]')) {
                 // Nếu không tìm thấy tin nhắn nào, reset lastMessageId
                 lastMessageId = 0;
-                console.log('Reset lastMessageId về 0 (không tìm thấy tin nhắn trong DOM)');
-            } else {
-                console.log('Giữ nguyên lastMessageId = ' + lastMessageId);
             }
             
             // Xóa cache trong sessionStorage
@@ -1827,6 +1853,42 @@
                     sessionStorage.removeItem(key);
                 }
             });
+        }
+
+        // Function để kiểm tra trạng thái đã đọc của tin nhắn mỗi 3 giây
+        function startReadStatusChecker() {
+            if (!chatWith) return;
+            
+            // Kiểm tra định kỳ
+            const readStatusInterval = setInterval(() => {
+                if (!chatWith) {
+                    clearInterval(readStatusInterval);
+                    return;
+                }
+                
+                // Gọi API để kiểm tra trạng thái đã đọc
+                $.ajax({
+                    url: '{{ route("chat.messages") }}',
+                    method: 'GET',
+                    data: {
+                        receiver: chatWith,
+                        check_read_status: true, // Đánh dấu rằng đây là yêu cầu kiểm tra trạng thái
+                        last_id: 0 // Lấy tất cả tin nhắn
+                    },
+                    success: function(response) {
+                        if (response.success && response.messages) {
+                            // Cập nhật trạng thái đã đọc cho các tin nhắn
+                            updateReadStatus();
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error checking read status:', error);
+                    }
+                });
+            }, 3000);
+            
+            // Lưu interval để có thể dừng khi cần
+            window.readStatusChecker = readStatusInterval;
         }
     </script>
 </body>

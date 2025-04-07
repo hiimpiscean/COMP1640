@@ -12,6 +12,9 @@ use App\Http\Controllers\GoogleMeetController;
 use App\Http\Controllers\LearningMaterialController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\CourseRegistrationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -510,35 +513,43 @@ Route::middleware(['manual.auth'])->group(function () {
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
-    
-    // Routes cho thông báo tin nhắn - phải đăng nhập để sử dụng
-    Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
+
+});
+
+Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
     Route::get('/chat/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
     Route::post('/chat/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
     // Route để lấy danh sách người đã nhắn tin
     Route::get('/chat/partners', [ChatController::class, 'getChatPartners'])->name('chat.partners');
-});
+
 
 // Nhóm các route timetable và thêm middleware role
-Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
+Route::middleware(['manual.auth'])->group(function () {
     Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
+});
+
+Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
     Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
     Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
     Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
     Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
+    Route::get('/timetable/{id}/generate-meet', [TimetableController::class, 'generateMeetLink'])->name('timetable.generate-meet');
 });
 
-
+// Route cho tất cả người dùng đã đăng nhập để xem timetable (bao gồm cả customer)
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
 });
 
-
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
     Route::get('/learning-materials/upload', [LearningMaterialController::class, 'create'])->name('learning_materials.create');
     Route::post('/learning-materials/store', [LearningMaterialController::class, 'store'])->name('learning_materials.store');
+
+    // Routes for editing learning materials
+    Route::get('/learning-materials/edit/{id}', [LearningMaterialController::class, 'edit'])->name('learning_materials.edit');
+    Route::post('/learning-materials/update/{id}', [LearningMaterialController::class, 'update'])->name('learning_materials.update');
 
     Route::middleware(['role:staff,admin'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
@@ -548,3 +559,37 @@ Route::middleware(['manual.auth'])->group(function () {
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
+
+// Routes cho đăng ký khóa học
+Route::group(['middleware' => 'manual.auth'], function () {
+    // Endpoint API đăng ký khóa học
+    Route::post('/course/{id}/register', [
+        'uses' => 'CourseRegistrationController@register',
+        'as' => 'course.register'
+    ]);
+    
+    // Danh sách đăng ký cho nhân viên
+    Route::get('/staff/registrations', [
+        'uses' => 'CourseRegistrationController@staffIndex',
+        'as' => 'staff.registrations'
+    ]);
+    
+    // Phê duyệt đăng ký
+    Route::post('/staff/course-registrations/{id}/approve', [
+        'uses' => 'CourseRegistrationController@approve',
+        'as' => 'staff.registration.approve'
+    ]);
+    
+    // Từ chối đăng ký
+    Route::post('/staff/course-registrations/{id}/reject', [
+        'uses' => 'CourseRegistrationController@reject',
+        'as' => 'staff.registration.reject'
+    ]);
+    
+    // Từ chối tất cả đăng ký đang chờ xử lý cho một khóa học
+    Route::post('/staff/course/{id}/reject-all-pending', [
+        'uses' => 'CourseRegistrationController@rejectAllPendingRegistrations',
+        'as' => 'staff.course.reject-all-pending'
+    ]);
+});
+

@@ -75,7 +75,7 @@
                         </a>
                         <div class="dropdown-menu">
                             @if (Session::has('role') && (Session::get('role') == 'admin' || Session::get('role') == 'staff'))
-                                <a class="nav-link" href="{{ route('admin.index') }}">Back to Admin Web</a>
+                                <a class="nav-link" href="{{ route('admin.index') }}">Back to Management Page</a>
                             @endif
                             <a class="dropdown-item" href="{{ route('auth.signout') }}"
                                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

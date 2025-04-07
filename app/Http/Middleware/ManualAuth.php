@@ -19,14 +19,12 @@ class ManualAuth
     {
 
         $out = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $out->writeln(ManualAuth::class);
 
         if (!Session::has('username')){
 //            session ko cos username thì in ra unauthenticated rồi quay trở lại trang auth.ask
             $out->writeln('unauthenticated');
             return redirect()->route('auth.ask');
         } else {
-            $out->writeln('authenticated: '.Session::get('username'));
         }
 
         return $next($request);
