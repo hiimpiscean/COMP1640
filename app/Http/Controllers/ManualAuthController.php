@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordLinkMail;
 
 class ManualAuthController extends Controller
 {
@@ -120,7 +122,17 @@ class ManualAuthController extends Controller
 
         $email = $request->email;
         $user = null;
-        $role = '';
+        $role = null;
+
+        // Debug: In ra thông tin email configuration
+        Log::info('Mail Configuration:', [
+            'driver' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'encryption' => config('mail.mailers.smtp.encryption'),
+            'username' => config('mail.mailers.smtp.username'),
+            'from_address' => config('mail.from.address'),
+        ]);
 
         // Kiểm tra customer
         $customers = CustomerRepos::getAllCustomer();
@@ -144,25 +156,61 @@ class ManualAuthController extends Controller
             }
         }
 
+        // Nếu không phải teacher, kiểm tra staff
+        if (!$user) {
+            $staffs = StaffRepos::getAllStaff();
+            foreach ($staffs as $s) {
+                if ($s->email === $email) {
+                    $user = $s;
+                    $role = 'staff';
+                    break;
+                }
+            }
+        }
+
         if (!$user) {
             return back()->withErrors(['email' => 'Không tìm thấy tài khoản với email này']);
         }
 
-        // Tạo token ngẫu nhiên
-        $token = bin2hex(random_bytes(32));
+        try {
+            // Tạo token ngẫu nhiên
+            $token = bin2hex(random_bytes(32));
 
-        // Lưu token và email vào session
-        Session::put('password_reset', [
-            'email' => $email,
-            'token' => $token,
-            'role' => $role,
-            'created_at' => now()
-        ]);
+            // Lưu token và email vào session
+            Session::put('password_reset', [
+                'email' => $email,
+                'token' => $token,
+                'role' => $role,
+                'created_at' => now()
+            ]);
 
-        // Tạo link reset password
-        $resetLink = route('password.reset', ['token' => $token]);
+            // Tạo link reset password
+            $resetLink = route('password.reset', ['token' => $token]);
 
-        return back()->with('status', $resetLink);
+            // Debug: In ra thông tin trước khi gửi email
+            Log::info('Attempting to send password reset email', [
+                'to' => $user->email,
+                'token' => $token,
+                'reset_link' => $resetLink
+            ]);
+
+            // Gửi email chứa link reset password
+            Mail::to($user->email)->send(new ResetPasswordLinkMail($user, $resetLink));
+
+            // Debug: Ghi log thành công
+            Log::info('Password reset email sent successfully');
+
+            return back()->with('status', 'Chúng tôi đã gửi link đặt lại mật khẩu vào email của bạn. Vui lòng kiểm tra email và làm theo hướng dẫn.');
+
+        } catch (\Exception $e) {
+            // Debug: In ra chi tiết lỗi
+            Log::error('Failed to send password reset email: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->withErrors(['email' => 'Không thể gửi email đặt lại mật khẩu. Chi tiết lỗi: ' . $e->getMessage()]);
+        }
     }
 
     public function showResetForm(Request $request, $token)
