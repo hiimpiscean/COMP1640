@@ -114,8 +114,12 @@ class StaffController extends Controller
             return redirect()->route('staff.index')->with('error', 'Nhân viên không tồn tại!');
         }
 
+        // Validate form data
+        $validated = $this->formValidate($request, $id_s)->validate();
+        
+        // Xử lý mật khẩu
         if ($request->filled('password')) {
-            if ($request->old_password !== $staff->password) {
+            if (!Hash::check($request->old_password, $staff->password)) {
                 return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
             }
             if ($request->password !== $request->password_confirmation) {
@@ -129,7 +133,14 @@ class StaffController extends Controller
             $validated['password'] = $staff->password;
         }
 
+        // Thêm id_s vào validated data
         $validated['id_s'] = $id_s;
+        
+        // Thêm username vào validated data nếu không có
+        if (!isset($validated['username'])) {
+            $validated['username'] = $staff->username;
+        }
+
         StaffRepos::update((object) $validated);
         return redirect()->route('staff.index')->with('msg', 'Cập nhật thành công!');
     }

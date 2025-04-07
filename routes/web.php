@@ -11,6 +11,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\GoogleMeetController;
 use App\Http\Controllers\LearningMaterialController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +39,8 @@ Route::get('/', function () {
 });
 
 // Authentication routes
-Auth::routes();
+// Auth::routes();
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Student Routes
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
@@ -72,7 +74,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
-// mail router từ đây lên trên 
+// mail router từ đây lên trên
 
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::post('/student/register', [StudentRegistrationController::class, 'register'])->name('student.register');
@@ -125,12 +127,6 @@ Route::group(['prefix' => 'staff', 'middleware' => ['manual.auth']], function ()
         'uses' => 'StaffController@destroy',
         'as' => 'staff.destroy'
     ]);
-
-    Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
-    Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
-    Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
-    Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
-    Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
 });
 
 //////////////Teacher/////////////
@@ -190,10 +186,6 @@ Route::get('/testimonial', function () {
     return view('ui.testimonial');
 })->name('ui.testimonial');
 
-Route::get('/listDocument', function () {
-    return view('flm.listDocument');
-})->name('flm.listDocument');
-
 Route::get('/approval', function () {
     return view('ui.approval');
 })->middleware('manual.auth')->name('ui.approval');
@@ -201,7 +193,7 @@ Route::get('/approval', function () {
 
 Route::group(['middleware' => 'manual.auth'], function () {
     Route::get('/curriculum', [ProductController::class, 'curriculumGeneral'])
-        ->name('flm.curriculum');
+        ->name('learning_materials.curriculum');
 
     Route::get('/curriculum/{productName?}', [ProductController::class, 'curriculum'])
         ->name('curriculum');
@@ -274,6 +266,27 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('logout', [
         'uses' => 'ManualAuthController@signout',
         'as' => 'auth.signout'
+    ]);
+
+    // Routes cho quên mật khẩu
+    Route::get('forgot-password', [
+        'uses' => 'ManualAuthController@showForgotForm',
+        'as' => 'password.request'
+    ]);
+
+    Route::post('forgot-password', [
+        'uses' => 'ManualAuthController@sendResetLink',
+        'as' => 'password.email'
+    ]);
+
+    Route::get('reset-password/{token}', [
+        'uses' => 'ManualAuthController@showResetForm',
+        'as' => 'password.reset'
+    ]);
+
+    Route::post('reset-password', [
+        'uses' => 'ManualAuthController@resetPassword',
+        'as' => 'password.update'
     ]);
 });
 
@@ -490,26 +503,44 @@ Route::group(['prefix' => 'customer', 'middleware' => ['manual.auth']], function
     ]);
 });
 
+
 // Chỉ cho phép user đã đăng nhập vào chat
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::get('/chat/search', [ChatController::class, 'search'])->name('chat.search');
+    
+    // Routes cho thông báo tin nhắn - phải đăng nhập để sử dụng
+    Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
+    Route::get('/chat/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
+    Route::post('/chat/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
+    // Route để lấy danh sách người đã nhắn tin
+    Route::get('/chat/partners', [ChatController::class, 'getChatPartners'])->name('chat.partners');
 });
+
+// Nhóm các route timetable và thêm middleware role
+Route::middleware(['manual.auth', 'role:admin,staff'])->prefix('staff')->group(function () {
+    Route::get('/timetable', [TimetableController::class, 'index'])->name('timetable.index');
+    Route::get('/timetable/create', [TimetableController::class, 'create'])->name('timetable.create');
+    Route::post('/timetable', [TimetableController::class, 'store'])->name('timetable.store');
+    Route::put('/timetable/{id}', [TimetableController::class, 'update'])->name('timetable.update');
+    Route::delete('/timetable/{id}', [TimetableController::class, 'destroy'])->name('timetable.delete');
+});
+
 
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/auth/google', [GoogleMeetController::class, 'auth'])->name('auth.google');
     Route::get('/auth/google/callback', [GoogleMeetController::class, 'callback'])->name('auth.google.callback');
-    Route::get('/test-meet', [GoogleMeetController::class, 'test']);
 });
+
 
 Route::middleware(['manual.auth'])->group(function () {
     Route::get('/learning-materials', [LearningMaterialController::class, 'index'])->name('learning_materials.index');
     Route::get('/learning-materials/upload', [LearningMaterialController::class, 'create'])->name('learning_materials.create');
     Route::post('/learning-materials/store', [LearningMaterialController::class, 'store'])->name('learning_materials.store');
 
-    Route::middleware(['role:staff'])->group(function () {
+    Route::middleware(['role:staff,admin'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
         Route::post('/learning-materials/approve/{id}', [LearningMaterialController::class, 'approve'])->name('learning_materials.approve');
         Route::post('/learning-materials/reject/{id}', [LearningMaterialController::class, 'reject'])->name('learning_materials.reject');
@@ -517,5 +548,3 @@ Route::middleware(['manual.auth'])->group(function () {
 
     Route::get('/learning-materials/download/{id}', [LearningMaterialController::class, 'download'])->name('learning_materials.download');
 });
-
-// Auth::routes();

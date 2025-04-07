@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
+use Illuminate\Support\Facades\Hash;
 
 class TeacherRepos
 {
@@ -31,14 +31,11 @@ class TeacherRepos
         $sql .= '(fullname_t, phone_t, email, password) ';
         $sql .= 'values(?, ?, ?, ?)';
 
-        // Mã hóa mật khẩu trước khi lưu vào cơ sở dữ liệu
-        $teacher->password = Hash::make($teacher->password);
-
         DB::insert($sql, [
             $teacher->fullname_t,
             $teacher->phone_t,
             $teacher->email,
-            $teacher->password
+            $teacher->password // Mật khẩu đã được hash từ controller
         ]);
     }
 
@@ -48,14 +45,11 @@ class TeacherRepos
         $sql .= 'set fullname_t = ?, phone_t = ?, email = ?, password = ? ';
         $sql .= 'where id_t = ? ';
 
-        // Nếu mật khẩu được thay đổi, mã hóa mật khẩu mới
-        $teacher->password = Hash::make($teacher->password);
-
         DB::update($sql, [
             $teacher->fullname_t,
             $teacher->phone_t,
             $teacher->email,
-            $teacher->password,
+            $teacher->password, // Mật khẩu đã được hash từ controller
             $teacher->id_t
         ]);
     }

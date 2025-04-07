@@ -6,6 +6,9 @@
     <li>
       <a href="{{route('ui.index')}}">Home Page</a>
     </li>
+    <li>
+      <a href="{{route('learning_materials.pending')}}">Learning Materials</a>
+    </li>
     <li class="{{ request()->routeIs('product.*') ? 'active' : '' }}">
       <a href="#">Courses</a>
       <ul class="submenu">
@@ -17,6 +20,8 @@
         </li>
       </ul>
     </li>
+    
+    @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">
       <a href="#">Admin</a>
       <ul class="submenu">
@@ -25,6 +30,8 @@
         </li>
       </ul>
     </li>
+    @endif
+
     <li class="{{ request()->routeIs('category.*') ? 'active' : '' }}">
       <a href="#">Category</a>
       <ul class="submenu">
@@ -58,6 +65,8 @@
         </li>
       </ul>
     </li>
+    
+    @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('staff.*') ? 'active' : '' }}">
       <a href="#">Staff</a>
       <ul class="submenu">
@@ -69,7 +78,8 @@
         </li>
       </ul>
     </li>
-
+    @endif
+    
   </ul>
   <div class="sidebar-footer">
     <a href="#">
@@ -101,15 +111,18 @@
     text-align: center;
   }
 
-  .sidebar-menu, .submenu {
+  .sidebar-menu,
+  .submenu {
     list-style: none;
     padding: 0;
     margin: 0;
   }
+
   .sidebar-menu li {
     margin-bottom: 10px;
   }
-  .sidebar-menu > li > a {
+
+  .sidebar-menu>li>a {
     color: #adb5bd;
     display: block;
     text-decoration: none;
@@ -117,7 +130,9 @@
     border-radius: 5px;
     font-weight: bold;
   }
-  .sidebar-menu > li > a:hover, .submenu li a:hover {
+
+  .sidebar-menu>li>a:hover,
+  .submenu li a:hover {
     background: #495057;
     color: #fff;
   }
@@ -126,6 +141,7 @@
     margin-left: 15px;
     margin-top: 5px;
   }
+
   .submenu li a {
     font-size: 14px;
     color: #ced4da;
@@ -136,7 +152,7 @@
   }
 
   /* Hiệu ứng khi menu đang được chọn */
-  .sidebar-menu > li.active > a,
+  .sidebar-menu>li.active>a,
   .submenu li.active a {
     background: #17a2b8;
     color: #fff;
@@ -148,12 +164,14 @@
     padding-top: 20px;
     color: #adb5bd;
   }
+
   .sidebar-footer a {
     color: #adb5bd;
     display: block;
     text-decoration: none;
     margin-bottom: 10px;
   }
+
   .sidebar-footer a:hover {
     color: #fff;
   }

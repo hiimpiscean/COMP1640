@@ -59,7 +59,7 @@
     </table>
   </div>
 
-  @include('timetable.add')
+  @include('timetable.create')
 
   <style>
     /* Căn giữa container và tạo khoảng cách */
