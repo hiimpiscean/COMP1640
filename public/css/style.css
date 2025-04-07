@@ -1,0 +1,30 @@
+.header {
+    margin: 0 30px 0 60px;
+}
+
+.table-right {
+    width: 90%;
+    margin: 0 30px 0 70px;
+}
+
+#book {
+    margin: 0 30px 0 70px;
+}
+
+form.form-update {
+    width: 90%;
+    margin-left: 50px;
+}
+
+h1.update {
+    margin-left: 50px;
+}
+
+form.form-view {
+    width: 90%;
+    margin-left: 50px;
+}
+
+h1.view-book {
+    margin-left: 50px;
+}
