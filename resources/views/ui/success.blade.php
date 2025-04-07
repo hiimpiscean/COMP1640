@@ -31,7 +31,7 @@
   <link href='http://fonts.googleapis.com/css?family=Kaushan+Script' rel='stylesheet' type='text/css'>
 
   <link rel="icon" type="image/x-icon" href="{{asset('images/handicraf/logo1.png')}}"/>
-  <title>ATN Shop</title>
+  <title>ATN e-Learning</title>
 </head>
 <body>
 <style>
