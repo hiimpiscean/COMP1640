@@ -150,4 +150,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Made with ❤️, from Piscean and fellow contributors (ThangNV, HaiDH, QuanNM, DucMT).
+> Made with ❤️, from Piscean and fellow contributors: ThangNV, HaiDH, QuanNM, DucMT.
