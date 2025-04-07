@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 class BlogRepos
 {
-    public static function getAllBlogs()
+    public static function getAllBlog()
     {
         $sql = 'select b.* ';
         $sql .= 'from blog as b ';

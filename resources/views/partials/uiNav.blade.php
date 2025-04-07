@@ -12,7 +12,7 @@
     </form>
 
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"><i class="fa-solid fa-bars"></i></span>
     </button>
 
@@ -37,40 +37,42 @@
             <a class="dropdown-item" href="#">404 Page</a>
           </div>
         </li>
-        
+
         <!-- <li class="nav-item {{ request()->routeIs('ui.approval') ? 'active' : '' }}">
           <a class="nav-link" href="{{ route('ui.approval') }}">TEACHER</a>
         </li> -->
 
-        <li class="nav-item {{ request()->routeIs('chat.index') ? 'active' : '' }}">
-          <a class="nav-link" href="{{ route('chat.index') }}">CHATBOX</a>
-        </li>
+      </ul>
+      <ul class="nav-item chatbox-item {{ request()->routeIs('chat.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('chat.index') }}" title="Chatbox">
+          <i class="fa fa-comments"></i>
+        </a>
       </ul>
 
       <!-- Kiểm tra đăng nhập -->
       <div class="user_option">
         @if(Session::has('username'))
-          <div class="dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown">
-              <img src="{{ asset('images/default-avatar.png') }}" width="30" height="30" class="rounded-circle">
-              {{ Session::get('username') }}
-            </a>
-            <div class="dropdown-menu">
-              @if(Session::has('role') && (Session::get('role') == 'admin' || Session::get('role') == 'staff'))
-                <a class="nav-link" href="{{ route('admin.index') }}">Back to Admin Web</a>
-              @endif
-              <a class="dropdown-item" href="{{ route('auth.signout') }}"
-                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                Logout
-              </a>
-              <form id="logout-form" action="{{ route('auth.signout') }}" method="GET" style="display: none;">
-                @csrf
-              </form>
-            </div>
-          </div>
-        @else
-          <a href="{{ route('auth.ask') }}" class="join-now">Join Now →</a>
-        @endif
+      <div class="dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown">
+        <img src="{{ asset('images/default-avatar.png') }}" width="30" height="30" class="rounded-circle">
+        {{ Session::get('username') }}
+        </a>
+        <div class="dropdown-menu">
+        @if(Session::has('role') && (Session::get('role') == 'admin' || Session::get('role') == 'staff'))
+      <a class="nav-link" href="{{ route('admin.index') }}">Back to Admin Web</a>
+    @endif
+        <a class="dropdown-item" href="{{ route('auth.signout') }}"
+          onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+          Logout
+        </a>
+        <form id="logout-form" action="{{ route('auth.signout') }}" method="GET" style="display: none;">
+          @csrf
+        </form>
+        </div>
+      </div>
+    @else
+    <a href="{{ route('auth.ask') }}" class="join-now">Join Now →</a>
+  @endif
       </div>
     </div>
   </nav>
@@ -80,6 +82,7 @@
   body {
     overflow-x: hidden;
   }
+
   /* Reset mặc định */
   * {
     margin: 0;
@@ -124,6 +127,27 @@
   .navbar-nav .nav-link.active {
     color: #0097a7;
     transform: translateY(-2px);
+  }
+
+  /* Đối với phần tử chatbox */
+  .chatbox-item {
+    margin: 0;
+    margin-right: 10px
+  }
+
+  .chatbox-item .nav-link {
+    font-size: 1.5rem;
+    color: #00bcd4;
+    transition: color 0.3s ease, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+  }
+
+  .chatbox-item .nav-link:hover {
+    color: #0097a7;
+    transform: scale(1.1);
   }
 
   /* Dropdown */
@@ -231,6 +255,7 @@
     border-radius: 20px;
     background-color: #f1f1f1;
     transition: all 0.3s ease-in-out;
+    padding: 10px;
   }
 
   .user_option .dropdown-toggle img {
@@ -285,11 +310,13 @@
     .navbar-nav {
       text-align: center;
     }
+
     .search-bar {
       width: 100%;
       max-width: 250px;
       margin: 10px auto;
     }
+
     .user_option {
       flex-direction: column;
       gap: 10px;

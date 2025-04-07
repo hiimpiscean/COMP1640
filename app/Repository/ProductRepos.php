@@ -26,7 +26,7 @@ class ProductRepos
 
     public static function getAllProduct()
     {
-        return DB::table('product')->get(); // Giả sử bảng của bạn tên là 'products'
+        return DB::table('product')->get(); 
     }
 
     public static function getProductByName($productName)

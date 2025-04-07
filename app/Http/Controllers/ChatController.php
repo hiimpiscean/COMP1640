@@ -18,11 +18,20 @@ class ChatController extends Controller
     public function index()
     {
         try {
-            // Gọi phương thức lấy tất cả người dùng từ MessageRepos
-            $users = MessageRepos::getAllUsers();
+            // Lấy email của người dùng đang đăng nhập
+            $currentUserEmail = Session::get('username');
             
-            // Trả về view 'chat.index' với danh sách người dùng
-            return view('chat.index', ['users' => $users]);
+            // Gọi phương thức lấy tất cả người dùng từ MessageRepos
+            $allUsers = MessageRepos::getAllUsers();
+            
+            // Lọc ra tài khoản đang đăng nhập khỏi danh sách
+            $users = array_filter($allUsers, function($user) use ($currentUserEmail) {
+                // Kiểm tra cả email và username vì admin có thể đăng nhập bằng username
+                return $user->email !== $currentUserEmail && $user->username !== $currentUserEmail;
+            });
+            
+            // Trả về view 'chat.index' với danh sách người dùng đã lọc
+            return view('chat.index', ['users' => array_values($users)]);
         } catch (\Exception $e) {
             // Nếu có lỗi, trả về view với danh sách rỗng và thông báo lỗi
             return view('chat.index', ['users' => [], 'error' => 'Không thể lấy danh sách người dùng']);
@@ -76,7 +85,7 @@ class ChatController extends Controller
                     'sender' => $senderEmail,
                     'receiver' => $receiverEmail,
                     'text' => $content,
-                    'timestamp' => Carbon::now()->format('d/m/Y H:i:s')
+                    'timestamp' => Carbon::now('Asia/Ho_Chi_Minh')->format('d/m/Y H:i:s')
                 ]
             ]);
         } catch (\Exception $e) {
@@ -93,6 +102,7 @@ class ChatController extends Controller
             // Lấy email của người nhận từ request và người gửi từ session
             $receiverEmail = $request->input('receiver');
             $senderEmail = Session::get('username');
+            $lastId = $request->input('last_id', 0);
 
             // Kiểm tra nếu thiếu thông tin thì trả về lỗi
             if (!$senderEmail || !$receiverEmail) {
@@ -111,7 +121,8 @@ class ChatController extends Controller
             // Lấy danh sách tin nhắn giữa hai người dùng
             $messages = MessageRepos::getMessagesBetweenUsers(
                 $senderInfo->type, $senderInfo->id,
-                $receiverInfo->type, $receiverInfo->id
+                $receiverInfo->type, $receiverInfo->id,
+                $lastId
             );
 
             // Định dạng lại dữ liệu tin nhắn trước khi trả về
@@ -130,7 +141,6 @@ class ChatController extends Controller
                     }
                     
                     // Chuyển đổi timestamp thành đối tượng Carbon
-                    // Giả định rằng timestamp trong database đã là múi giờ Việt Nam
                     $dt = Carbon::parse($timestamp);
                     
                     // Định dạng lại timestamp theo định dạng d/m/Y H:i:s
@@ -138,15 +148,6 @@ class ChatController extends Controller
                 } catch (\Exception $e) {
                     // Nếu có lỗi, sử dụng thời gian hiện tại
                     $timestamp = Carbon::now()->format('d/m/Y H:i:s');
-                }
-
-                // Thêm thông tin về username để dễ dàng xác định người gửi
-                $senderUsername = '';
-                if ($msg->sender_type === 'admin') {
-                    $adminInfo = DB::select('SELECT username FROM admin WHERE id_a = ?', [$msg->sender_id]);
-                    if (!empty($adminInfo)) {
-                        $senderUsername = $adminInfo[0]->username;
-                    }
                 }
 
                 $formattedMessages[] = [

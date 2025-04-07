@@ -1,118 +1,104 @@
 @extends('masters.uiMaster')
 
 @section('main')
-  <div class="blog-container">
-    <h1 class="blog-heading">Recent Posts</h1>
-
+  <div class="container-b">
+    <!-- Header -->
+    <header class="header">
+    <h1 class="header-title">Recent Posts</h1>
     @if(session('msg'))
-      <div class="alert alert-success" data-aos="fade-down">{{ session('msg') }}</div>
-    @endif
+    <div class="alert alert-success">{{ session('msg') }}</div>
+  @endif
+    </header>
 
-    <!-- Nút thêm blog dạng floating (icon + dark theme) -->
-    <a href="{{ route('blog.create') }}" class="btn-add-blog" id="btn-add-blog" title="Thêm Blog">
-      <i class="fa fa-plus"></i>
+    <!-- Nút thêm blog dạng floating -->
+    <a href="{{ route('blog.create') }}" class="btn-add-blog" title="Thêm Blog">
+    <i class="fa fa-plus"></i>
     </a>
 
-    <!-- Vùng danh sách bài viết -->
-    <div class="blog-list">
-      @foreach($blog as $item)
-        <div class="blog-item" data-aos="fade-up">
+    <!-- Danh sách bài viết (feed) -->
+    <section class="feed">
+    @foreach($blog as $item)
+    <article class="post" data-aos="fade-up">
+      <!-- Hiển thị ảnh nếu có -->
+      @if($item->image_b)
+      <div class="post-image">
+      <img src="{{ asset('uploads/' . $item->image_b) }}" alt="{{ $item->title_b }}">
+      </div>
+    @endif
 
-          <!-- Nếu có ảnh thì hiển thị -->
-          @if($item->image_b)
-            <div class="blog-image">
-              <img src="{{ asset('uploads/' . $item->image_b) }}" alt="{{ $item->title_b }}">
-            </div>
-          @endif
+      <!-- Nội dung bài đăng -->
+      <div class="post-content">
+      <div class="post-meta">
+      <span class="post-date">{{ \Carbon\Carbon::parse($item->created_at)->format('M d, Y') }}</span>
+      <span class="dot">•</span>
+      <span class="post-author">By {{ $item->author_b }}</span>
+      </div>
+      <h2 class="post-title">{{ $item->title_b }}</h2>
+      <p class="post-excerpt">{{ \Illuminate\Support\Str::limit($item->content_b, 150) }}</p>
 
-          <!-- Nội dung bài viết -->
-          <div class="blog-content-wrapper">
-            <p class="blog-meta">
-              <span class="blog-date">{{ \Carbon\Carbon::parse($item->created_at)->format('M d, Y') }}</span>
-              –
-              <span class="blog-author">By {{ $item->author_b }}</span>
-            </p>
+      <!-- Các nút hành động -->
+      <div class="post-actions">
+      <a href="{{ route('blog.show', ['id' => $item->id_b]) }}" class="action-btn" title="Xem chi tiết">
+      <i class="fa fa-eye"></i>
+      </a>
+      @if(Session::has('username') && (Session::get('username') === $item->author_b || in_array(Session::get('role'), ['admin', 'staff'])))
+      <a href="{{ route('blog.edit', ['id' => $item->id_b]) }}" class="action-btn" title="Sửa">
+      <i class="fa fa-edit"></i>
+      </a>
+      <form action="{{ route('blog.destroy', ['id' => $item->id_b]) }}" method="post"
+      onsubmit="return confirm('Bạn có chắc chắn muốn xóa Blog này không?');" class="inline-form">
+      @csrf
+      <input type="hidden" name="id_b" value="{{ $item->id_b }}">
+      <button type="submit" class="action-btn" title="Xóa">
+      <i class="fa fa-trash"></i>
+      </button>
+      </form>
+    @endif
+      </div>
 
-            <h2 class="blog-title">{{ $item->title_b }}</h2>
+      <!-- Khu vực bình luận -->
+      <div class="comments-section">
+      <div class="comments-header">
+      <span>{{ isset($item->comment) ? count($item->comment) : 0 }} bình luận</span>
+      </div>
+      @if(Session::has('username'))
+      <form action="{{ route('blog.comment.store', ['id' => $item->id_b]) }}" method="post" class="comment-form">
+      @csrf
+      <textarea name="content_cmt" placeholder="Bình luận của bạn"></textarea>
+      <button type="submit" class="comment-submit" title="Gửi bình luận">
+      <i class="fa fa-paper-plane"></i>
+      </button>
+      </form>
+    @endif
 
-            <p class="blog-excerpt">
-              {{ \Illuminate\Support\Str::limit($item->content_b, 150) }}
-            </p>
-
-            <!-- Khu vực các nút hành động (chỉ hiển thị icon) -->
-            <div class="blog-actions">
-              <a href="{{ route('blog.show', ['id' => $item->id_b]) }}" class="btn btn-info" title="Xem chi tiết">
-                <i class="fa fa-eye"></i>
-              </a>
-              @if(Session::has('username') && (Session::get('username') === $item->author_b || in_array(Session::get('role'), ['admin', 'staff'])))
-                <a href="{{ route('blog.edit', ['id' => $item->id_b]) }}" class="btn btn-warning" title="Sửa">
-                  <i class="fa fa-edit"></i>
-                </a>
-                <form action="{{ route('blog.destroy', ['id' => $item->id_b]) }}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa Blog này không?');" style="display:inline-block;">
-                  @csrf
-                  <input type="hidden" name="id_b" value="{{ $item->id_b }}">
-                  <button type="submit" class="btn btn-danger" title="Xóa Blog">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </form>
-              @endif
-            </div>
-
-            <!-- Khu vực bình luận -->
-            <div class="comment-section">
-              <p class="comment-count">
-                Có {{ isset($item->comment) ? count($item->comment) : 0 }} bình luận
-              </p>
-
-              @if(Session::has('username'))
-                <form action="{{ route('blog.comment.store', ['id' => $item->id_b]) }}" method="post" class="comment-form">
-                  @csrf
-                  <div class="form-group">
-                    <textarea name="content_cmt" rows="2" class="form-control" placeholder="Bình luận của bạn"></textarea>
-                  </div>
-                  <button type="submit" class="btn btn-primary btn-comment" title="Gửi bình luận">
-                    <i class="fa fa-paper-plane"></i>
-                  </button>
-                </form>
-              @endif
-
-              @if(isset($item->comment) && count($item->comment) > 0)
-                <div class="comment-list">
-                  @foreach($item->comment as $comment)
-                    <div class="comment">
-                      <!-- Nội dung bình luận -->
-                      <div>
-                        <p>{{ $comment->content_cmt }}</p>
-                        <p>
-                          <small>
-                            {{ $comment->created_at }} - <strong>{{ $comment->author_cmt }}</strong>
-                          </small>
-                        </p>
-                      </div>
-
-                      <!-- Nút xóa bình luận (nếu đúng người đăng nhập) -->
-                      @if(Session::has('username') && Session::get('username') === $comment->author_cmt)
-                        <form action="{{ route('blog.comment.destroy', ['id' => $item->id_b, 'commentId' => $comment->id_cmt]) }}"
-                              method="post"
-                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này không?');">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="btn btn-danger btn-comment" title="Xóa bình luận">
-                            <i class="fa fa-trash"></i>
-                          </button>
-                        </form>
-                      @endif
-                    </div>
-                  @endforeach
-                </div>
-              @endif
-            </div>
-            <!-- Kết thúc khu vực bình luận -->
-
-          </div><!-- /blog-content-wrapper -->
-        </div><!-- /blog-item -->
-      @endforeach
-    </div><!-- /blog-list -->
+      @if(isset($item->comment) && count($item->comment) > 0)
+      <div class="comments-list">
+      @foreach($item->comment as $comment)
+      <div class="comment-item">
+      <div class="comment-text">
+      <p>{{ $comment->content_cmt }}</p>
+      <small>{{ $comment->created_at }} - <strong>{{ $comment->author_cmt }}</strong></small>
+      </div>
+      @if(Session::has('username') && (Session::get('username') === $comment->author_cmt || in_array(Session::get('role'), ['admin', 'staff'])))
+      <form action="{{ route('blog.comment.destroy', ['id' => $item->id_b, 'commentId' => $comment->id_cmt]) }}"
+      method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này không?');">
+      @csrf
+      @method('DELETE')
+      <button type="submit" class="delete-comment" title="Xóa bình luận">
+      <i class="fa fa-trash"></i>
+      </button>
+      </form>
+    @endif
+      </div>
+    @endforeach
+      </div>
+    @endif
+      </div>
+      <!-- End bình luận -->
+      </div>
+    </article>
+  @endforeach
+    </section>
   </div>
 @endsection
 
@@ -121,230 +107,236 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
   <script>
     AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: true,
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true,
     });
   </script>
 @endsection
 
 <style>
+  /* Phông chữ & reset cơ bản */
   body {
-    background: #121212;
-    color: #e0e0e0;
+    background: #fafafa;
+    color: #262626;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   }
 
-  /* Vùng chứa tổng thể */
-  .blog-container {
-    max-width: 1500px;
-    margin: 80px auto;
+  /* Khung chứa chính */
+  .container-b {
+    max-width: 935px;
+    margin: 40px auto;
     padding: 20px;
-    background: #1e1e1e;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 3px;
+    margin-top: 100px;
   }
 
-  /* Tiêu đề lớn */
-  .blog-heading {
-    font-size: 2.5rem;
+  /* Header */
+  .header {
     text-align: center;
-    margin-bottom: 40px;
-    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .header-title {
+    font-size: 30px;
+    font-weight: 300;
+    color: #262626;
+    margin-bottom: 20px
+  }
+
+  .alert {
+    margin-top: 10px;
+    padding: 10px;
+    background: #dff0d8;
+    border: 1px solid #d0e9c6;
+    border-radius: 3px;
+    color: #3c763d;
   }
 
   /* Nút thêm blog dạng floating */
   .btn-add-blog {
     position: fixed;
-    top: 100px;
-    right: 20px;
+    top: 80px;
+    right: 30px;
     width: 50px;
     height: 50px;
-    background: #007bff;
+    background: #3897f0;
     color: #fff;
     font-size: 24px;
-    text-align: center;
-    line-height: 50px;
     border-radius: 50%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
-    transition: background 0.3s, transform 0.3s;
-    z-index: 99;
-  }
-  .btn-add-blog:hover {
-    background: #0056b3;
-    transform: scale(1.1);
-    color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+    z-index: 100;
   }
 
-  /* Danh sách blog (cột dọc) */
-  .blog-list {
+  .btn-add-blog:hover {
+    transform: scale(1.1);
+    text-decoration: none;
+  }
+
+  /* Feed (danh sách bài viết) */
+  .feed {
     display: flex;
     flex-direction: column;
     gap: 40px;
   }
 
-  /* Mỗi bài blog */
-  .blog-item {
-    display: flex;
-    flex-direction: column; /* Cho mobile */
-    gap: 20px;
-    border-bottom: 1px solid #444;
-    padding-bottom: 30px;
+  /* Mỗi bài post */
+  .post {
+    border: 1px solid #dbdbdb;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  /* Ảnh blog */
-  .blog-image img {
+  /* Ảnh bài post */
+  .post-image img {
     width: 100%;
-    height: auto;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    display: block;
   }
 
-  /* Khối nội dung bên cạnh ảnh */
-  .blog-content-wrapper {
+  /* Nội dung bài post */
+  .post-content {
+    padding: 15px;
+  }
+
+  /* Meta thông tin */
+  .post-meta {
+    font-size: 12px;
+    color: #8e8e8e;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dot {
+    font-size: 14px;
+  }
+
+  /* Tiêu đề & tóm tắt */
+  .post-title {
+    font-size: 20px;
+    margin: 0 0 10px;
+    color: #262626;
+    font-weight: 500;
+  }
+
+  .post-excerpt {
+    font-size: 14px;
+    color: #262626;
+    line-height: 1.5;
+    margin-bottom: 15px;
+  }
+
+  /* Nút hành động */
+  .post-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .action-btn {
+    background: none;
+    border: none;
+    color: #3897f0;
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    text-decoration: none;
+  }
+
+  .action-btn:hover {
+    color: #0073e6;
+  }
+
+  .inline-form {
+    display: inline;
+  }
+
+  /* Khu vực bình luận */
+  .comments-section {
+    border-top: 1px solid #efefef;
+    padding-top: 10px;
+  }
+
+  .comments-header {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #8e8e8e;
+  }
+
+  /* Form bình luận */
+  .comment-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .comment-form textarea {
+    flex: 1;
+    border: 1px solid #dbdbdb;
+    border-radius: 3px;
+    padding: 8px;
+    font-size: 14px;
+    resize: none;
+    height: 40px;
+  }
+
+  .comment-submit {
+    background: none;
+    border: none;
+    color: #3897f0;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* Danh sách bình luận */
+  .comments-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
-  /* Meta (ngày và tác giả) */
-  .blog-meta {
-    font-size: 0.9rem;
-    color: #aaa;
-    margin: 0;
-  }
-  .blog-meta span {
-    display: inline-block;
-  }
-
-  /* Tiêu đề bài viết */
-  .blog-title {
-    font-size: 1.6rem;
-    color: #fff;
-    margin: 0;
-    line-height: 1.2;
-  }
-
-  /* Tóm tắt */
-  .blog-excerpt {
-    font-size: 1rem;
-    color: #ccc;
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  /* Khu vực các nút hành động */
-  .blog-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    font-size: 1.2rem;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 0.3s, transform 0.3s;
-  }
-  .btn:hover {
-    opacity: 0.85;
-  }
-
-  /* Nút thông tin (Xem chi tiết) */
-  .btn-info {
-    background-color: #17a2b8;
-    color: #fff;
-  }
-  .btn-info:hover {
-    background-color: #138496;
-  }
-
-  /* Nút cảnh báo (Sửa) */
-  .btn-warning {
-    background-color: #ffc107;
-    color: #212529;
-  }
-  .btn-warning:hover {
-    background-color: #e0a800;
-  }
-
-  /* Nút xóa / nguy hiểm */
-  .btn-danger {
-    background-color: #dc3545;
-    color: #fff;
-  }
-  .btn-danger:hover {
-    background-color: #c82333;
-  }
-
-  /* Nút chính (cho bình luận) */
-  .btn-primary {
-    background-color: #007bff;
-    color: #fff;
-  }
-  .btn-primary:hover {
-    background-color: #0069d9;
-  }
-
-  /* Chỉ hiển thị icon, không cần margin */
-  .btn i {
-    margin: 0;
-  }
-
-  /* Khu vực bình luận */
-  .comment-section {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #444;
-  }
-  .comment-count {
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #ccc;
-  }
-  .comment-form .form-group {
-    margin-bottom: 10px;
-  }
-  .btn-comment {
-    padding: 8px;
-  }
-  .comment-list {
-    margin-top: 10px;
-  }
-
-  /* Phần mỗi comment */
-  .comment {
+  .comment-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    background: #2a2a2a;
-    border: 1px solid #444;
-    padding: 8px;
-    border-radius: 5px;
-    margin-bottom: 8px;
-    color: #ddd;
-  }
-  .comment p {
-    margin: 0;
-  }
-  .comment small {
-    color: #aaa;
+    align-items: flex-start;
   }
 
-  @media (min-width: 768px) {
-    .blog-item {
-      flex-direction: row;
-      gap: 30px;
-    }
-    .blog-image, .blog-content-wrapper {
-      flex: 1;
+  .comment-text p {
+    font-size: 14px;
+    margin: 0;
+    color: #262626;
+  }
+
+  .comment-text small {
+    font-size: 12px;
+    color: #8e8e8e;
+  }
+
+  .delete-comment {
+    background: none;
+    border: none;
+    color: #ed4956;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container {
+      margin: 20px;
+      padding: 10px;
     }
   }
 </style>

@@ -39,7 +39,7 @@ class ProductController extends Controller
         $category = CategoryRepos::getAllCategory();
 
         return view('product.new', [
-            "product" => (object)[
+            "product" => (object) [
                 'id_p' => '',
                 'name_p' => '',
                 'image_p' => '',
@@ -58,10 +58,10 @@ class ProductController extends Controller
         // Chuyển đổi giá tiền thành số để lưu trữ
         $price = str_replace('.', '', $request->input('price_p'));
 
-        $product = (object)[
+        $product = (object) [
             'name_p' => $request->input('name_p'),
             'image_p' => $request->input('image_p'),
-            'price_p' => (int)$price,
+            'price_p' => (int) $price,
             'description_p' => $request->input('description_p'),
             'categoryid' => $request->input('category')
         ];
@@ -93,11 +93,11 @@ class ProductController extends Controller
 
         $price = str_replace('.', '', $request->input('price_p'));
 
-        $product = (object)[
+        $product = (object) [
             'id_p' => $request->input('id_p'),
             'name_p' => $request->input('name_p'),
             'image_p' => $request->input('image_p'),
-            'price_p' => (int)$price,
+            'price_p' => (int) $price,
             'description_p' => $request->input('description_p'),
             'categoryid' => $request->input('category')
         ];
