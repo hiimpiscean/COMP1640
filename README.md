@@ -150,9 +150,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Made with ❤️ using Laravel
-```
-
-Once you have your screenshots ready, save them in a `screenshots/` folder in the root of your repo and you're good to go.
-
-Want help generating those screenshots, making badges, or designing a logo next?
+> Made with ❤️, from Piscean and fellow contributors (ThangNV, HaiDH, QuanNM, DucMT).
