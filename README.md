@@ -82,6 +82,7 @@ cd COMP1640
 
 ```bash
 composer install
+
 ```
 
 3. **Set up environment**
@@ -150,3 +151,4 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 > Made with ❤️, from Piscean and fellow contributors: ThangNV, HaiDH, QuanNM, DucMT.
+
