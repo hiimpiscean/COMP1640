@@ -44,7 +44,7 @@
               <a href="{{ route('blog.show', ['id' => $item->id_b]) }}" class="btn btn-info" title="Xem chi tiết">
                 <i class="fa fa-eye"></i>
               </a>
-              @if(Session::has('username'))
+              @if(Session::has('username') && (Session::get('username') === $item->author_b || in_array(Session::get('role'), ['admin', 'staff'])))
                 <a href="{{ route('blog.edit', ['id' => $item->id_b]) }}" class="btn btn-warning" title="Sửa">
                   <i class="fa fa-edit"></i>
                 </a>
