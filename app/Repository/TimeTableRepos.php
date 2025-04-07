@@ -14,7 +14,17 @@ class TimetableRepos
      */
     public function getAllTimetables()
     {
-        return Timetable::all();
+        return DB::table('timetable')
+            ->select(
+                'timetable.*',
+                'product.name_p as course_name',
+                'teacher.fullname_t as teacher_name'
+            )
+            ->join('product', 'timetable.course_id', '=', 'product.id_p')
+            ->join('teacher', 'timetable.teacher_id', '=', 'teacher.id_t')
+            ->orderBy('timetable.day_of_week')
+            ->orderBy('timetable.start_time')
+            ->get();
     }
 
     /**

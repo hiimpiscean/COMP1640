@@ -23,9 +23,9 @@ class LearningMaterial extends Model
             ];
         }
 
-        $teachers = TeacherRepos::getTeacherById($this->teacher_id);
-        if (count($teachers) > 0) {
-            return $teachers[0];
+        $teacher = TeacherRepos::getTeacherById($this->teacher_id);
+        if ($teacher && isset($teacher->fullname_t)) {
+            return $teacher;
         } else {
             // Trả về đối tượng mặc định nếu không tìm thấy giáo viên
             return (object) [
