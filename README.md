@@ -74,15 +74,15 @@ public/
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/elearning-platform.git
-cd elearning-platform
+git clone https://github.com/hiimpiscean/COMP1640.git
+cd COMP1640
 ```
 
 2. **Install PHP and JavaScript dependencies**
 
 ```bash
 composer install
-npm install && npm run dev
+
 ```
 
 3. **Set up environment**
@@ -150,4 +150,5 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Made with ❤️, from Piscean and fellow contributors (ThangNV, HaiDH, QuanNM, DucMT).
+> Made with ❤️, from Piscean and fellow contributors: ThangNV, HaiDH, QuanNM, DucMT.
+
