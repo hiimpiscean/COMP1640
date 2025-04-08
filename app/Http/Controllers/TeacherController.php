@@ -6,6 +6,7 @@ use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
+use Illuminate\Support\Facades\DB;
 
 class TeacherController extends Controller
 {
@@ -84,7 +85,7 @@ class TeacherController extends Controller
 
     public function confirm($id)
     {
-        $teacher = TeacherRepos::getTeacherById($id)[0] ?? null;
+        $teacher = TeacherRepos::getTeacherById($id);
         return $teacher ? view('teacher.confirm', compact('teacher')) : redirect()->route('teacher.index')->with('error', 'Giáo viên không tồn tại');
     }
 
@@ -94,8 +95,19 @@ class TeacherController extends Controller
             return redirect()->route('teacher.index');
         }
 
-        if (!TeacherRepos::getTeacherById($id_t)[0] ?? null) {
+        $teacher = TeacherRepos::getTeacherById($id_t);
+        if (!$teacher) {
             return redirect()->route('teacher.index')->with('error', 'Không tìm thấy giáo viên');
+        }
+
+        // Kiểm tra xem giáo viên có lịch học nào không
+        $timetables = DB::table('timetable')
+            ->where('teacher_id', $id_t)
+            ->count();
+
+        if ($timetables > 0) {
+            return redirect()->route('teacher.index')
+                ->with('error', 'Không thể xóa giáo viên vì vẫn còn lịch học của giáo viên này. Vui lòng xóa hoặc chuyển các lịch học trước.');
         }
 
         TeacherRepos::delete($id_t);

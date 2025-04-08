@@ -166,7 +166,7 @@
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      @if(Session::get('role') === 'admin')
+      @if(Session::get('role') === 'admin' || Session::get('role') === 'staff')
       <div class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
       <a href="{{ route('admin.index') }}">
         <h3>ATN portal</h3>
