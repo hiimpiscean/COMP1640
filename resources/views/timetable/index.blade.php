@@ -64,13 +64,7 @@
       $courseName = $course[0]->name_p ?? 'N/A';
       }
       }
-      $teacherName = 'N/A';
-      if ($entry->teacher_id) {
-      $teacher = App\Repository\TeacherRepos::getTeacherById($entry->teacher_id);
-      if (!empty($teacher) && is_array($teacher) && count($teacher) > 0) {
-      $teacherName = $teacher[0]->fullname_t ?? 'N/A';
-      }
-      }
+      $teacherName = $entry->teacher_name ?? 'N/A';
   @endphp
       <div class="course-name">{{ $courseName }}</div>
       <div class="time-range">{{ $entry->start_time }} - {{ $entry->end_time }}</div>

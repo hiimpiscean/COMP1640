@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -507,16 +507,16 @@
             font-size: 8px;
             color: rgba(255, 255, 255, 0.8);
             margin-top: 5px;
-            margin-left: auto;
-            padding-right: 8px;
+            margin-left: auto; /* Đẩy phần tử sang phải */
+            padding-right: 8px; /* Tăng padding bên phải */
             position: relative;
             line-height: 1;
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-end; /* Căn phải */
             align-items: center;
             letter-spacing: 0.3px;
-            text-align: right;
-            width: 100%;
+            text-align: right; /* Căn phải cho text */
+            width: 100%; /* Đảm bảo chiếm toàn bộ chiều rộng */
         }
 
         @media (max-width: 768px) {
@@ -659,9 +659,9 @@
 
         /* CSS cho tin nhắn bị lỗi */
         .message.sender.error-message {
-            background-color: #ffdddd; /* Màu nền nhạt */
-            border: 1px solid #e74c3c; /* Viền đỏ */
-            position: relative;
+            background-color: #ffdddd !important;
+            color: #050505 !important;
+            border: 1px solid #e74c3c !important;
         }
 
         .message.sender.error-message::before {
@@ -717,30 +717,61 @@
             display: inline-block !important;
             margin-top: 2px !important;
         }
+
+        /* Đảm bảo tin nhắn lỗi không hiển thị trạng thái Seen */
+        .message.sender.error-message .read-status {
+            display: none !important;
+        }
+
+        .home-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            background-color: #1877f2;
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .home-button:hover {
+            background-color: #166fe5;
+        }
+
+        .home-button i {
+            margin-right: 8px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <div class="chat-header">
-            <h2>Chat</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>ChatBox</h2>
+                <a href="{{ route('ui.index') }}" class="home-button">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </div>
             <div class="user-info">
-                <p>Đang đăng nhập với tài khoản: <strong>{{ Session::get('username') }}</strong></p>
+                <p>Logged in as: <strong>{{ Session::get('username') }}</strong></p>
             </div>
         </div>
 
         <div class="chat-container">
-            <!-- Sidebar hiển thị danh sách người dùng -->
+            <!-- Sidebar showing user list -->
             <div class="chat-sidebar">
                 <div class="sidebar-header">
-                    <h3>Tin nhắn</h3>
+                    <h3>Messages</h3>
                 </div>
                 <div class="sidebar-tabs">
-                    <button class="tab-button active" data-tab="chat">Đã Chat</button>
-                    <button class="tab-button" data-tab="all">Tất Cả</button>
+                    <button class="tab-button active" data-tab="chat">Chat Partners</button>
+                    <button class="tab-button" data-tab="all">All Users</button>
                 </div>
                 <div class="sidebar-search">
-                    <input type="text" id="sidebar-search-input" placeholder="Tìm kiếm người dùng...">
+                    <input type="text" id="sidebar-search-input" placeholder="Search users...">
                 </div>
                 <div class="users-list" id="users-list">
                     <div id="chat-partners-list" class="tab-content active">
@@ -760,7 +791,7 @@
                                 </div>
                             @endforeach
                         @else
-                            <div class="no-users">Chưa có tin nhắn nào</div>
+                            <div class="no-users">No messages yet</div>
                         @endif
                     </div>
                     
@@ -779,23 +810,23 @@
                                 </div>
                             @endforeach
                         @else
-                            <div class="no-users">Không có người dùng nào</div>
+                            <div class="no-users">No users found</div>
                         @endif
                     </div>
                 </div>
             </div>
             
-            <!-- Phần chat chính -->
+            <!-- Main chat section -->
             <div class="chat-box-container">
                 <div id="chat-header-info" class="selected-user"
                     style="display: none; margin: 0; border-radius: 0; border-left: none; border-bottom: 1px solid #e4e6eb;">
-                    <p>Đang chat với: <strong id="chat-with-name"></strong></p>
+                    <p>Chatting with: <strong id="chat-with-name"></strong></p>
                 </div>
                 <div id="chat-box" class="chat-box">
-                    <div class="no-messages">Chọn một người dùng để bắt đầu chat</div>
+                    <div class="no-messages">Select a user to start chatting</div>
                 </div>
                 <div class="message-input-container">
-                    <input type="text" id="message-input" class="message-input" placeholder="Nhập tin nhắn..."
+                    <input type="text" id="message-input" class="message-input" placeholder="Type a message..."
                         disabled>
                     <button id="send-button" class="send-button" disabled>
                         <i class="fas fa-paper-plane"></i>
@@ -809,33 +840,49 @@
     <div class="notification-container" id="notification-container"></div>
 
     <script>
-        const currentUser = "{{ Session::get('username') }}";
-        let chatWith = null;
-        let lastMessageId = 0;
-        let messagePollingInterval;
-        let isSending = false;
-        let messageQueue = [];
-        let lastPollTime = 0;
-        let messageCache = new Map(); // Cache tin nhắn
-        let pendingMessages = new Set(); // Theo dõi tin nhắn đang gửi
-        const POLL_INTERVAL = 3000; // 3 giây
-        const MESSAGE_CACHE_TIME = 2000; // 2 giây
-        const MESSAGE_BATCH_SIZE = 50; // Số lượng tin nhắn tải mỗi lần
-        const DOM_UPDATE_DEBOUNCE = 100; // 100ms debounce cho cập nhật DOM
-        const SEND_TIMEOUT = 10000; // 10 giây timeout cho gửi tin nhắn
-        const CACHE_DURATION = 5000; // 5 giây cho cache tin nhắn
+        /**
+         * ===================================
+         * 1. KHAI BÁO HẰNG SỐ VÀ BIẾN TOÀN CỤC
+         * ===================================
+         */
 
-        // Thêm biến theo dõi tin nhắn gần đây
-        const recentMessages = new Map(); // message_content -> timestamp
+        // Các hằng số cấu hình cho ứng dụng
+        const APP_CONSTANTS = {
+            POLL_INTERVAL: 3000,          // Thời gian giữa các lần kiểm tra tin nhắn mới (3 giây)
+            MESSAGE_CACHE_TIME: 2000,     // Thời gian lưu cache tin nhắn (2 giây)
+            MESSAGE_BATCH_SIZE: 50,       // Số lượng tin nhắn tải về mỗi lần
+            DOM_UPDATE_DEBOUNCE: 100,     // Độ trễ cập nhật DOM (100ms)
+            SEND_TIMEOUT: 10000,          // Thời gian chờ tối đa khi gửi tin nhắn (10 giây)
+            CACHE_DURATION: 5000,         // Thời gian lưu cache (5 giây)
+            REALTIME_POLL_INTERVAL: 2000  // Thời gian kiểm tra real-time (2 giây)
+        };
 
-        // Thêm biến theo dõi tin nhắn đã gửi
-        const sentMessageIds = new Set(); // Lưu ID tin nhắn đã gửi thành công
+        // Biến quản lý trạng thái toàn cục
+        const currentUser = "{{ Session::get('username') }}"; // Email người dùng hiện tại
+        let chatWith = null;        // Email người đang chat cùng
+        let lastMessageId = 0;      // ID tin nhắn cuối cùng đã nhận
+        let messagePollingInterval; // Interval kiểm tra tin nhắn mới
+        let isSending = false;      // Trạng thái đang gửi tin nhắn
 
-        // Thêm biến theo dõi nội dung tin nhắn đang gửi
-        const pendingMessageContents = new Set(); // Lưu nội dung tin nhắn đang gửi
+        // Các biến quản lý cache và theo dõi
+        const messageCache = new Map();           // Cache lưu trữ tin nhắn
+        const pendingMessages = new Set();        // Danh sách tin nhắn đang chờ gửi
+        const recentMessages = new Map();         // Danh sách tin nhắn gần đây
+        const sentMessageIds = new Set();         // ID các tin nhắn đã gửi thành công
+        const pendingMessageContents = new Set(); // Nội dung tin nhắn đang gửi
 
-        // Debounce function
-        function debounce(func, wait) {
+        /**
+         * ===================================
+         * 2. CÁC HÀM TIỆN ÍCH
+         * ===================================
+         */
+
+        /**
+         * Hàm debounce để giới hạn tần suất gọi hàm
+         * @param {Function} func - Hàm cần debounce
+         * @param {number} wait - Thời gian chờ (ms)
+         */
+        const debounce = (func, wait) => {
             let timeout;
             return function executedFunction(...args) {
                 const later = () => {
@@ -845,16 +892,61 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
-        }
+        };
 
         /**
-         * Cập nhật hộp chat với tin nhắn mới nhận được
+         * Hàm lấy thời gian hiện tại theo định dạng Việt Nam
+         * @returns {string} Chuỗi thời gian định dạng dd/mm/yyyy HH:MM:SS
          */
-        function updateChatBox(messages, appendOnly = false) {
+        const getCurrentTime = (() => {
+            const options = {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            return () => new Date().toLocaleString('vi-VN', options).replace(',', '');
+        })();
+
+        /**
+         * ===================================
+         * 3. QUẢN LÝ TIN NHẮN
+         * ===================================
+         */
+
+        /**
+         * Kiểm tra xem tin nhắn có phải từ người dùng hiện tại không
+         * @param {string} sender - Email người gửi
+         * @param {string} senderType - Loại người gửi (admin/user)
+         * @returns {boolean}
+         */
+        const isMessageFromCurrentUser = (sender, senderType) => {
+            const currentUsername = currentUser.toLowerCase().trim();
+            const senderEmail = (sender || '').toLowerCase().trim();
+
+            if (currentUsername.includes('admin')) {
+                return senderType === 'admin';
+            }
+
+            return senderEmail === currentUsername ||
+                senderEmail.startsWith(currentUsername + "@") ||
+                (senderEmail.includes("@") && currentUsername === senderEmail.split("@")[0]);
+        };
+
+        /**
+         * Cập nhật giao diện chat box với tin nhắn mới
+         * @param {Array} messages - Mảng tin nhắn cần hiển thị
+         * @param {boolean} appendOnly - Chỉ thêm mới hay thay thế hoàn toàn
+         */
+        const updateChatBox = (messages, appendOnly = false) => {
             // Kiểm tra và tạo phần tử nếu cần thiết
             var chatBox = document.querySelector('#chat-box');
             if (!chatBox) {
-                console.error('Không tìm thấy phần tử chat-box');
+                console.error('Chat box element not found');
                 return;
             }
 
@@ -924,585 +1016,579 @@
                 // Cuộn xuống tin nhắn mới nhất nếu tin nhắn mới được thêm vào
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
-        }
+        };
 
-        // Kiểm tra người gửi tin nhắn
-        function isMessageFromCurrentUser(sender, senderType) {
-            const currentUsername = currentUser.toLowerCase().trim();
-            const senderEmail = (sender || '').toLowerCase().trim();
-
-            if (currentUsername.includes('admin')) {
-                return senderType === 'admin';
-            }
-
-            return senderEmail === currentUsername ||
-                senderEmail.startsWith(currentUsername + "@") ||
-                (senderEmail.includes("@") && currentUsername === senderEmail.split("@")[0]);
-        }
-
-        // Tối ưu hàm load tin nhắn
-        async function loadMessages(isBackgroundUpdate = false) {
-            if (!chatWith) return;
-
-            // Kiểm tra thời gian giữa các lần poll
-            const now = Date.now();
-            if (isBackgroundUpdate && (now - lastPollTime < POLL_INTERVAL)) {
-                return;
-            }
-            lastPollTime = now;
-
-            try {
-                // Chỉ hiển thị loading khi không phải là background update
-                if (!isBackgroundUpdate) {
-                    const chatBox = $('#chat-box');
-                    const noMessages = chatBox.find('.no-messages');
-                    if (noMessages.length > 0) {
-                        chatBox.html('<div class="loading-messages">Đang tải tin nhắn...</div>');
-                    }
-                }
-
-                const response = await Promise.race([
-                    $.ajax({
-                        url: "{{ route('chat.messages') }}",
-                        method: 'GET',
-                        data: {
-                            receiver: chatWith,
-                            last_id: isBackgroundUpdate ? lastMessageId : 0,
-                            limit: MESSAGE_BATCH_SIZE,
-                            timestamp: now
-                        },
-                        cache: false
-                    }),
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Timeout')), 10000)
-                    )
-                ]);
-
-                if (!response || !response.messages || response.messages.length === 0) {
-                    if (!isBackgroundUpdate) {
-                        $('#chat-box').html('<div class="no-messages">Chưa có tin nhắn nào với người dùng này</div>');
-                    }
-                    return;
-                }
-
-                // Kiểm tra và cập nhật trạng thái đã đọc
-                checkAndUpdateMessageReadStatus(response.messages);
-
-                // CHỈ cập nhật tin nhắn mới trong background update, thay vì tất cả
-                let messagesToUpdate = response.messages;
-                if (isBackgroundUpdate) {
-                    // Lọc chỉ lấy tin nhắn mới hơn lastMessageId
-                    messagesToUpdate = response.messages.filter(msg => msg.id > lastMessageId);
-                }
-
-                // Xử lý tin nhắn và cập nhật UI, chỉ nếu có tin nhắn mới
-                if (messagesToUpdate.length > 0 || !isBackgroundUpdate) {
-                    // Sắp xếp tin nhắn theo ID để đảm bảo thứ tự đúng
-                    messagesToUpdate.sort((a, b) => a.id - b.id);
-                    
-                    requestAnimationFrame(() => {
-                        // Nếu là background update, chỉ thêm tin nhắn mới
-                        // Nếu không phải background update, cập nhật tất cả tin nhắn
-                        updateChatBox(messagesToUpdate, isBackgroundUpdate);
-                        
-                        // Cập nhật lastMessageId
-                        response.messages.forEach(msg => {
-                            lastMessageId = Math.max(lastMessageId, msg.id);
-                        });
-
-                        // Cuộn xuống nếu không phải background update
-                        if (!isBackgroundUpdate) {
-                            const chatBox = document.getElementById('chat-box');
-                            chatBox.scrollTop = chatBox.scrollHeight;
-                        }
-                    });
-                }
-
-            } catch (error) {
-                console.error("Lỗi khi tải tin nhắn:", error);
-                if (!isBackgroundUpdate) {
-                    $('#chat-box').html(
-                        '<div class="error-messages">Không thể tải tin nhắn. <a href="#" onclick="loadMessages(); return false;">Thử lại</a></div>'
-                    );
-                }
-            }
-
-            // Thêm dòng này vào cuối hàm, trước dấu đóng ngoặc nhọn
-            if (!isBackgroundUpdate && !window.readStatusChecker) {
-                startReadStatusChecker();
-            }
-        }
-
-        // Thêm hàm mới để kiểm tra và cập nhật trạng thái đã đọc
-        function checkAndUpdateMessageReadStatus(messages) {
-            // Lấy tất cả tin nhắn đã gửi
-            const senderMessages = document.querySelectorAll('.message.sender');
-            
-            // Nếu có thông tin trạng thái 'đã đọc' từ bất kỳ tin nhắn nào
-            const anyMessageRead = messages.some(msg => 
-                isMessageFromCurrentUser(msg.sender, msg.sender_type) && msg.is_read
-            );
-            
-            // Nếu có tin nhắn đã đọc, áp dụng trạng thái này cho TẤT CẢ tin nhắn từ người gửi
-            if (anyMessageRead) {
-                senderMessages.forEach(messageElement => {
-                    if (!messageElement.querySelector('.read-status')) {
-                        addReadStatusWithAnimation(messageElement);
-                    }
-                });
-            } else {
-                // Cách cũ - chỉ cập nhật trạng thái cho từng tin nhắn cụ thể
-                senderMessages.forEach(messageElement => {
-                    const messageId = messageElement.id.replace('msg-', '');
-                    const message = messages.find(msg => String(msg.id) === messageId);
-                    
-                    if (message && message.is_read && !messageElement.querySelector('.read-status')) {
-                        addReadStatusWithAnimation(messageElement);
-                    }
-                });
-            }
-        }
-
-        // Tối ưu hàm gửi tin nhắn
-        async function sendMessage() {
+        /**
+         * Gửi tin nhắn mới
+         * Xử lý việc gửi tin nhắn và cập nhật giao diện
+         */
+        const sendMessage = async () => {
             if (isSending) return;
 
             const message = $('#message-input').val().trim();
             if (!message || !chatWith) return;
             
+            // Tránh gửi tin nhắn trùng lặp
             const messageKey = `${message}|${chatWith}`;
             if (pendingMessageContents.has(messageKey)) {
-               
                 return;
+            }
+            
+            // Xóa thông báo "Chưa có tin nhắn nào" ngay khi bắt đầu gửi
+            const chatBox = document.getElementById('chat-box');
+            const noMessagesMsg = chatBox.querySelector('.no-messages');
+            if (noMessagesMsg) {
+                chatBox.innerHTML = '';
             }
             
             isSending = true;
             const tempId = 'temp-' + Date.now();
+            
+            // Tạo đối tượng tin nhắn tạm thời
             const tempMessage = {
                 id: tempId,
                 text: message,
                 sender: currentUser,
+                receiver: chatWith,
                 timestamp: getCurrentTime(),
                 status: 'sending'
             };
 
             try {
-                // Cập nhật UI ngay lập tức
+                // Xóa tin nhắn trong input và cập nhật UI ngay lập tức
                 $('#message-input').val('').focus();
-                messageCache.set(tempId, tempMessage);
                 pendingMessages.add(tempId);
                 pendingMessageContents.add(messageKey);
 
-                requestAnimationFrame(() => {
-                    updateChatBox([tempMessage]);
+                // Thêm tin nhắn vào UI
+                updateChatBox([tempMessage], true);
+                
+                // Đảm bảo cuộn xuống để hiện tin nhắn mới
+                const chatBox = document.getElementById('chat-box');
+                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+                // Tạo một biến để theo dõi xem tin nhắn đã bị đánh dấu lỗi hay chưa
+                let messageMarkedAsError = false;
+
+                // Gửi tin nhắn đến server với jQuery Ajax
+                const response = await $.ajax({
+                    url: "{{ route('chat.send') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        message: message,
+                        receiver: chatWith,
+                        timestamp: getCurrentTime()
+                    },
+                    cache: false,
+                    timeout: 15000  // 15 giây timeout
                 });
 
-                // Gửi tin nhắn với timeout
-                const response = await Promise.race([
-                    $.ajax({
-                        url: "{{ route('chat.send') }}",
-                        method: 'POST',
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            message: message,
-                            receiver: chatWith,
-                            timestamp: getCurrentTime()
-                        },
-                        cache: false
-                    }),
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Timeout')), 10000)
-                    )
-                ]);
-
-                if (response.success) {
+                if (response && response.success) {
                     const realMessageId = response.message.id;
                     
-                    requestAnimationFrame(() => {
-                        const tempElement = document.getElementById(`msg-${tempId}`);
-                        if (tempElement) {
-                            tempElement.id = `msg-${realMessageId}`;
-                            const statusElement = tempElement.querySelector('.message-status');
-                            if (statusElement) {
-                                statusElement.innerHTML = '<span class="sent-status">Sent</span>';
-                            }
+                    // Cập nhật UI với ID thật của tin nhắn
+                    const tempElement = document.getElementById(`msg-${tempId}`);
+                    if (tempElement) {
+                        tempElement.id = `msg-${realMessageId}`;
+                        tempElement.setAttribute('data-message-saved', 'true');
+                        // Đảm bảo tin nhắn không có class error-message
+                        tempElement.classList.remove('error-message');
+                        
+                        const statusElement = tempElement.querySelector('.message-status');
+                        if (statusElement) {
+                            statusElement.innerHTML = '<span class="sent-status">Sent</span>';
                         }
+                    }
 
-                        // Cập nhật cache và trạng thái
-                        messageCache.delete(tempId);
-                        pendingMessages.delete(tempId);
-                        pendingMessageContents.delete(messageKey);
-                        sentMessageIds.add(realMessageId.toString());
-                        messageCache.set(realMessageId, {
-                            ...response.message,
-                            status: 'sent'
-                        });
-                    });
+                    pendingMessages.delete(tempId);
+                    pendingMessageContents.delete(messageKey);
+                    sentMessageIds.add(realMessageId.toString());
 
+                    // Cập nhật ID tin nhắn mới nhất
                     lastMessageId = Math.max(lastMessageId, realMessageId);
                     
-                    // Lưu thông tin tin nhắn mới vào localStorage để thông báo cho các tab khác
-                    const messageData = {
-                        timestamp: Date.now(),
-                        sender: currentUser,
-                        receiver: chatWith,
-                        message_id: realMessageId,
-                        content: message
-                    };
-                    
-                    // Lưu vào localStorage để các tab khác biết có tin nhắn mới
-                    localStorage.setItem('new_message_sent', JSON.stringify(messageData));
-                    
-                    // Cập nhật danh sách chat trong background
-                    setTimeout(() => loadChatPartners(), 0);
+                    // Sau khi gửi thành công, tải lại danh sách chat partners
+                    setTimeout(() => {
+                        loadChatPartners();
+                    }, 500);
                 } else {
-                    throw new Error(response.error || 'Lỗi gửi tin nhắn');
+                    // Xử lý khi response.success là false
+                    const tempElement = document.getElementById(`msg-${tempId}`);
+                    if (tempElement) {
+                        // Đánh dấu tin nhắn đã được xử lý lỗi
+                        messageMarkedAsError = true;
+                        
+                        // Thay đổi style
+                        tempElement.classList.add('error-message');
+                        tempElement.setAttribute('data-message-error', 'true');
+                        tempElement.style.backgroundColor = '#ffdddd';
+                        tempElement.style.color = '#e74c3c';
+                        tempElement.style.borderColor = '#e74c3c';
+                        
+                        let errorMessage = response.error || 'Send failed';
+                        
+                        const statusElement = tempElement.querySelector('.message-status');
+                        if (statusElement) {
+                            statusElement.style.color = '#e74c3c';
+                            statusElement.innerHTML = `${errorMessage} <button class="retry-button">Thử lại</button>`;
+                            
+                            const retryBtn = statusElement.querySelector('.retry-button');
+                            if (retryBtn) {
+                                retryBtn.onclick = function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    resendMessage(tempId, message);
+                                };
+                            }
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Lỗi gửi tin nhắn:', error);
                 
-                requestAnimationFrame(() => {
-                    const tempElement = document.getElementById(`msg-${tempId}`);
-                    if (tempElement) {
-                        tempElement.classList.add('error-message');
-                        const statusElement = tempElement.querySelector('.message-status');
-                        if (statusElement) {
-                            statusElement.innerHTML = `Gửi thất bại <button class="retry-button">Thử lại</button>`;
-                            statusElement.querySelector('.retry-button').onclick = (e) => {
+                // Hiển thị trạng thái lỗi và nút thử lại
+                const tempElement = document.getElementById(`msg-${tempId}`);
+                if (tempElement) {
+                    // Đánh dấu tin nhắn đã được xử lý lỗi
+                    messageMarkedAsError = true;
+                    
+                    // Thay đổi style
+                    tempElement.classList.add('error-message');
+                    tempElement.setAttribute('data-message-error', 'true');
+                    tempElement.style.backgroundColor = '#ffdddd';
+                    tempElement.style.color = '#e74c3c';
+                    tempElement.style.borderColor = '#e74c3c';
+                    
+                    const statusElement = tempElement.querySelector('.message-status');
+                    if (statusElement) {
+                        let errorMessage = 'Gửi thất bại';
+                        
+                        // Kiểm tra cụ thể loại lỗi
+                        if (error.statusText === 'timeout' || error.message === 'Timeout') {
+                            errorMessage = 'Timeout - mạng chậm';
+                        } else if (!navigator.onLine) {
+                            errorMessage = 'Lỗi kết nối mạng';
+                        }
+                        
+                        // Đảm bảo luôn thêm nút thử lại
+                        statusElement.style.color = '#e74c3c';
+                        statusElement.innerHTML = `${errorMessage} <button class="retry-button" data-message="${message.replace(/"/g, '&quot;')}">Thử lại</button>`;
+                        
+                        // Gắn sự kiện click cho nút retry ngay sau khi thêm vào DOM
+                        const retryBtn = statusElement.querySelector('.retry-button');
+                        if (retryBtn) {
+                            retryBtn.onclick = function(e) {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 resendMessage(tempId, message);
                             };
                         }
                     }
-                });
+                }
             } finally {
                 isSending = false;
-                pendingMessageContents.delete(messageKey);
+                // Đảm bảo xóa message khỏi pendingMessageContents nếu không còn đang gửi
+                const msgElement = document.getElementById(`msg-${tempId}`);
+                if (msgElement && !msgElement.querySelector('.message-status')?.textContent.includes('Sending')) {
+                    pendingMessageContents.delete(messageKey);
+                }
             }
-        }
+        };
 
-        // Thêm hàm để gửi lại tin nhắn thất bại
-        function resendMessage(oldTempId, originalMessage) {
-            // Xóa tin nhắn tạm thời cũ
+        /**
+         * Gửi lại tin nhắn thất bại
+         * @param {string} oldTempId - ID tạm thời của tin nhắn cũ
+         * @param {string} originalMessage - Nội dung tin nhắn gốc
+         */
+        const resendMessage = (oldTempId, originalMessage) => {
             const oldElement = document.getElementById(`msg-${oldTempId}`);
-            if (oldElement) {
-                oldElement.remove();
+            if (!oldElement) return;
+            
+            // Thay đổi giao diện để hiển thị đang gửi lại
+            oldElement.classList.remove('error-message');
+            oldElement.style.backgroundColor = '#0084ff';
+            oldElement.style.color = 'white';
+            oldElement.style.border = 'none';
+            
+            const statusElement = oldElement.querySelector('.message-status');
+            if (statusElement) {
+                statusElement.style.color = 'rgba(255, 255, 255, 0.8)';
+                statusElement.innerHTML = 'Sending...';
             }
             
-            // Xóa khỏi cache và danh sách chờ
-            messageCache.delete(oldTempId);
-            pendingMessages.delete(oldTempId);
+            // Đánh dấu tin nhắn đang được gửi lại
+            oldElement.setAttribute('data-resending', 'true');
+            oldElement.removeAttribute('data-message-error');
             
-            // Đặt tin nhắn vào ô input và gửi lại
-            $('#message-input').val(originalMessage);
-            
-            // Đảm bảo tin nhắn này không còn trong danh sách tin nhắn đang gửi
-            const messageKey = `${originalMessage}|${chatWith}`;
-            pendingMessageContents.delete(messageKey);
-            
-            // Gửi lại tin nhắn
-            sendMessage();
-        }
-
-        // Tối ưu hàm getCurrentTime
-        const getCurrentTime = (() => {
-            const options = {
-                timeZone: 'Asia/Ho_Chi_Minh',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            };
-
-            return () => new Date().toLocaleString('vi-VN', options).replace(',', '');
-        })();
-
-        // Event listeners
-        $(document).ready(function() {
-            let searchTimeout;
-            
-            // Xử lý chuyển đổi tab
-            $('.tab-button').on('click', function() {
-                // Loại bỏ active từ tất cả các tab và tab-content
-                $('.tab-button').removeClass('active');
-                $('.tab-content').removeClass('active');
-                
-                // Thêm active cho tab hiện tại
-                $(this).addClass('active');
-                
-                // Hiển thị tab-content tương ứng
-                const tabName = $(this).data('tab');
-                if (tabName === 'chat') {
-                    $('#chat-partners-list').addClass('active');
-                } else {
-                    $('#all-users-list').addClass('active');
-                }
-            });
-            
-            // Xử lý khi click vào người dùng trong danh sách
-            $(document).on('click', '.user-item', function() {
-                const email = $(this).data('email');
-                if (email) {
-                    selectUser(email);
-                }
-            });
-            
-            // Tìm kiếm trong sidebar
-            $('#sidebar-search-input').on('keyup', function() {
-                const query = $(this).val().trim().toLowerCase();
-                
-                if (query === '') {
-                    // Hiển thị tất cả người dùng
-                    $('.user-item').show();
-                    return;
-                }
-                
-                // Lọc danh sách người dùng
-                $('.user-item').each(function() {
-                    const email = $(this).data('email').toLowerCase();
-                    const name = $(this).find('.user-name').text().toLowerCase();
-                    const type = $(this).find('.user-type').text().toLowerCase();
-                    
-                    if (email.includes(query) || name.includes(query) || type.includes(query)) {
-                        $(this).show();
+            // Gửi tin nhắn CÙNG NỘI DUNG từ đầu, không phải resend
+            $.ajax({
+                url: "{{ route('chat.send') }}",
+                method: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    message: originalMessage,
+                    receiver: chatWith,
+                    timestamp: getCurrentTime(),
+                    is_new_attempt: true   // Đánh dấu đây là lần gửi mới, không phải resend
+                },
+                success: function(response) {
+                    if (response && response.success) {
+                        // Lưu ý: lấy ID mới từ server và cập nhật element
+                        const newMsgId = response.message.id;
+                        
+                        // Cập nhật ID tin nhắn và các thuộc tính khác
+                        oldElement.id = `msg-${newMsgId}`;
+                        oldElement.classList.remove('error-message');
+                        oldElement.removeAttribute('data-message-error');
+                        oldElement.removeAttribute('data-resending');
+                        oldElement.setAttribute('data-message-saved', 'true');
+                        
+                        // Reset style
+                        oldElement.style.backgroundColor = '#0084ff';
+                        oldElement.style.color = 'white';
+                        oldElement.style.border = 'none';
+                        
+                        // Cập nhật trạng thái
+                        if (statusElement) {
+                            statusElement.style.color = 'rgba(255, 255, 255, 0.8)';
+                            statusElement.innerHTML = '<span class="sent-status">Sent</span>';
+                        }
+                        
+                        // Cập nhật lastMessageId và các trạng thái khác
+                        lastMessageId = Math.max(lastMessageId, newMsgId);
+                        sentMessageIds.add(newMsgId.toString());
+                        
+                        // Làm mới danh sách chat
+                        loadChatPartners();
                     } else {
-                        $(this).hide();
+                        // Cập nhật lại giao diện lỗi nếu gửi thất bại
+                        oldElement.classList.add('error-message');
+                        oldElement.setAttribute('data-message-error', 'true');
+                        oldElement.removeAttribute('data-resending');
+                        oldElement.style.backgroundColor = '#ffdddd';
+                        oldElement.style.color = '#050505';
+                        oldElement.style.border = '1px solid #e74c3c';
+                        
+                        let errorMsg = response.error || 'Gửi thất bại';
+                        
+                        if (statusElement) {
+                            statusElement.style.color = '#e74c3c';
+                            statusElement.innerHTML = `${errorMsg} <button class="retry-button">Thử lại</button>`;
+                            
+                            const retryBtn = statusElement.querySelector('.retry-button');
+                            if (retryBtn) {
+                                retryBtn.onclick = function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    resendMessage(oldElement.id.replace('msg-', ''), originalMessage);
+                                };
+                            }
+                        }
                     }
-                });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Lỗi gửi tin nhắn:', error);
+                    
+                    // Cập nhật lại giao diện lỗi
+                    oldElement.classList.add('error-message');
+                    oldElement.setAttribute('data-message-error', 'true');
+                    oldElement.removeAttribute('data-resending');
+                    oldElement.style.backgroundColor = '#ffdddd';
+                    oldElement.style.color = '#050505';
+                    oldElement.style.border = '1px solid #e74c3c';
+                    
+                    let errorMsg = 'Connection error';
+                    if (status === 'timeout') {
+                        errorMsg = 'Timeout - slow connection';
+                    } else if (!navigator.onLine) {
+                        errorMsg = 'Network connection lost';
+                    }
+                    
+                    if (statusElement) {
+                        statusElement.style.color = '#e74c3c';
+                        statusElement.innerHTML = `${errorMsg} <button class="retry-button">Retry</button>`;
+                        
+                        const retryBtn = statusElement.querySelector('.retry-button');
+                        if (retryBtn) {
+                            retryBtn.onclick = function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                resendMessage(oldElement.id.replace('msg-', ''), originalMessage);
+                            };
+                        }
+                    }
+                }
             });
-            
-            // Tìm kiếm người dùng mới (giữ lại chức năng cũ)
-            $('#search-input').on('keyup', function() {
-                let query = $(this).val().trim();
-                
-                if (searchTimeout) {
-                    clearTimeout(searchTimeout);
-                }
-                
-                if (query.length < 2) {
-                    $('#search-results').removeClass('show').empty();
-                    return;
-                }
+        };
 
-                $('#search-results').addClass('show');
-                $('#search-results').html('<div class="search-result-item">Đang tìm kiếm...</div>');
-                
-                searchTimeout = setTimeout(function() {
+        /**
+         * ===================================
+         * 4. QUẢN LÝ TRẠNG THÁI
+         * ===================================
+         */
+
+        /**
+         * Cập nhật trạng thái đã đọc cho tin nhắn
+         * Gọi API kiểm tra và cập nhật UI
+         */
+        const updateReadStatus = () => {
+            // Chỉ gọi API để kiểm tra trạng thái đã đọc thực sự
+            $.ajax({
+                url: '{{ route("chat.messages") }}',
+                method: 'GET',
+                data: {
+                    receiver: chatWith,
+                    check_read_status: true,
+                    last_id: 0
+                },
+                success: function(response) {
+                    if (response.success && response.messages) {
+                        // Tìm các tin nhắn đã được đánh dấu is_read=true từ server
+                        const readMessages = response.messages.filter(msg => 
+                            isMessageFromCurrentUser(msg.sender, msg.sender_type) && msg.is_read
+                        );
+                        
+                        // Nếu không có tin nhắn nào đã đọc, không làm gì cả
+                        if (readMessages.length === 0) return;
+                        
+                        // Cập nhật UI chỉ cho các tin nhắn đã được xác nhận đọc
+                        const senderMessages = document.querySelectorAll('.message.sender:not(.error-message)');
+                        senderMessages.forEach(messageElement => {
+                            const messageId = messageElement.id.replace('msg-', '');
+                            // Kiểm tra xem tin nhắn này có trong danh sách đã đọc không
+                            const isRead = readMessages.some(msg => String(msg.id) === messageId);
+                            
+                            if (isRead && !messageElement.querySelector('.read-status')) {
+                                addReadStatusWithAnimation(messageElement);
+                            }
+                        });
+                    }
+                }
+            });
+        };
+
+        /**
+         * Thêm hiệu ứng animation khi đánh dấu tin nhắn đã đọc
+         * @param {HTMLElement} messageElement - Phần tử tin nhắn cần cập nhật
+         */
+        const addReadStatusWithAnimation = (messageElement) => {
+            if (!messageElement || messageElement.classList.contains('error-message')) return;
+            
+            // Xóa status "Sent" nếu có
+            const sentStatus = messageElement.querySelector('.message-status');
+            if (sentStatus) {
+                sentStatus.remove(); // Xóa hoàn toàn phần tử thay vì ẩn
+            }
+
+            // Thêm read-status nếu chưa có
+            if (!messageElement.querySelector('.read-status')) {
+                const readStatus = document.createElement('span');
+                readStatus.className = 'read-status';
+                readStatus.innerHTML = '<span class="double-tick"><i class="fas fa-check"></i><i class="fas fa-check"></i></span> Seen';
+                messageElement.appendChild(readStatus);
+            }
+        };
+
+        /**
+         * Đánh dấu tất cả tin nhắn từ một người dùng là đã đọc
+         * @param {string} senderEmail - Email người gửi
+         */
+        const markMessagesAsRead = (senderEmail) => {
+            if (!senderEmail) return;
+            
                     $.ajax({
-                        url: "{{ route('chat.search') }}",
-                        method: 'GET',
+                url: "{{ route('mark.messages.read') }}",
+                method: 'POST',
                         data: {
-                            query: query
+                    _token: "{{ csrf_token() }}",
+                    sender_email: senderEmail
                         },
                         success: function(response) {
-                            let results = '';
-                            
-                            if (!response.success || !response.users || response.users
-                                .length === 0) {
-                                results =
-                                    '<div class="search-result-item">Không tìm thấy người dùng</div>';
-                            } else {
-                                response.users.forEach(user => {
-                                    let displayText =
-                                        `${user.email} - ${user.type}`;
-                                    results +=
-                                        `<div class="search-result-item" data-email="${user.email}">${displayText}</div>`;
-                                });
-                            }
-                            
-                            $('#search-results').html(results);
-                            $('#search-results').addClass('show');
+                    if (response.success) {
+                        // Cập nhật UI để hiển thị "đã đọc"
+                        updateReadStatus();
+                        
+                        // Lưu thông tin vào localStorage để các tab khác cập nhật
+                        const data = {
+                            timestamp: Date.now(),
+                            sender: senderEmail,  // Người gửi tin nhắn
+                            receiver: currentUser  // Người nhận tin nhắn (người hiện tại)
+                        };
+                        
+                        // Ghi thông tin vào localStorage, điều này sẽ kích hoạt sự kiện storage
+                        localStorage.setItem('messages_marked_read', JSON.stringify(data));
+                        
+                        // Phát sóng một CustomEvent cho tab hiện tại, vì tab hiện tại không nhận sự kiện storage
+                        const event = new CustomEvent('read_status_updated', {
+                            detail: data
+                        });
+                        window.dispatchEvent(event);
+                    }
                         },
                         error: function(error) {
-                            $('#search-results').html(
-                                '<div class="search-result-item">Lỗi khi tìm kiếm</div>'
-                            );
-                            $('#search-results').addClass('show');
-                        }
-                    });
-                }, 200); // Giảm thời gian chờ tìm kiếm
-            });
-            
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('.search-container').length) {
-                    $('#search-results').removeClass('show').empty();
+                    console.error('Lỗi khi đánh dấu tin nhắn đã đọc:', error);
                 }
             });
+        };
 
-            $('#send-button').on('click', function() {
-                sendMessage();
-            });
-            
-            $('#message-input').keypress(function(e) {
-                if (e.which === 13) {
-                    sendMessage();
-                    return false;
-                }
-            });
+        /**
+         * ===================================
+         * 5. QUẢN LÝ GIAO DIỆN NGƯỜI DÙNG
+         * ===================================
+         */
 
-            // Thêm sự kiện cho input với debounce
-            $('#message-input').on('input', debounce(function() {
-                // Có thể thêm chức năng "đang nhập" ở đây
-            }, 300));
+        /**
+         * Chọn người dùng để bắt đầu chat
+         * @param {string} email - Email người dùng được chọn
+         */
+        const selectUser = (email) => {
+            if (!email) return;
             
-            // Lắng nghe sự kiện từ localStorage để cập nhật số tin nhắn chưa đọc ngay lập tức
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'new_message_sent') {
-                    const data = JSON.parse(e.newValue || '{}');
-                    const now = Date.now();
-                    
-                    // Chỉ xử lý tin nhắn gửi trong vòng 10 giây gần đây
-                    if (data && now - data.timestamp < 10000) {
-                        
-                        // Nếu người nhận là người dùng hiện tại
-                        if (data.receiver === currentUser) {
-                            // Nếu đang chat với người gửi, tải tin nhắn mới ngay lập tức
-                            if (chatWith === data.sender) {
-                                
-                                // Ngừng polling hiện tại để tránh xung đột
+            // Nếu đang chọn cùng một người dùng, không làm gì cả
+            if (chatWith === email) return;
+            
+            // Cập nhật URL để phản ánh người dùng hiện tại
+            // Điều này sẽ thay đổi URL mà không tải lại trang
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('user', email);
+            history.pushState({}, '', newUrl.toString());
+            
+            // Xóa cache trước khi chuyển đổi người dùng
+            clearConversationCache();
+            
+            // Dừng polling hiện tại
                                 if (messagePollingInterval) {
                                     clearInterval(messagePollingInterval);
-                                }
-                                
-                                // Tải tin nhắn mới ngay lập tức
-                                loadMessages(true);
-                                
-                                // Thiết lập lại polling sau khi tải tin nhắn
-                                setupMessagePolling();
-                            } else {
-                                // Nếu không đang chat với người gửi, cập nhật badge và hiển thị thông báo
-                                updateMessageBadge(data.sender);
-                                showNotification(data.sender, data.content);
-                            }
-                        }
-                    }
-                }
-            });
-            
-            // Kiểm tra tham số URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const userParam = urlParams.get('user');
-            
-            // Kiểm tra localStorage
-            const storedUser = localStorage.getItem('selected_chat_user');
-            
-            // Ưu tiên tham số URL, sau đó đến localStorage
-            if (userParam) {
-                selectUser(userParam);
-            } else if (storedUser) {
-                selectUser(storedUser);
-                localStorage.removeItem('selected_chat_user');
+                messagePollingInterval = null;
             }
             
-            // Load danh sách người đã chat khi trang được tải
-            loadChatPartners();
+            // Ngừng ReadStatusChecker hiện tại
+            if (window.readStatusChecker) {
+                clearInterval(window.readStatusChecker);
+                window.readStatusChecker = null;
+            }
             
-            // Thiết lập polling để cập nhật danh sách chat mỗi 30 giây
-            setInterval(function() {
-                if (!document.hidden) { // Chỉ cập nhật khi tab đang active
-                    loadChatPartners();
-                }
-            }, 30000); // 30 giây
-
-            // Đảm bảo các status không bị ẩn khi load trang
+            // Ẩn badge thông báo
+            $(`.user-item[data-email="${email}"]`).find('.message-badge').text('0').hide();
+            
+            // Đánh dấu người dùng đang được chọn
+            $('.user-item').removeClass('active');
+            $(`.user-item[data-email="${email}"]`).addClass('active');
+            
+            chatWith = email;
+            $('#chat-with-name').text(email);
+            $('#chat-header-info').show();
+            $('#message-input, #send-button').prop('disabled', false);
+            
+            // Hiển thị loading
+            $('#chat-box').html('<div class="loading-messages">Loading messages...</div>');
+            
+            // Tải tin nhắn và khởi động các polling
             setTimeout(() => {
-                document.querySelectorAll('.message-status').forEach(el => {
-                    el.style.display = 'block';
-                    el.style.opacity = '1';
+                loadMessages();
+                $('#message-input').focus();
+                
+                // Đánh dấu tin nhắn đã đọc
+                markMessagesAsRead(email);
+                
+                // Thiết lập polling
+                setupMessagePolling();
+                
+                // Khởi động ReadStatusChecker
+                startReadStatusChecker();
+            }, 0);
+        };
+
+        /**
+         * Cập nhật danh sách người chat trong sidebar
+         * @param {Array} partners - Mảng thông tin người dùng
+         */
+        const updateChatPartnersList = (partners) => {
+            const listElement = $('#chat-partners-list');
+            listElement.empty();
+            
+            partners.forEach(function(partner) {
+                // Tạo một phần tử user-item mới
+                const userItem = $(`
+                    <div class="user-item" data-email="${partner.email}" data-id="${partner.id}" id="user-${partner.email}">
+                        <div class="user-avatar">
+                            ${partner.email.charAt(0).toUpperCase()}
+                            <span class="message-badge" style="display: none;">0</span>
+                        </div>
+                        <div class="user-details">
+                            <p class="user-name">${partner.email}</p>
+                            <p class="user-type">${partner.type.charAt(0).toUpperCase() + partner.type.slice(1)}</p>
+                            <p class="last-message">${partner.last_message.substring(0, 25) + (partner.last_message.length > 25 ? '...' : '')}</p>
+                            <p class="message-time">${partner.last_message_time}</p>
+                        </div>
+                    </div>
+                `);
+                
+                // Thêm sự kiện click
+                userItem.on('click', function() {
+                    const email = $(this).data('email');
+                    selectUser(email);
                 });
                 
-                document.querySelectorAll('.sent-status').forEach(el => {
-                    el.style.display = 'block';
-                    el.style.opacity = '1';
-                });
-            }, 500);
-
-            // Thêm lắng nghe sự kiện messages_marked_read (thêm vào phần document.ready)
-            window.addEventListener('storage', function(e) {
-                // Kiểm tra sự kiện đánh dấu tin nhắn đã đọc từ localStorage
-                if (e.key === 'messages_marked_read') {
-                    const data = JSON.parse(e.newValue || '{}');
-                    const now = Date.now();
-                    
-                    // Chỉ xử lý nếu sự kiện xảy ra trong 10 giây gần đây
-                    if (data && now - data.timestamp < 10000) {
-                        // Nếu người gửi là người dùng hiện tại và đang chat với người nhận
-                        if (data.receiver === currentUser && chatWith === data.sender) {
-                            updateReadStatus();
-                        }
-                    }
-                }
-            });
-
-            // Lắng nghe sự kiện đánh dấu tin nhắn đã đọc cho TAB HIỆN TẠI 
-            window.addEventListener('read_status_updated', function(e) {
-                const data = e.detail;
+                // Thêm vào danh sách
+                listElement.append(userItem);
                 
-                // Chỉ xử lý nếu sự kiện liên quan đến cuộc hội thoại hiện tại
-                if (data && data.sender === chatWith && data.receiver === currentUser) {
-
-                    updateReadStatus();
+                // Nếu đang chat với người này, thêm class active
+                if (chatWith === partner.email) {
+                    userItem.addClass('active');
                 }
             });
             
-            // Lắng nghe sự kiện từ localStorage cho TAB KHÁC
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'messages_marked_read') {
-                    try {
-                        const data = JSON.parse(e.newValue || '{}');
-                        
-                        // Chỉ xử lý nếu sự kiện xảy ra trong 30 giây gần đây
-                        const now = Date.now();
-                        if (data && now - data.timestamp < 30000) {
-                            // Nếu người NHẬN tin nhắn là người dùng hiện tại
-                            // và đang chat với người gửi tin nhắn
-                            if (data.sender === chatWith && data.receiver === currentUser) {
-                                updateReadStatus();
-                                
-                                // Cập nhật giao diện ngay lập tức
-                                loadMessages(true);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Lỗi khi xử lý sự kiện storage:', error);
-                    }
-                }
-            });
-        });
-        
-        // Thêm hàm hiển thị thông báo khi có tin nhắn mới
-        function showNotification(sender, message) {
+            // Nếu không có người dùng nào
+            if (partners.length === 0) {
+                listElement.html('<div class="no-users">No messages yet</div>');
+            }
+        };
+
+        /**
+         * Hiển thị thông báo khi có tin nhắn mới
+         * @param {string} sender - Người gửi
+         * @param {string} message - Nội dung tin nhắn
+         */
+        const showNotification = (sender, message) => {
             const notificationContainer = $('#notification-container');
             const truncatedMessage = message.length > 30 ? message.substring(0, 30) + '...' : message;
             
-            const notification = `
+            const notification = $(`
                 <div class="notification">
                     <div class="notification-icon">
                         <i class="fas fa-comment"></i>
                     </div>
                     <div class="notification-content">
-                        <div class="notification-title">Tin nhắn mới từ ${sender}</div>
+                        <div class="notification-title">New message from ${sender}</div>
                         <div class="notification-message">${truncatedMessage}</div>
                     </div>
                 </div>
-            `;
+            `);
+            
+            // Thêm sự kiện click cho thông báo
+            notification.on('click', function() {
+                // Chuyển đến chat với người gửi
+                selectUser(sender);
+            });
             
             notificationContainer.append(notification);
             
             // Tự động xóa thông báo sau 5 giây
             setTimeout(() => {
-                notificationContainer.find('.notification').first().remove();
+                notification.remove();
             }, 5000);
             
             // Cập nhật badge trên avatar người dùng
             updateMessageBadge(sender);
-        }
-        
-        // Hàm cập nhật badge thông báo tin nhắn mới
-        function updateMessageBadge(sender) {
+        };
+
+        /**
+         * Cập nhật badge thông báo tin nhắn mới
+         * @param {string} sender - Email người gửi
+         */
+        const updateMessageBadge = (sender) => {
             // Nếu đang chat với người này thì không hiển thị badge
             if (chatWith === sender) {
                 return;
@@ -1563,131 +1649,139 @@
                     }
                 }
             });
-        }
+        };
 
-        // Thêm hàm đánh dấu tin nhắn đã đọc
-        function markMessagesAsRead(senderEmail) {
-            if (!senderEmail) return;
-            
-            $.ajax({
-                url: "{{ route('mark.messages.read') }}",
-                method: 'POST',
+        /**
+         * ===================================
+         * 6. TẢI DỮ LIỆU VÀ CẬP NHẬT REAL-TIME
+         * ===================================
+         */
+
+        /**
+         * Tải tin nhắn từ server
+         * @param {boolean} isBackgroundUpdate - Có phải cập nhật ngầm không
+         */
+        const loadMessages = async (isBackgroundUpdate = false) => {
+            if (!chatWith) return;
+
+            // Tránh nhiều request đồng thời khi không phải background update
+            if (!isBackgroundUpdate && window.isLoadingMessages) {
+                return;
+            }
+
+            // Đánh dấu đang tải tin nhắn
+            if (!isBackgroundUpdate) {
+                window.isLoadingMessages = true;
+                const chatBox = $('#chat-box');
+                if (chatBox.find('.message').length === 0) {
+                    chatBox.html('<div class="loading-messages">Loading messages...</div>');
+                }
+            }
+
+            try {
+                // Tạo ID cho request hiện tại để có thể kiểm tra sau này
+                const requestId = Date.now();
+                window.currentRequestId = requestId;
+                
+                // Gửi request lấy tin nhắn
+                const response = await $.ajax({
+                    url: "{{ route('chat.messages') }}",
+                method: 'GET',
                 data: {
-                    _token: "{{ csrf_token() }}",
-                    sender_email: senderEmail
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Cập nhật UI để hiển thị "đã đọc"
-                        updateReadStatus();
-                        
-                        // Lưu thông tin vào localStorage để các tab khác cập nhật
-                        const data = {
-                            timestamp: Date.now(),
-                            sender: senderEmail,  // Người gửi tin nhắn
-                            receiver: currentUser  // Người nhận tin nhắn (người hiện tại)
-                        };
-                        
-                        // Ghi thông tin vào localStorage, điều này sẽ kích hoạt sự kiện storage
-                        localStorage.setItem('messages_marked_read', JSON.stringify(data));
-                        
-                        // Phát sóng một CustomEvent cho tab hiện tại, vì tab hiện tại không nhận sự kiện storage
-                        const event = new CustomEvent('read_status_updated', {
-                            detail: data
-                        });
-                        window.dispatchEvent(event);
+                    receiver: chatWith,
+                        last_id: isBackgroundUpdate ? lastMessageId : 0,
+                        limit: isBackgroundUpdate ? 20 : 100,
+                        timestamp: Date.now(),
+                        request_id: requestId
+                    },
+                    cache: false,
+                    timeout: 15000
+                });
+                
+                // Kiểm tra nếu người dùng đã chuyển sang chat khác
+                if (!chatWith || window.currentRequestId !== requestId) {
+                    return;
+                }
+
+                // Xử lý tin nhắn
+                if (response && response.messages && response.messages.length > 0) {
+                    let messagesToUpdate = response.messages;
+                    
+                    // Nếu là background update, chỉ lấy tin nhắn mới
+                    if (isBackgroundUpdate) {
+                        messagesToUpdate = response.messages.filter(msg => msg.id > lastMessageId);
                     }
-                },
-                error: function(error) {
-                    console.error('Lỗi khi đánh dấu tin nhắn đã đọc:', error);
+                    
+                    if (messagesToUpdate.length > 0 || !isBackgroundUpdate) {
+                        // Xóa nội dung cũ nếu không phải background update
+                        if (!isBackgroundUpdate) {
+                            $('#chat-box').empty();
+                        }
+                        
+                        // Cập nhật UI với tin nhắn mới
+                        updateChatBox(messagesToUpdate, isBackgroundUpdate);
+                        
+                        // Cuộn xuống cuối nếu không phải background update
+                        if (!isBackgroundUpdate) {
+                            const chatBox = document.getElementById('chat-box');
+                            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+                        }
+                        
+                        // Cập nhật lastMessageId
+                        response.messages.forEach(msg => {
+                            lastMessageId = Math.max(lastMessageId, msg.id);
+                        });
+                        
+                        // Kiểm tra trạng thái đã đọc
+                        updateReadStatus();
+                    }
+                } else if (!isBackgroundUpdate) {
+                    $('#chat-box').html('<div class="no-messages">No messages yet</div>');
                 }
-            });
-        }
-
-        // Thêm hàm để thêm hiệu ứng animation khi thêm .read-status vào tin nhắn
-        function addReadStatusWithAnimation(messageElement) {
-            if (!messageElement) return;
-            
-            // Xóa status "Sent" nếu có
-            const sentStatus = messageElement.querySelector('.message-status');
-            if (sentStatus) {
-                sentStatus.remove(); // Xóa hoàn toàn phần tử thay vì ẩn
-            }
-
-            // Thêm read-status nếu chưa có
-            if (!messageElement.querySelector('.read-status')) {
-                const readStatus = document.createElement('span');
-                readStatus.className = 'read-status';
-                readStatus.innerHTML = '<span class="double-tick"><i class="fas fa-check"></i><i class="fas fa-check"></i></span> Seen';
-                messageElement.appendChild(readStatus);
-            }
-        }
-
-        // Thêm hàm updateReadStatus
-        function updateReadStatus() {
-            const messages = document.querySelectorAll('.message.sender');
-            messages.forEach(message => {
-                if (!message.querySelector('.read-status')) {
-                    addReadStatusWithAnimation(message);
-                }
-            });
-        }
-
-        // Hàm để chọn người dùng và bắt đầu chat
-        function selectUser(email) {
-            if (!email) return;
-            
-            // Nếu đang chọn cùng một người dùng, không làm gì cả
-            if (chatWith === email) return;
-            
-            // Xóa cache trước khi chuyển đổi người dùng
-            clearConversationCache();
-            
-            // Dừng polling hiện tại
-            if (messagePollingInterval) {
-                clearInterval(messagePollingInterval);
-                messagePollingInterval = null;
-            }
-            
-            // Ngừng ReadStatusChecker hiện tại
-            if (window.readStatusChecker) {
-                clearInterval(window.readStatusChecker);
-                window.readStatusChecker = null;
-            }
-            
-            // Ẩn badge thông báo
-            $(`.user-item[data-email="${email}"]`).find('.message-badge').text('0').hide();
-            
-            // Đánh dấu người dùng đang được chọn
-            $('.user-item').removeClass('active');
-            $(`.user-item[data-email="${email}"]`).addClass('active');
-            
-            chatWith = email;
-            $('#chat-with-name').text(email);
-            $('#chat-header-info').show();
-            $('#message-input, #send-button').prop('disabled', false);
-            
-            // Hiển thị loading
-            $('#chat-box').html('<div class="loading-messages">Đang tải tin nhắn...</div>');
-            
-            // Tải tin nhắn và khởi động các polling
-            setTimeout(() => {
-                loadMessages();
-                $('#message-input').focus();
                 
                 // Đánh dấu tin nhắn đã đọc
-                markMessagesAsRead(email);
+                if (!isBackgroundUpdate) {
+                    markMessagesAsRead(chatWith);
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải tin nhắn:", error);
                 
-                // Thiết lập polling
-                setupMessagePolling();
+                if (!isBackgroundUpdate) {
+                    // Hiển thị thông báo lỗi nếu không có tin nhắn nào
+                    const chatBox = $('#chat-box');
+                    const hasMessages = chatBox.find('.message').length > 0;
+                    
+                    if (!hasMessages) {
+                        chatBox.html(`
+                            <div class="error-messages">
+                                Unable to load messages. 
+                                <a href="#" class="retry-link">Try again</a>
+                            </div>
+                        `);
+                        
+                        $('.retry-link').off('click').on('click', function(e) {
+                            e.preventDefault();
+                            loadMessages(false);
+                        });
+                    }
+                }
+            } finally {
+                // Đánh dấu hoàn thành tải tin nhắn
+                if (!isBackgroundUpdate) {
+                    window.isLoadingMessages = false;
+                }
                 
-                // Khởi động ReadStatusChecker
+                // Bắt đầu kiểm tra trạng thái đã đọc nếu chưa có
+                if (!isBackgroundUpdate && !window.readStatusChecker) {
                 startReadStatusChecker();
-            }, 0);
-        }
+                }
+            }
+        };
 
-        // Hàm để load danh sách người đã chat
-        function loadChatPartners() {
+        /**
+         * Tải danh sách người đã chat
+         */
+        const loadChatPartners = () => {
             $.ajax({
                 url: "{{ route('chat.partners') }}",
                 method: 'GET',
@@ -1701,59 +1795,18 @@
                     console.error('Lỗi khi tải danh sách chat:', error);
                 }
             });
-        }
-        
-        // Hàm cập nhật danh sách người đã chat
-        function updateChatPartnersList(partners) {
-            const listElement = $('#chat-partners-list');
-            listElement.empty();
-            
-            partners.forEach(function(partner) {
-                // Tạo một phần tử user-item mới
-                const userItem = $(`
-                    <div class="user-item" data-email="${partner.email}" id="user-${partner.email}">
-                        <div class="user-avatar">
-                            ${partner.email.charAt(0).toUpperCase()}
-                            <span class="message-badge" style="display: none;">0</span>
-                        </div>
-                        <div class="user-details">
-                            <p class="user-name">${partner.email}</p>
-                            <p class="user-type">${partner.type.charAt(0).toUpperCase() + partner.type.slice(1)}</p>
-                            <p class="last-message">${partner.last_message.substring(0, 25) + (partner.last_message.length > 25 ? '...' : '')}</p>
-                            <p class="message-time">${partner.last_message_time}</p>
-                        </div>
-                    </div>
-                `);
-                
-                // Thêm sự kiện click
-                userItem.on('click', function() {
-                    const email = $(this).data('email');
-                    selectUser(email);
-                });
-                
-                // Thêm vào danh sách
-                listElement.append(userItem);
-                
-                // Nếu đang chat với người này, thêm class active
-                if (chatWith === partner.email) {
-                    userItem.addClass('active');
-                }
-            });
-            
-            // Nếu không có người dùng nào
-            if (partners.length === 0) {
-                listElement.html('<div class="no-users">Chưa có tin nhắn nào</div>');
-            }
-        }
+        };
 
-        // Thêm hàm setupMessagePolling
-        function setupMessagePolling() {
+        /**
+         * Thiết lập cơ chế kiểm tra tin nhắn mới định kỳ
+         */
+        const setupMessagePolling = () => {
             if (messagePollingInterval) {
                 clearInterval(messagePollingInterval);
             }
 
             // Khoảng thời gian poll ngắn hơn để kiểm tra realtime hơn
-            const REALTIME_POLL_INTERVAL = 2000; // 2 giây để realtime hơn
+            const REALTIME_POLL_INTERVAL = APP_CONSTANTS.REALTIME_POLL_INTERVAL; // 2 giây để realtime hơn
             
             // Thiết lập polling mới
             messagePollingInterval = setInterval(() => {
@@ -1804,7 +1857,7 @@
                                 );
                                 
                                 if (hasReadMessages) {
-                                    // Cập nhật trạng thái tin nhắn
+                                    // Chỉ cập nhật khi thực sự có tin nhắn đã đọc
                                     updateReadStatus();
                                 }
                                 
@@ -1832,31 +1885,12 @@
             document.removeEventListener('visibilitychange', visibilityHandler);
             // Thêm listener mới
             document.addEventListener('visibilitychange', visibilityHandler);
-        }
+        };
 
-        // Thêm hàm clearConversationCache
-        function clearConversationCache() {
-            // Xóa cache tin nhắn
-            messageCache.clear();
-            
-            // Xóa lastMessageId chỉ khi cần thiết
-            // Chỉ khi không có tin nhắn trước đó trong DOM thì mới reset về 0
-            const chatBox = document.getElementById('chat-box');
-            if (!chatBox || !chatBox.querySelector('.message[id^="msg-"]')) {
-                // Nếu không tìm thấy tin nhắn nào, reset lastMessageId
-                lastMessageId = 0;
-            }
-            
-            // Xóa cache trong sessionStorage
-            Object.keys(sessionStorage).forEach(key => {
-                if (key.startsWith('messages_')) {
-                    sessionStorage.removeItem(key);
-                }
-            });
-        }
-
-        // Function để kiểm tra trạng thái đã đọc của tin nhắn mỗi 3 giây
-        function startReadStatusChecker() {
+        /**
+         * Bắt đầu kiểm tra trạng thái đã đọc định kỳ
+         */
+        const startReadStatusChecker = () => {
             if (!chatWith) return;
             
             // Kiểm tra định kỳ
@@ -1889,7 +1923,180 @@
             
             // Lưu interval để có thể dừng khi cần
             window.readStatusChecker = readStatusInterval;
-        }
+        };
+
+        /**
+         * ===================================
+         * 7. QUẢN LÝ CACHE
+         * ===================================
+         */
+
+        /**
+         * Xóa cache cuộc trò chuyện
+         * Được gọi khi chuyển đổi người dùng
+         */
+        const clearConversationCache = () => {
+            // Xóa cache tin nhắn
+            messageCache.clear();
+            
+            // Xóa lastMessageId chỉ khi cần thiết
+            // Chỉ khi không có tin nhắn trước đó trong DOM thì mới reset về 0
+            const chatBox = document.getElementById('chat-box');
+            if (!chatBox || !chatBox.querySelector('.message[id^="msg-"]')) {
+                // Nếu không tìm thấy tin nhắn nào, reset lastMessageId
+                lastMessageId = 0;
+            }
+            
+            // Xóa cache trong sessionStorage
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.startsWith('messages_')) {
+                    sessionStorage.removeItem(key);
+                }
+            });
+        };
+
+        /**
+         * ===================================
+         * 8. KHỞI TẠO VÀ XỬ LÝ SỰ KIỆN
+         * ===================================
+         */
+
+        $(document).ready(function() {
+            /**
+             * Xử lý chuyển đổi tab
+             */
+            $('.tab-button').on('click', function() {
+                // Loại bỏ active từ tất cả các tab và tab-content
+                $('.tab-button').removeClass('active');
+                $('.tab-content').removeClass('active');
+                
+                // Thêm active cho tab hiện tại
+                $(this).addClass('active');
+                
+                // Hiển thị tab-content tương ứng
+                const tabName = $(this).data('tab');
+                if (tabName === 'chat') {
+                    $('#chat-partners-list').addClass('active');
+                } else {
+                    $('#all-users-list').addClass('active');
+                }
+            });
+            
+            /**
+             * Xử lý chọn người dùng
+             */
+            $(document).on('click', '.user-item', function() {
+                const email = $(this).data('email');
+                if (email) {
+                    selectUser(email);
+                }
+            });
+            
+            /**
+             * Xử lý tìm kiếm trong sidebar
+             */
+            $('#sidebar-search-input').on('keyup', function() {
+                const query = $(this).val().trim().toLowerCase();
+                
+                if (query === '') {
+                    // Hiển thị tất cả người dùng
+                    $('.user-item').show();
+                    return;
+                }
+                
+                // Lọc danh sách người dùng
+                $('.user-item').each(function() {
+                    const email = $(this).data('email').toLowerCase();
+                    const name = $(this).find('.user-name').text().toLowerCase();
+                    const type = $(this).find('.user-type').text().toLowerCase();
+                    
+                    if (email.includes(query) || name.includes(query) || type.includes(query)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+            
+            /**
+             * Xử lý nhập tin nhắn
+             */
+            $('#message-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    sendMessage();
+                    return false;
+                }
+            });
+
+            /**
+             * Lắng nghe sự kiện từ localStorage
+             */
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'new_message_sent') {
+                    const data = JSON.parse(e.newValue || '{}');
+                    const now = Date.now();
+                    
+                    // Chỉ xử lý tin nhắn gửi trong vòng 10 giây gần đây
+                    if (data && now - data.timestamp < 10000) {
+                        
+                        // Nếu người nhận là người dùng hiện tại
+                        if (data.receiver === currentUser) {
+                            // Nếu đang chat với người gửi, tải tin nhắn mới ngay lập tức
+                            if (chatWith === data.sender) {
+                                
+                                // Ngừng polling hiện tại để tránh xung đột
+                                if (messagePollingInterval) {
+                                    clearInterval(messagePollingInterval);
+                                }
+                                
+                                // Tải tin nhắn mới ngay lập tức
+                                loadMessages(true);
+                                
+                                // Thiết lập lại polling sau khi tải tin nhắn
+                                setupMessagePolling();
+                            } else {
+                                // Nếu không đang chat với người gửi, cập nhật badge và hiển thị thông báo
+                                updateMessageBadge(data.sender);
+                                showNotification(data.sender, data.content);
+                            }
+                        }
+                    }
+                }
+            });
+            
+            /**
+             * Khởi tạo ứng dụng chat
+             * - Kiểm tra URL params
+             * - Tải danh sách chat
+             * - Thiết lập cập nhật định kỳ
+             */
+            const initializeChat = () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const userParam = urlParams.get('user');
+                const storedUser = localStorage.getItem('selected_chat_user');
+                
+                // Chọn người dùng từ URL hoặc localStorage
+                if (userParam) {
+                    selectUser(userParam);
+                } else if (storedUser) {
+                    selectUser(storedUser);
+                    localStorage.removeItem('selected_chat_user');
+                }
+                
+                // Tải danh sách chat ban đầu
+                loadChatPartners();
+                
+                // Thiết lập cập nhật định kỳ
+                setInterval(() => {
+                    if (!document.hidden) {
+                        loadChatPartners();
+                    }
+                }, 30000);
+            };
+
+            // Khởi chạy ứng dụng
+            initializeChat();
+        });
     </script>
 </body>
 
