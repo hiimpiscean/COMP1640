@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordLinkMail;
 
 class ManualAuthController extends Controller
 {
@@ -120,7 +122,17 @@ class ManualAuthController extends Controller
 
         $email = $request->email;
         $user = null;
-        $role = '';
+        $role = null;
+
+        // Debug: In ra thông tin email configuration
+        Log::info('Mail Configuration:', [
+            'driver' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'encryption' => config('mail.mailers.smtp.encryption'),
+            'username' => config('mail.mailers.smtp.username'),
+            'from_address' => config('mail.from.address'),
+        ]);
 
         // Kiểm tra customer
         $customers = CustomerRepos::getAllCustomer();
@@ -144,25 +156,63 @@ class ManualAuthController extends Controller
             }
         }
 
+        // Nếu không phải teacher, kiểm tra staff
         if (!$user) {
-            return back()->withErrors(['email' => 'Không tìm thấy tài khoản với email này']);
+            $staffs = StaffRepos::getAllStaff();
+            foreach ($staffs as $s) {
+                if ($s->email === $email) {
+                    $user = $s;
+                    $role = 'staff';
+                    break;
+                }
+            }
         }
 
-        // Tạo token ngẫu nhiên
-        $token = bin2hex(random_bytes(32));
+        if (!$user) {
+            return back()->withErrors(['email' => 'Cannot find account with this email']);
+        }
 
-        // Lưu token và email vào session
-        Session::put('password_reset', [
-            'email' => $email,
-            'token' => $token,
-            'role' => $role,
-            'created_at' => now()
-        ]);
+        try {
+            // Tạo token ngẫu nhiên
+            $token = bin2hex(random_bytes(32));
 
-        // Tạo link reset password
-        $resetLink = route('password.reset', ['token' => $token]);
+            // Lưu token và email vào session
+            Session::put('password_reset', [
+                'email' => $email,
+                'token' => $token,
+                'role' => $role,
+                'created_at' => now()
+            ]);
 
-        return back()->with('status', $resetLink);
+            // Tạo link reset password
+            $resetLink = route('password.reset', ['token' => $token]);
+
+            // Debug: In ra thông tin trước khi gửi email
+            Log::info('Attempting to send password reset email', [
+                'to' => $user->email,
+                'token' => $token,
+                'reset_link' => $resetLink
+            ]);
+
+            // Gửi email chứa link reset password
+            Mail::to($user->email)->send(new ResetPasswordLinkMail($user, $resetLink));
+
+        
+
+            // Debug: Ghi log thành công
+            Log::info('Password reset email sent successfully');
+
+            return back()->with('status', 'we just send email reset password to your gmail.Please check you mail.');
+
+        } catch (\Exception $e) {
+            // Debug: In ra chi tiết lỗi
+            Log::error('Failed to send password reset email: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->withErrors(['email' => 'Cannot send email. Detail error: ' . $e->getMessage()]);
+        }
     }
 
     public function showResetForm(Request $request, $token)
@@ -191,7 +241,7 @@ class ManualAuthController extends Controller
 
         if (!$resetData || $resetData['token'] !== $request->token) {
             return redirect()->route('password.request')
-                ->withErrors(['email' => 'Link đặt lại mật khẩu không hợp lệ.']);
+                ->withErrors(['email' => 'Link reset password not suitable.']);
         }
 
         $email = $resetData['email'];

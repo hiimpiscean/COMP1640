@@ -41,13 +41,13 @@ class CourseRegistrationController extends Controller
             
             if (!$studentId) {
                 return redirect()->route('auth.ask')
-                    ->with('error', 'Vui lòng đăng nhập để đăng ký khóa học.');
+                    ->with('error', 'Please login to register for a course.');
             }
             
             // Kiểm tra role
             if (Session::get('role') !== 'student') {
                 return redirect()->back()
-                    ->with('error', 'Chỉ học viên mới có thể đăng ký khóa học.');
+                    ->with('error', 'Only students can register for courses.');
             }
             
             // Lấy thông tin khóa học
@@ -55,14 +55,14 @@ class CourseRegistrationController extends Controller
             
             if (!$course) {
                 return redirect()->route('learning_materials.curriculum')
-                    ->with('error', 'Không tìm thấy khóa học này.');
+                    ->with('error', 'Cannot find this course.');
             }
             
             return view('course_registration.register', compact('course', 'studentName', 'studentEmail'));
         } catch (\Exception $e) {
-            Log::error('Lỗi khi hiển thị form đăng ký: ' . $e->getMessage());
+            Log::error('Error when displaying the registration form: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
+                ->with('error', 'An error occurred. Please try again later.');
         }
     }
 
@@ -83,7 +83,7 @@ class CourseRegistrationController extends Controller
             if (!$username) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Bạn chưa đăng nhập. Vui lòng đăng nhập để đăng ký khóa học.'
+                    'message' => 'You are not logged in. Please login to register for a course.'
                 ], 401);
             }
             
@@ -91,7 +91,7 @@ class CourseRegistrationController extends Controller
             if ($role !== 'customer') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Chỉ học viên mới có thể đăng ký khóa học.'
+                    'message' => 'Only students can register for courses.'
                 ], 403);
             }
             
@@ -101,7 +101,7 @@ class CourseRegistrationController extends Controller
             if (!$studentId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Không tìm thấy thông tin học viên trong hệ thống.'
+                    'message' => 'Cannot find student information in the system.'
                 ], 404);
             }
             
@@ -116,7 +116,7 @@ class CourseRegistrationController extends Controller
                 if (!$timetableId) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Không tìm thấy lịch học cho khóa học này. Vui lòng liên hệ quản trị viên.'
+                        'message' => 'Cannot find the course schedule. Please contact the administrator.'
                     ], 404);
                 }
             }
@@ -127,7 +127,7 @@ class CourseRegistrationController extends Controller
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Đăng ký khóa học thành công! Vui lòng chờ xác nhận từ nhân viên.'
+                    'message' => 'Course registration successful! Please wait for confirmation from the staff.'
                 ]);
             } catch (\Exception $e) {
                 // Xử lý các exception cụ thể từ service
@@ -137,10 +137,10 @@ class CourseRegistrationController extends Controller
                 ], 400);
             }
         } catch (\Exception $e) {
-            Log::error('Lỗi khi đăng ký khóa học: ' . $e->getMessage());
+            Log::error('Error when registering for a course: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi đăng ký khóa học: ' . $e->getMessage()
+                'message' => 'An error occurred when registering for a course: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -156,7 +156,7 @@ class CourseRegistrationController extends Controller
             // Kiểm tra quyền nhân viên
             if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
                 return redirect()->back()
-                    ->with('error', 'Bạn không có quyền truy cập trang này.');
+                    ->with('error', 'You do not have permission to access this page.');
             }
             
             // Lấy danh sách đăng ký
@@ -164,9 +164,9 @@ class CourseRegistrationController extends Controller
             
             return view('course_registration.staff.index', compact('registrations'));
         } catch (\Exception $e) {
-            Log::error('Lỗi khi hiển thị danh sách đăng ký: ' . $e->getMessage());
+            Log::error('Error when displaying the registration list: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
+                ->with('error', 'An error occurred. Please try again later.');
         }
     }
 
@@ -183,7 +183,7 @@ class CourseRegistrationController extends Controller
             if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Bạn không có quyền thực hiện thao tác này.'
+                    'message' => 'You do not have permission to perform this action.'
                 ], 403);
             }
             
@@ -192,13 +192,13 @@ class CourseRegistrationController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'Đã phê duyệt đăng ký khóa học thành công!'
+                'message' => 'Course registration approved successfully!'
             ]);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi phê duyệt đăng ký: ' . $e->getMessage());
+            Log::error('Error when approving the registration: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi phê duyệt đăng ký: ' . $e->getMessage()
+                'message' => 'An error occurred when approving the registration: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -216,7 +216,7 @@ class CourseRegistrationController extends Controller
             if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Bạn không có quyền thực hiện thao tác này.'
+                    'message' => 'You do not have permission to perform this action.'
                 ], 403);
             }
             
@@ -225,13 +225,13 @@ class CourseRegistrationController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'Đã từ chối đăng ký khóa học!'
+                'message' => 'Course registration rejected successfully!'
             ]);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi từ chối đăng ký: ' . $e->getMessage());
+            Log::error('Error when rejecting the registration: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi từ chối đăng ký: ' . $e->getMessage()
+                'message' => 'An error occurred when rejecting the registration: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -263,7 +263,7 @@ class CourseRegistrationController extends Controller
             
             return null;
         } catch (\Exception $e) {
-            Log::error('Lỗi khi tìm ID học viên: ' . $e->getMessage());
+            Log::error('Error when finding student ID: ' . $e->getMessage());
             return null;
         }
     }
@@ -281,7 +281,7 @@ class CourseRegistrationController extends Controller
             $result = DB::select($sql, [$courseId]);
             return $result ? $result[0]->id : null;
         } catch (\Exception $e) {
-            Log::error('Lỗi khi tìm timetable_id: ' . $e->getMessage());
+            Log::error('Error when finding timetable_id: ' . $e->getMessage());
             return null;
         }
     }
@@ -297,7 +297,7 @@ class CourseRegistrationController extends Controller
             // Kiểm tra quyền nhân viên
             if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
                 return redirect()->back()
-                    ->with('error', 'Bạn không có quyền truy cập trang này.');
+                    ->with('error', 'You do not have permission to access this page.');
             }
             
             // Lấy danh sách tất cả khóa học
@@ -329,7 +329,7 @@ class CourseRegistrationController extends Controller
                         }
                     }
                 } catch (\Exception $e) {
-                    Log::error('Lỗi khi đếm đăng ký cho khóa học ' . $course->id_p . ': ' . $e->getMessage());
+                    Log::error('Error when counting registrations for course ' . $course->id_p . ': ' . $e->getMessage());
                 }
                 
                 $course->pending_count = $pendingCount;
@@ -344,9 +344,9 @@ class CourseRegistrationController extends Controller
                 'courses' => $coursesWithRegistrationData
             ]);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi hiển thị trang quản lý khóa học: ' . $e->getMessage());
+            Log::error('Error when displaying the course management page: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Có lỗi xảy ra khi tải trang quản lý khóa học: ' . $e->getMessage());
+                ->with('error', 'An error occurred when loading the course management page: ' . $e->getMessage());
         }
     }
     
@@ -363,7 +363,7 @@ class CourseRegistrationController extends Controller
             if (Session::get('role') !== 'staff' && Session::get('role') !== 'admin') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Bạn không có quyền thực hiện thao tác này.'
+                    'message' => 'You do not have permission to perform this action.'
                 ], 403);
             }
             
@@ -382,21 +382,21 @@ class CourseRegistrationController extends Controller
                     $this->courseRegistrationService->rejectRegistration($registration->id);
                     $successCount++;
                 } catch (\Exception $e) {
-                    Log::error('Lỗi khi từ chối đăng ký ID ' . $registration->id . ': ' . $e->getMessage());
+                    Log::error('Error when rejecting registration ID ' . $registration->id . ': ' . $e->getMessage());
                     $errorCount++;
                 }
             }
             
             return response()->json([
                 'success' => true,
-                'message' => 'Đã từ chối ' . $successCount . ' đăng ký khóa học. ' . 
-                            ($errorCount > 0 ? $errorCount . ' đăng ký gặp lỗi.' : '')
+                'message' => 'Rejected ' . $successCount . ' course registrations. ' . 
+                            ($errorCount > 0 ? $errorCount . ' registrations encountered errors.' : '')
             ]);
         } catch (\Exception $e) {
-            Log::error('Lỗi khi từ chối tất cả đăng ký cho khóa học ' . $courseId . ': ' . $e->getMessage());
+            Log::error('Error when rejecting all registrations for course ' . $courseId . ': ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Có lỗi xảy ra khi từ chối đăng ký: ' . $e->getMessage()
+                 'message' => 'An error occurred when rejecting the registrations: ' . $e->getMessage()
             ], 500);
         }
     }
