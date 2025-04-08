@@ -151,40 +151,37 @@
 
 <body>
     <div class="forgot-container">
-        <div class="forgot-header">Forgot Password</div>
+        <div class="forgot-header">Quên mật khẩu</div>
         <a class="brand" href="{{ route('ui.index') }}">ATN Website Courses</a>
 
         @if (session('status'))
             <div class="alert alert-success">
-                <div class="text-center">
-                    Your password reset link: 
-                    <a href="{{ session('status') }}" class="alert-link">Click here to reset your password</a>
-                </div>
+                {{ session('status') }}
             </div>
-        @else
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('password.email') }}" method="POST">
-                @csrf
-                <div class="form-group">
-                    <label>Your Email</label>
-                    <input type="email" class="form-control" name="email" placeholder="Enter your email" required>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Send Password Reset Link</button>
-            </form>
         @endif
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('password.email') }}" method="POST">
+            @csrf
+            <div class="form-group">
+                <label>Email của bạn</label>
+                <input type="email" class="form-control" name="email" placeholder="Nhập email của bạn" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Gửi link đặt lại mật khẩu</button>
+        </form>
+
         <div class="back-to-login">
-            <a href="{{ route('auth.ask') }}">← Back to Login</a>
+            <a href="{{ route('auth.ask') }}">← Quay lại đăng nhập</a>
         </div>
     </div>
 

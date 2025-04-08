@@ -272,25 +272,17 @@ Route::group(['prefix' => 'auth'], function () {
     ]);
 
     // Routes cho quên mật khẩu
-    Route::get('forgot-password', [
-        'uses' => 'ManualAuthController@showForgotForm',
-        'as' => 'password.request'
-    ]);
+    Route::get('/forgot-password', [ManualAuthController::class, 'showForgotForm'])
+        ->name('password.request');
 
-    Route::post('forgot-password', [
-        'uses' => 'ManualAuthController@sendResetLink',
-        'as' => 'password.email'
-    ]);
+    Route::post('/forgot-password', [ManualAuthController::class, 'sendResetLink'])
+        ->name('password.email');
 
-    Route::get('reset-password/{token}', [
-        'uses' => 'ManualAuthController@showResetForm',
-        'as' => 'password.reset'
-    ]);
+    Route::get('/reset-password/{token}', [ManualAuthController::class, 'showResetForm'])
+        ->name('password.reset');
 
-    Route::post('reset-password', [
-        'uses' => 'ManualAuthController@resetPassword',
-        'as' => 'password.update'
-    ]);
+    Route::post('/reset-password', [ManualAuthController::class, 'resetPassword'])
+        ->name('password.update');
 });
 
 // Các route cho khách xem blog không cần đăng nhập

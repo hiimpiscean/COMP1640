@@ -149,15 +149,15 @@
     <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-      <h5 class="modal-title" id="confirmModalLabel">Xác nhận đăng ký</h5>
+      <h5 class="modal-title" id="confirmModalLabel">Confirm Registration</h5>
       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-      Bạn có chắc muốn tham gia khóa học này không?
+      Are you sure you want to register for this course?
       </div>
       <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-      <button type="button" class="btn btn-success" id="confirmRegister">Chấp nhận</button>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-success" id="confirmRegister">Accept</button>
       </div>
     </div>
     </div>
@@ -197,9 +197,9 @@
       if (!isLoggedIn) {
         Swal.fire({
           icon: 'error',
-          title: 'Bạn chưa đăng nhập',
-          text: 'Vui lòng đăng nhập để đăng ký khóa học.',
-          confirmButtonText: 'Đăng nhập ngay'
+          title: 'You are not logged in',
+          text: 'Please login to register for a course.',
+          confirmButtonText: 'Login now'
         }).then((result) => {
           if (result.isConfirmed) {
             window.location.href = '{{ route("auth.ask") }}';
@@ -212,9 +212,9 @@
       if (userRole !== 'student' && userRole !== 'customer') {
         Swal.fire({
           icon: 'error',
-          title: 'Không có quyền đăng ký',
-          text: 'Chỉ tài khoản học viên mới có thể đăng ký khóa học.',
-          confirmButtonText: 'Đã hiểu'
+          title: 'You do not have permission to register',
+          text: 'Only student accounts can register for courses.',
+          confirmButtonText: 'I understand'
         });
         return;
       }
@@ -222,7 +222,7 @@
       // Hiển thị trạng thái đang xử lý
       const confirmButton = this;
       confirmButton.disabled = true;
-      confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+      confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
       
       // Đóng modal
       confirmModal.hide();
@@ -231,7 +231,7 @@
       const timetableId = '{{ $timetable_id ?? 0 }}';
       
       if (!timetableId || timetableId === '0') {
-        console.warn('Không tìm thấy timetable_id, cần kiểm tra lại dữ liệu');
+        console.warn('Cannot find timetable_id, please check the data');
       }
       
       // Gửi yêu cầu đăng ký khóa học
@@ -255,28 +255,34 @@
             return JSON.parse(text);
           } catch(e) {
             // Nếu không phải JSON, trả về object với error message
-            console.error("Không thể parse JSON:", text);
+            console.error("Cannot parse JSON:", text);
             return { 
               success: false, 
-              message: 'Có lỗi xảy ra: ' + (text || 'Không nhận được phản hồi từ server')
+              message: 'An error occurred: ' + (text || 'No response from server')
             };
           }
         });
       })
       .then(data => {
-        console.log("Dữ liệu phản hồi:", data);
+        console.log("Response data:", data);
         
         if (data.success) {
           // Hiển thị thông báo thành công
           Swal.fire({
             icon: 'success',
-            title: 'Đăng ký thành công!',
-            text: data.message || 'Yêu cầu đăng ký của bạn đã được ghi nhận. Vui lòng chờ xác nhận từ nhân viên.',
-            confirmButtonText: 'Đã hiểu'
+            title: 'Registration successful!',
+            text: data.message || 'Your registration request has been recorded. Please wait for confirmation from the staff.',
+            confirmButtonText: 'I understand'
+          }).then((result) => {
+            // Khi người dùng đóng thông báo thành công, tải lại trang chi tiết
+            if (result.isConfirmed) {
+              window.location.reload(); // Tải lại trang chi tiết hiện tại
+              // Hoặc có thể dùng: window.location.href = "{{ route('ui.details', $product->id_p) }}";
+            }
           });
         } else {
           // Thêm debug info để dễ dàng xác định vấn đề
-          console.error("Lỗi đăng ký khóa học:", {
+          console.error("Course registration error:", {
             data,
             isLoggedIn,
             userRole,
@@ -287,13 +293,13 @@
           // Hiển thị thông báo lỗi
           Swal.fire({
             icon: 'error',
-            title: 'Đăng ký thất bại!',
-            text: data.message || 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại sau.',
-            confirmButtonText: 'Đóng'
+            title: 'Registration failed!',
+            text: data.message || 'An error occurred during the registration process. Please try again later.',
+            confirmButtonText: 'Close'
           });
           
           // Nếu lỗi liên quan đến đăng nhập, chuyển hướng đến trang đăng nhập
-          if (data.message && data.message.includes("chưa đăng nhập")) {
+          if (data.message && data.message.includes("You are not logged in")) {
             setTimeout(function() {
               window.location.href = '{{ route("auth.ask") }}';
             }, 2000);
@@ -306,15 +312,15 @@
         // Hiển thị thông báo lỗi
         Swal.fire({
           icon: 'error',
-          title: 'Đăng ký thất bại!',
-          text: 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại sau.',
-          confirmButtonText: 'Đóng'
+          title: 'Registration failed!',
+          text: 'An error occurred during the registration process. Please try again later.',
+          confirmButtonText: 'Close'
         });
       })
       .finally(() => {
         // Khôi phục trạng thái nút
         confirmButton.disabled = false;
-        confirmButton.innerHTML = 'Chấp nhận';
+        confirmButton.innerHTML = 'Accept';
       });
     });
   </script>
