@@ -509,10 +509,10 @@ Route::middleware(['manual.auth'])->group(function () {
 });
 
 Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('get.unread.count');
-    Route::get('/chat/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
-    Route::post('/chat/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
-    // Route để lấy danh sách người đã nhắn tin
-    Route::get('/chat/partners', [ChatController::class, 'getChatPartners'])->name('chat.partners');
+Route::get('/chat/unread-messages', [ChatController::class, 'getUnreadMessages'])->name('get.unread.messages');
+Route::post('/chat/mark-read', [ChatController::class, 'markMessagesAsRead'])->name('mark.messages.read');
+// Route để lấy danh sách người đã nhắn tin
+Route::get('/chat/partners', [ChatController::class, 'getChatPartners'])->name('chat.partners');
 
 
 // Nhóm các route timetable và thêm middleware role
@@ -541,7 +541,7 @@ Route::middleware(['manual.auth'])->group(function () {
 
     // Routes for editing learning materials
     Route::get('/learning-materials/edit/{id}', [LearningMaterialController::class, 'edit'])->name('learning_materials.edit');
-    Route::post('/learning-materials/update/{id}', [LearningMaterialController::class, 'update'])->name('learning_materials.update');
+    Route::put('/learning-materials/update/{id}', [LearningMaterialController::class, 'update'])->name('learning_materials.update');
 
     Route::middleware(['role:staff,admin'])->group(function () {
         Route::get('/learning-materials/pending', [LearningMaterialController::class, 'pending'])->name('learning_materials.pending');
@@ -559,25 +559,25 @@ Route::group(['middleware' => 'manual.auth'], function () {
         'uses' => 'CourseRegistrationController@register',
         'as' => 'course.register'
     ]);
-    
+
     // Danh sách đăng ký cho nhân viên
     Route::get('/staff/registrations', [
         'uses' => 'CourseRegistrationController@staffIndex',
         'as' => 'staff.registrations'
     ]);
-    
+
     // Phê duyệt đăng ký
     Route::post('/staff/course-registrations/{id}/approve', [
         'uses' => 'CourseRegistrationController@approve',
         'as' => 'staff.registration.approve'
     ]);
-    
+
     // Từ chối đăng ký
     Route::post('/staff/course-registrations/{id}/reject', [
         'uses' => 'CourseRegistrationController@reject',
         'as' => 'staff.registration.reject'
     ]);
-    
+
     // Từ chối tất cả đăng ký đang chờ xử lý cho một khóa học
     Route::post('/staff/course/{id}/reject-all-pending', [
         'uses' => 'CourseRegistrationController@rejectAllPendingRegistrations',
