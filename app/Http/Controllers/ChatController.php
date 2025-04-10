@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use App\Repository\MessageRepos;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -116,7 +115,7 @@ class ChatController extends Controller
                     'sender' => $senderEmail,
                     'receiver' => $receiverEmail,
                     'text' => $content,
-                    'timestamp' => Carbon::now('Asia/Ho_Chi_Minh')->format('d/m/Y H:i:s')
+                    'timestamp' => Carbon::now('Asia/Ho_Chi_Minh')->format('H:i:s d/m/Y')
                 ]
             ]);
         } catch (\Exception $e) {
@@ -177,28 +176,11 @@ class ChatController extends Controller
             // Định dạng lại dữ liệu tin nhắn trước khi trả về
             $formattedMessages = [];
             foreach ($messages as $msg) {
-                $senderEmail = $this->getEmailByTypeAndId($msg->sender_type, $msg->sender_id);
-                $receiverEmail = $this->getEmailByTypeAndId($msg->receiver_type, $msg->receiver_id);
+                $senderEmail = MessageRepos::getEmailByTypeAndId($msg->sender_type, $msg->sender_id);
+                $receiverEmail = MessageRepos::getEmailByTypeAndId($msg->receiver_type, $msg->receiver_id);
 
                 // Xử lý timestamp - Định dạng lại timestamp
-                $timestamp = $msg->timestamp;
-
-                try {
-                    // Loại bỏ phần microsecond nếu có
-                    if (strpos($timestamp, '.') !== false) {
-                        $timestamp = substr($timestamp, 0, strpos($timestamp, '.'));
-                    }
-
-                    // Chuyển đổi timestamp thành đối tượng Carbon
-                    $dt = Carbon::parse($timestamp);
-
-                    // Định dạng lại timestamp theo định dạng d/m/Y H:i:s
-                    // Thay đổi định dạng để tránh trùng lặp với thứ tự khác
-                    $timestamp = $dt->format('H:i:s d/m/Y');
-                } catch (\Exception $e) {
-                    // Nếu có lỗi, sử dụng thời gian hiện tại
-                    $timestamp = Carbon::now()->format('H:i:s d/m/Y');
-                }
+                $timestamp = Carbon::parse($msg->timestamp)->format('H:i:s d/m/Y');
 
                 $formattedMessages[] = [
                     'id' => $msg->message_id,
@@ -217,41 +199,6 @@ class ChatController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage(), 'messages' => []]);
         }
-    }
-
-    /**
-     * Lấy email của người dùng dựa vào loại người dùng và ID
-     */
-    private function getEmailByTypeAndId($type, $id)
-    {
-        switch ($type) {
-            case 'customer':
-                $result = DB::select('SELECT email FROM customer WHERE id_c = ?', [$id]);
-                break;
-            case 'teacher':
-                $result = DB::select('SELECT email FROM teacher WHERE id_t = ?', [$id]);
-                break;
-            case 'staff':
-                $result = DB::select('SELECT email FROM staff WHERE id_s = ?', [$id]);
-                break;
-            case 'admin':
-                $result = DB::select('SELECT email_a FROM admin WHERE id_a = ?', [$id]);
-                break;
-            default:
-                return null;
-        }
-
-        // Trả về email nếu tìm thấy, ngược lại trả về null
-        if (empty($result)) {
-            return null;
-        }
-
-        // Xử lý đặc biệt cho admin
-        if ($type === 'admin') {
-            return $result[0]->email_a;
-        }
-
-        return $result[0]->email;
     }
 
     /**
@@ -277,7 +224,7 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-    //TODO: Notifications for messages
+    
     public function getUnreadCount(Request $request) {
         try {
             // Lấy email của người dùng đang đăng nhập
@@ -287,7 +234,8 @@ class ChatController extends Controller
             $userInfo = MessageRepos::getUserInfoByEmail($userEmail);
             
             if (!$userInfo) {
-                return response()->json(['success' => false, 'error' => 'Không tìm thấy thông tin người dùng', 'unread_count' => 0]);
+                return response()->json(['success' => false, 'error' => 
+                'Không tìm thấy thông tin người dùng', 'unread_count' => 0]);
             }
             
             // Lấy số lượng tin nhắn chưa đọc từ MessageRepos
@@ -302,28 +250,6 @@ class ChatController extends Controller
         }
     }
 
-    /**
-     * Định dạng lại timestamp thành chuẩn H:i:s d/m/Y
-     */
-    private function formatTimestamp($timestamp)
-    {
-        try {
-            // Loại bỏ phần microsecond nếu có
-            if (strpos($timestamp, '.') !== false) {
-                $timestamp = substr($timestamp, 0, strpos($timestamp, '.'));
-            }
-
-            // Chuyển đổi timestamp thành đối tượng Carbon
-            $dt = Carbon::parse($timestamp);
-
-            // Định dạng lại timestamp theo định dạng H:i:s d/m/Y
-            return $dt->format('H:i:s d/m/Y');
-        } catch (\Exception $e) {
-            // Nếu có lỗi, sử dụng thời gian hiện tại
-            return Carbon::now()->format('H:i:s d/m/Y');
-        }
-    }
-
     public function getUnreadMessages(Request $request) {
         try {
             // Lấy thông tin người dùng đang đăng nhập
@@ -331,7 +257,8 @@ class ChatController extends Controller
             
             // Nếu không có người dùng đăng nhập, trả về lỗi
             if (!$userEmail) {
-                return response()->json(['success' => false, 'error' => 'Người dùng chưa đăng nhập', 'messages' => []]);
+                return response()->json(['success' => false, 'error' => 
+                'Người dùng chưa đăng nhập', 'messages' => []]);
             }
             
             // Lấy thông tin người dùng từ email
@@ -339,7 +266,8 @@ class ChatController extends Controller
             
             // Nếu không tìm thấy thông tin người dùng, trả về lỗi
             if (!$userInfo) {
-                return response()->json(['success' => false, 'error' => 'Không tìm thấy thông tin người dùng', 'messages' => []]);
+                return response()->json(['success' => false, 'error' => 
+                'Không tìm thấy thông tin người dùng', 'messages' => []]);
             }
             
             // Lấy tin nhắn chưa đọc từ database
@@ -359,7 +287,7 @@ class ChatController extends Controller
             $formattedMessages = [];
             foreach ($messages as $msg) {
                 // Lấy email của người gửi
-                $senderEmail = $this->getEmailByTypeAndId($msg->sender_type, $msg->sender_id);
+                $senderEmail = MessageRepos::getEmailByTypeAndId($msg->sender_type, $msg->sender_id);
                 
                 // Chỉ thêm vào danh sách nếu có email hợp lệ
                 if ($senderEmail) {
@@ -369,7 +297,7 @@ class ChatController extends Controller
                         'sender_type' => $msg->sender_type,
                         'sender_id' => $msg->sender_id,
                         'text' => $msg->content,
-                        'timestamp' => $this->formatTimestamp($msg->timestamp)
+                        'timestamp' => Carbon::parse($msg->timestamp)->format('H:i:s d/m/Y')
                     ];
                 }
             }
@@ -430,7 +358,7 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-    //TODO: Retrieve list of chatted users
+    
     /**
      * Lấy danh sách người đã chat với người dùng hiện tại
      */
@@ -455,55 +383,9 @@ class ChatController extends Controller
                     'error' => 'Không tìm thấy thông tin người dùng'
                 ]);
             }
+    
             
-            // Phương pháp 1: Sử dụng getChatPartners
-            
-            // Phương pháp 1: Sử dụng getChatPartners
             $partners = MessageRepos::getChatPartners($userInfo->type, $userInfo->id);
-            
-            // Nếu không có kết quả, thử phương pháp 2
-            if (empty($partners)) {
-                // Truy vấn trực tiếp
-                $sql = "SELECT 
-                          DISTINCT ON (partner_id, partner_type)
-                          CASE WHEN sender_type = ? AND sender_id = ? THEN receiver_type ELSE sender_type END AS partner_type,
-                          CASE WHEN sender_type = ? AND sender_id = ? THEN receiver_id ELSE sender_id END AS partner_id,
-                          CASE WHEN sender_type = ? AND sender_id = ? THEN 
-                            (SELECT email FROM messages_partners WHERE type = receiver_type AND id = receiver_id LIMIT 1)
-                          ELSE 
-                            (SELECT email FROM messages_partners WHERE type = sender_type AND id = sender_id LIMIT 1)
-                          END AS partner_email,
-                          content AS last_message,
-                          timestamp AS last_message_time
-                        FROM messages
-                        WHERE (sender_type = ? AND sender_id = ?) OR (receiver_type = ? AND receiver_id = ?)
-                        ORDER BY partner_id, partner_type, timestamp DESC";
-                
-                $params = array_fill(0, 10, null);
-                for ($i = 0; $i < 10; $i += 2) {
-                    $params[$i] = $userInfo->type;
-                    $params[$i + 1] = $userInfo->id;
-                }
-                
-                $results = DB::select($sql, $params);
-                
-                // Định dạng kết quả
-                $partners = [];
-                foreach ($results as $row) {
-                    $partnerObj = [
-                        'type' => $row->partner_type,
-                        'id' => $row->partner_id,
-                        'email' => $row->partner_email
-                    ];
-                    
-                    $partners[] = (object)[
-                        'partner' => json_encode($partnerObj),
-                        'last_message' => $row->last_message,
-                        'last_message_time' => $row->last_message_time
-                    ];
-                }
-                
-            }
             
             // Định dạng dữ liệu trả về
             $formattedPartners = [];
@@ -520,14 +402,13 @@ class ChatController extends Controller
                     'email' => $partnerData->email,
                     'type' => $partnerData->type,
                     'last_message' => $partner->last_message,
-                    'last_message_time' => date('H:i:s d/m/Y', strtotime($partner->last_message_time))
+                    'last_message_time' => Carbon::parse($partner->last_message_time)->format('H:i:s d/m/Y')
                 ];
             }
             
             
             return response()->json(['success' => true, 'partners' => $formattedPartners]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()]);
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }

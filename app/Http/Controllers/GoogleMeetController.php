@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\GoogleMeetService;
 use App\Models\Timetable;
-use App\Models\CourseRegistration;
 use Illuminate\Support\Facades\Log;
 use App\Repository\TimetableRepos;
 
@@ -20,6 +19,84 @@ class GoogleMeetController extends Controller
         $this->timetableRepos = $timetableRepos;
     }
 
+        /**
+     * Chuyển hướng người dùng đến trang xác thực Google
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function auth()
+    {
+        try {
+            $client = new \Google\Client();
+            $client->setApplicationName('Google Meet Laravel');
+            
+            // Sử dụng thông tin xác thực từ biến môi trường
+            $client->setClientId(env('GOOGLE_CLIENT_ID'));
+            $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
+            $client->setRedirectUri(url('/auth/google/callback'));
+            $client->setScopes([\Google\Service\Calendar::CALENDAR_EVENTS]);
+            $client->setAccessType('offline');
+            $client->setPrompt('consent');
+            
+            $authUrl = $client->createAuthUrl();
+            return redirect($authUrl);
+        } catch (\Exception $e) {
+            Log::error('Google Auth Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Lỗi xác thực Google: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Xử lý callback từ Google sau khi xác thực
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function callback(Request $request)
+    {
+        try {
+            if (!$request->has('code')) {
+                throw new \Exception('Không nhận được mã xác thực');
+            }
+
+            if ($request->has('error')) {
+                throw new \Exception($request->get('error_description', 'Xác thực bị từ chối'));
+            }
+
+            $client = new \Google\Client();
+            $client->setApplicationName('Google Meet Laravel');
+            
+            // Sử dụng thông tin xác thực từ biến môi trường
+            $client->setClientId(env('GOOGLE_CLIENT_ID'));
+            $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
+            $client->setRedirectUri(url('/auth/google/callback'));
+            $client->setScopes([\Google\Service\Calendar::CALENDAR_EVENTS]);
+            
+            // Lấy token từ code
+            $token = $client->fetchAccessTokenWithAuthCode($request->code);
+            
+            if (array_key_exists('error', $token)) {
+                throw new \Exception(join(', ', $token));
+            }
+            
+            // Lưu token vào file
+            $tokenPath = storage_path('app/google/token.json');
+            if (!file_exists(dirname($tokenPath))) {
+                mkdir(dirname($tokenPath), 0755, true);
+            }
+            
+            file_put_contents($tokenPath, json_encode($token));
+            
+            // Lưu thông tin xác thực vào session
+            session(['google_authenticated' => true]);
+            
+            return redirect()->to('/staff/timetable')->with('success', 'Xác thực Google thành công!');
+        } catch (\Exception $e) {
+            Log::error('Google Callback Error: ' . $e->getMessage());
+            return redirect()->to('/staff/timetable')->with('error', 'Xác thực Google thất bại: ' . $e->getMessage());
+        }
+    }
+    
     /**
      * Tạo một cuộc họp Google Meet mới
      * 
@@ -165,81 +242,4 @@ class GoogleMeetController extends Controller
         }
     }
 
-    /**
-     * Chuyển hướng người dùng đến trang xác thực Google
-     * 
-     * @return \Illuminate\Http\Response
-     */
-    public function auth()
-    {
-        try {
-            $client = new \Google\Client();
-            $client->setApplicationName('Google Meet Laravel');
-            
-            // Sử dụng thông tin xác thực từ biến môi trường
-            $client->setClientId(env('GOOGLE_CLIENT_ID'));
-            $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
-            $client->setRedirectUri(url('/auth/google/callback'));
-            $client->setScopes([\Google\Service\Calendar::CALENDAR_EVENTS]);
-            $client->setAccessType('offline');
-            $client->setPrompt('consent');
-            
-            $authUrl = $client->createAuthUrl();
-            return redirect($authUrl);
-        } catch (\Exception $e) {
-            Log::error('Google Auth Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Lỗi xác thực Google: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Xử lý callback từ Google sau khi xác thực
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function callback(Request $request)
-    {
-        try {
-            if (!$request->has('code')) {
-                throw new \Exception('Không nhận được mã xác thực');
-            }
-
-            if ($request->has('error')) {
-                throw new \Exception($request->get('error_description', 'Xác thực bị từ chối'));
-            }
-
-            $client = new \Google\Client();
-            $client->setApplicationName('Google Meet Laravel');
-            
-            // Sử dụng thông tin xác thực từ biến môi trường
-            $client->setClientId(env('GOOGLE_CLIENT_ID'));
-            $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
-            $client->setRedirectUri(url('/auth/google/callback'));
-            $client->setScopes([\Google\Service\Calendar::CALENDAR_EVENTS]);
-            
-            // Lấy token từ code
-            $token = $client->fetchAccessTokenWithAuthCode($request->code);
-            
-            if (array_key_exists('error', $token)) {
-                throw new \Exception(join(', ', $token));
-            }
-            
-            // Lưu token vào file
-            $tokenPath = storage_path('app/google/token.json');
-            if (!file_exists(dirname($tokenPath))) {
-                mkdir(dirname($tokenPath), 0755, true);
-            }
-            
-            file_put_contents($tokenPath, json_encode($token));
-            
-            // Lưu thông tin xác thực vào session
-            session(['google_authenticated' => true]);
-            
-            return redirect()->to('/staff/timetable')->with('success', 'Xác thực Google thành công!');
-        } catch (\Exception $e) {
-            Log::error('Google Callback Error: ' . $e->getMessage());
-            return redirect()->to('/staff/timetable')->with('error', 'Xác thực Google thất bại: ' . $e->getMessage());
-        }
-    }
 }

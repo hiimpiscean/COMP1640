@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class MessageRepos
@@ -65,10 +64,6 @@ class MessageRepos
             
             // Nếu tìm thấy tin nhắn trùng lặp, trả về ID của tin nhắn đó
             if (!empty($existingMessage)) {
-                Log::info('Detected duplicate message', [
-                    'message_id' => $existingMessage[0]->message_id,
-                    'content' => $content
-                ]);
                 return $existingMessage[0]->message_id;
             }
             
@@ -83,10 +78,6 @@ class MessageRepos
             
             return $messageId;
         } catch (\Exception $e) {
-            Log::error('Error saving message', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return false;
         }
     }
@@ -244,16 +235,14 @@ class MessageRepos
     public static function markMessagesAsRead($senderType, $senderId, $receiverType, $receiverId)
     {
         try {
-            // Sửa lại câu truy vấn để khớp với thứ tự thông số
-            // sender_type, sender_id là người GỬI tin nhắn
-            // receiver_type, receiver_id là người NHẬN tin nhắn (người đang đọc)
-            $sql = "UPDATE messages 
-                   SET is_read = true 
-                   WHERE sender_type = ? AND sender_id = ? 
-                   AND receiver_type = ? AND receiver_id = ? 
-                   AND is_read = false";
-            
-            return DB::update($sql, [$senderType, $senderId, $receiverType, $receiverId]);
+            return DB::update(
+                "UPDATE messages 
+                 SET is_read = true 
+                 WHERE sender_type = ? AND sender_id = ? 
+                 AND receiver_type = ? AND receiver_id = ? 
+                 AND is_read = false",
+                [$senderType, $senderId, $receiverType, $receiverId]
+            );
         } catch (\Exception $e) {
             return false;
         }
@@ -265,10 +254,6 @@ class MessageRepos
     public static function getChatPartners($userType, $userId)
     {
         try {
-            // Ghi log để debug
-            Log::info('Fetching chat partners for', ['userType' => $userType, 'userId' => $userId]);
-            
-            // Truy vấn đơn giản hơn, tránh CTE phức tạp
             $sql = "SELECT 
                         m.sender_type AS s_type,
                         m.sender_id AS s_id,
@@ -284,7 +269,6 @@ class MessageRepos
                     ORDER BY m.timestamp DESC";
                     
             $results = DB::select($sql, [$userType, $userId, $userType, $userId]);
-            Log::info('Raw messages found', ['count' => count($results)]);
             
             // Xử lý kết quả để lấy đối tác chat duy nhất
             $uniquePartners = [];
@@ -305,33 +289,9 @@ class MessageRepos
                 
                 $processedPartners[] = $partnerKey;
                 
-                // Lấy email của đối tác
-                $partnerEmail = null;
-                switch ($partnerType) {
-                    case 'customer':
-                        $emailResult = DB::select('SELECT email FROM customer WHERE id_c = ? LIMIT 1', [$partnerId]);
-                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email;
-                        break;
-                    case 'teacher':
-                        $emailResult = DB::select('SELECT email FROM teacher WHERE id_t = ? LIMIT 1', [$partnerId]);
-                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email;
-                        break;
-                    case 'staff':
-                        $emailResult = DB::select('SELECT email FROM staff WHERE id_s = ? LIMIT 1', [$partnerId]);
-                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email;
-                        break;
-                    case 'admin':
-                        $emailResult = DB::select('SELECT email_a FROM admin WHERE id_a = ? LIMIT 1', [$partnerId]);
-                        if (!empty($emailResult)) $partnerEmail = $emailResult[0]->email_a;
-                        break;
-                }
+                $partnerEmail = self::getEmailByTypeAndId($partnerType, $partnerId);
                 
-                // Nếu không tìm thấy email, bỏ qua đối tác này
                 if (empty($partnerEmail)) {
-                    Log::warning('Could not find email for partner', [
-                        'type' => $partnerType,
-                        'id' => $partnerId
-                    ]);
                     continue;
                 }
                 
@@ -346,22 +306,34 @@ class MessageRepos
                     'last_message' => $row->last_message,
                     'last_message_time' => $row->last_message_time
                 ];
-                
-                // Debug log cho mỗi partner
-                Log::info('Found chat partner', $partnerObj);
             }
             
-            Log::info('Unique partners found', ['count' => count($uniquePartners)]);
             return $uniquePartners;
         } catch (\Exception $e) {
-            // Ghi log lỗi chi tiết
-            Log::error('Error in getChatPartners', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'userType' => $userType,
-                'userId' => $userId
-            ]);
             return [];
         }
     }
+
+        /**
+     * Lấy email của người dùng dựa vào loại người dùng và ID
+     * @param string $type Loại người dùng (customer, teacher, staff, admin)
+     * @param int $id ID của người dùng
+     * @return string|null Email của người dùng hoặc null nếu không tìm thấy
+     */
+    public static function getEmailByTypeAndId($type, $id) 
+    {
+        $query = match($type) {
+            'customer' => 'SELECT email FROM customer WHERE id_c = ?',
+            'teacher' => 'SELECT email FROM teacher WHERE id_t = ?', 
+            'staff' => 'SELECT email FROM staff WHERE id_s = ?',
+            'admin' => 'SELECT email_a as email FROM admin WHERE id_a = ?',
+            default => null
+        };
+
+        if (!$query) return null;
+
+        $result = DB::select($query, [$id]);
+        return !empty($result) ? $result[0]->email : null;
+    }
+
 }

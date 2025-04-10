@@ -51,7 +51,7 @@
       background-color: #00D1D1;
       transform: scale(1.2);
     }
-
+    
     /* Hiệu ứng pulse cho biểu tượng chat khi có tin nhắn mới */
     @keyframes pulse {
         0% { transform: scale(1); }
@@ -183,10 +183,10 @@
                   // Tạo lại badge nếu không tìm thấy
                   $('.chatbox-item .nav-link').append('<span id="unread-badge" class="badge badge-danger chat-badge" style="display: flex !important;">' + response.unread_count + '</span>');
                 }
-
+                
                 // Thêm hiệu ứng nhấp nháy cho biểu tượng chat
                 $('.chatbox-item .nav-link').addClass('message-pulse');
-
+                
                 // Nếu có tin nhắn chưa đọc, cập nhật danh sách tin nhắn
                 getUnreadMessages();
               } else {
@@ -196,7 +196,7 @@
                   badgeElement.style.display = 'none';
                 }
                 $('.chatbox-item .nav-link').removeClass('message-pulse');
-
+                
                 // Cập nhật dropdown để hiển thị "Không có tin nhắn mới"
                 $('#unread-messages-dropdown').html('<div class="message-item text-center">No new messages</div>');
               }
@@ -206,7 +206,7 @@
           }
         });
       }
-
+      
       // Hàm để lấy danh sách tin nhắn chưa đọc
       function getUnreadMessages() {
         $.ajax({
@@ -217,7 +217,7 @@
             if (response.success && response.messages && response.messages.length > 0) {
               // Xóa nội dung cũ của dropdown
               $('#unread-messages-dropdown').empty();
-
+              
               // Thêm từng tin nhắn vào dropdown
               response.messages.forEach(function(message) {
                 const initial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
@@ -240,18 +240,18 @@
             }
           },
           error: function(xhr, status, error) {
-            $('#unread-messages-dropdown').html('<div class="message-item text-center">Đã xảy ra lỗi</div>');
+            $('#unread-messages-dropdown').html('<div class="message-item text-center">An error occurred</div>');
           }
         });
       }
-
+      
       // Hàm điều hướng đến chat với người gửi
       window.goToChat = function(sender) {
         // Đánh dấu đã đọc
         $.ajax({
           url: "{{ route('mark.messages.read') }}",
           type: "POST",
-          data: {
+          data: { 
             sender_email: sender,
             _token: $('meta[name="csrf-token"]').attr('content')
           },
@@ -259,10 +259,10 @@
             if (response.success) {
               // Cập nhật badge và dropdown
               getUnreadMessageCount();
-
+              
               // Đặt localStorage để lưu người gửi tin nhắn được chọn
               localStorage.setItem('selected_chat_user', sender);
-
+              
               // Chuyển hướng đến trang chat
               window.location.href = "/chat";
             } else {
@@ -274,15 +274,15 @@
           }
         });
       };
-
+      
       // Sửa click handler cho chat icon
       $('#chat-icon').on('click', function(e) {
         e.preventDefault(); // Ngăn chặn chuyển trang khi click
-
+        
         // Hiển thị/ẩn dropdown tin nhắn
         $('#unread-messages-container').toggleClass('show');
       });
-
+      
       // Đóng dropdown khi click ra ngoài
       $(document).on('click', function(e) {
         if (!$(e.target).closest('.chatbox-item').length) {
@@ -297,7 +297,7 @@
           try {
             const data = JSON.parse(e.newValue || '{}');
             const now = Date.now();
-
+            
             // Chỉ xử lý tin nhắn gửi trong vòng 10 giây gần đây
             if (data && now - data.timestamp < 10000) {
               // Kiểm tra xem người nhận có phải là người dùng hiện tại không
@@ -310,7 +310,7 @@
           } catch (err) {
           }
         }
-
+        
         // Xử lý sự kiện khi có tin nhắn được đánh dấu đã đọc
         if (e.key === 'messages_marked_read') {
           try {
@@ -338,7 +338,7 @@
           getUnreadMessageCount();
         }
       }, 5000); // Cập nhật mỗi 5 giây
-
+      
       // Cập nhật khi tab được kích hoạt lại
       document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
