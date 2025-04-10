@@ -17,17 +17,17 @@ class LearningMaterial extends Model
     public function getTeacherDataAttribute()
     {
         if (!$this->teacher_id) {
-            // Trả về đối tượng mặc định nếu không có teacher_id
+            // Return default object if no teacher_id
             return (object) [
                 'fullname_t' => 'Giáo viên #' . $this->teacher_id
             ];
         }
 
-        $teachers = TeacherRepos::getTeacherById($this->teacher_id);
-        if (count($teachers) > 0) {
-            return $teachers[0];
+        $teacher = TeacherRepos::getTeacherById($this->teacher_id);
+        if ($teacher) {
+            return $teacher;
         } else {
-            // Trả về đối tượng mặc định nếu không tìm thấy giáo viên
+            // Return default object if teacher not found
             return (object) [
                 'fullname_t' => 'Giáo viên #' . $this->teacher_id
             ];
