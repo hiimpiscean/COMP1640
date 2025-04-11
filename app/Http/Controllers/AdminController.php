@@ -7,10 +7,11 @@ use App\Repository\CustomerRepos;
 use App\Repository\StaffRepos;
 use App\Repository\TeacherRepos;
 use App\Repository\ProductRepos;
-use App\Repository\BlogRepos;  // Thêm BlogRepos
+use App\Repository\BlogRepos;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -21,24 +22,90 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Bạn không có quyền truy cập!');
         }
 
-        // Lấy danh sách admin
-        $admin = AdminRepos::getAllAdmin();
-
-        // Thống kê số lượng tài khoản
-        $totalAdmins = count(AdminRepos::getAllAdmin());
-        $totalCustomers = count(CustomerRepos::getAllCustomer());
-        $totalStaff = count(StaffRepos::getAllStaff());
-        $totalTeachers = count(TeacherRepos::getAllTeacher());
-        $totalBlogs = count(BlogRepos::getAllBlog());  // Thêm Blog
-        $totalUsers = $totalAdmins + $totalCustomers + $totalStaff + $totalTeachers;
-
-        // Kiểm tra số tài khoản đang đăng nhập
-        $loggedInUsers = Session::has('username') ? 1 : 0;
-
         // Lấy tổng số sản phẩm
         $totalProducts = count(ProductRepos::getAllProduct());
 
-        return view('admin.index', compact('admin', 'totalUsers', 'loggedInUsers', 'totalProducts', 'totalBlogs', 'totalTeachers', 'totalCustomers', 'totalStaff'));
+        // Lấy tổng số đăng ký
+        $totalRegistrations = DB::table('course_registrations')->count();
+
+        // Lấy tổng số blog
+        $totalBlogs = count(BlogRepos::getAllBlog());
+
+        // Lấy tổng số giáo viên
+        $totalTeachers = count(TeacherRepos::getAllTeacher());
+
+        // Lấy tổng số học viên
+        $totalCustomers = count(CustomerRepos::getAllCustomer());
+
+        // Lấy thống kê đăng ký theo tháng
+        $registrationStats = DB::table('course_registrations')
+            ->select(DB::raw('EXTRACT(MONTH FROM created_at) as month'), DB::raw('COUNT(*) as total'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        // Lấy thống kê khóa học theo danh mục
+        $coursesByCategory = DB::table('product')
+            ->join('category', 'product.categoryid', '=', 'category.id_cate')
+            ->select('category.name_cate', DB::raw('COUNT(*) as total'))
+            ->groupBy('category.name_cate')
+            ->get();
+
+        // Lấy top 5 khóa học có nhiều đăng ký nhất
+        $topCourses = DB::table('course_registrations')
+            ->join('product', 'course_registrations.course_id', '=', 'product.id_p')
+            ->select('product.name_p', DB::raw('COUNT(*) as registrations'))
+            ->groupBy('product.name_p')
+            ->orderByDesc('registrations')
+            ->limit(5)
+            ->get();
+
+        // Lấy thống kê đăng ký trong tháng này
+        $monthlyRegistrations = DB::table('course_registrations')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->whereRaw('EXTRACT(MONTH FROM created_at) = ?', [date('m')])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Lấy số đăng ký mới trong tháng hiện tại
+        $currentMonthRegistrations = DB::table('course_registrations')
+            ->whereRaw('EXTRACT(MONTH FROM created_at) = ?', [date('m')])
+            ->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [date('Y')])
+            ->count();
+
+        // Lấy số khóa học mới trong tháng hiện tại
+        $currentMonthProducts = 0; // Default to 0 since we can't track creation date
+
+        // Lấy số blog mới trong tháng hiện tại
+        $currentMonthBlogs = 0; // Default to 0 since we can't track creation date
+
+        // Lấy số giáo viên mới trong tháng hiện tại
+        $currentMonthTeachers = 0; // Default to 0 since we can't track creation date
+
+        // Lấy số học viên mới trong tháng hiện tại
+        $currentMonthStudents = 0; // Default to 0 since we can't track creation date
+
+        // Lấy danh sách admin
+        $admin = AdminRepos::getAllAdmin();
+
+        return view('admin.index', [
+            'totalProducts' => $totalProducts,
+            'totalRegistrations' => $totalRegistrations,
+            'totalBlogs' => $totalBlogs,
+            'totalTeachers' => $totalTeachers,
+            'totalCustomers' => $totalCustomers,
+            'registrationStats' => $registrationStats,
+            'coursesByCategory' => $coursesByCategory,
+            'topCourses' => $topCourses,
+            'monthlyRegistrations' => $monthlyRegistrations,
+            'currentMonthRegistrations' => $currentMonthRegistrations,
+            'currentMonthProducts' => $currentMonthProducts,
+            'currentMonthBlogs' => $currentMonthBlogs,
+            'currentMonthTeachers' => $currentMonthTeachers,
+            'currentMonthStudents' => $currentMonthStudents,
+            'admin' => $admin
+        ]);
     }
 
     public function show($id_a)

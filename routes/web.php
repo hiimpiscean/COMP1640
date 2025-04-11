@@ -585,4 +585,11 @@ Route::group(['middleware' => 'manual.auth'], function () {
     ]);
 });
 
+Route::group(['prefix' => 'dashboard', 'middleware' => ['manual.auth']], function () {
+    Route::get('', [
+        'uses' => 'DashboardController@index',
+        'as' => 'dashboard.index'
+    ]);
+});
+
 
