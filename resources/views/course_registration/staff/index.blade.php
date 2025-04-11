@@ -199,7 +199,7 @@
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">List of registrations waiting for approval</h5>
                 <span class="badge bg-light text-dark small rounded-pill">
-                    <i class="fas fa-sort-amount-down"></i> Sorted by newest first
+                    <i class="fas fa-sort-amount-down"></i> 
                 </span>
             </div>
             <div class="card-body">
@@ -309,7 +309,7 @@
             <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">List of approved registrations</h5>
                 <span class="badge bg-light text-dark small rounded-pill">
-                    <i class="fas fa-sort-amount-down"></i> Sorted by newest first
+                    <i class="fas fa-sort-amount-down"></i> 
                 </span>
             </div>
             <div class="card-body">
@@ -375,7 +375,7 @@
             <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">List of rejected registrations</h5>
                 <span class="badge bg-light text-dark small rounded-pill">
-                    <i class="fas fa-sort-amount-down"></i> Sorted by newest first
+                    <i class="fas fa-sort-amount-down"></i> 
                 </span>
             </div>
             <div class="card-body">
