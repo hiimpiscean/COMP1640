@@ -336,7 +336,7 @@ Route::group(['prefix' => 'blog', 'middleware' => ['manual.auth']], function () 
         'storeComment'
     ])->name('blog.comment.store');
 
-    Route::post('{id}/comment/{commentId}/destroy', [
+    Route::delete('{id}/comment/{commentId}/destroy', [
         BlogController::class,
         'destroyComment'
     ])->name('blog.comment.destroy');
