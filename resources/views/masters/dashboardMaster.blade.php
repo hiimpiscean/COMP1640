@@ -25,6 +25,7 @@
 
   <title>ATN e-Learning</title>
 
+  @yield('styles')
 </head>
 
 <body>

@@ -793,4 +793,55 @@ class CourseRegistrationService
             ]);
         }
     }
+
+    /**
+     * Search pending registrations by student name or course name
+     *
+     * @param string $searchTerm
+     * @return array
+     */
+    public function searchPendingRegistrations($searchTerm)
+    {
+        try {
+            // Get all registrations
+            $allRegistrations = $this->getAllPendingRegistrations();
+            
+            // If no search term, return all registrations
+            if (empty($searchTerm)) {
+                return $allRegistrations;
+            }
+            
+            // Filter registrations by student name or course name
+            $searchTerm = strtolower(trim($searchTerm));
+            
+            $filteredRegistrations = array_filter($allRegistrations, function($registration) use ($searchTerm) {
+                // Search in student name
+                if (isset($registration->student->fullname_c) && 
+                    str_contains(strtolower($registration->student->fullname_c), $searchTerm)) {
+                    return true;
+                }
+                
+                // Search in course name
+                if (isset($registration->course->name_p) && 
+                    str_contains(strtolower($registration->course->name_p), $searchTerm)) {
+                    return true;
+                }
+                
+                // Search in student email
+                if (isset($registration->student->email) && 
+                    str_contains(strtolower($registration->student->email), $searchTerm)) {
+                    return true;
+                }
+                
+                return false;
+            });
+            
+            return array_values($filteredRegistrations); // Reset array keys
+        } catch (\Exception $e) {
+            Log::error('Failed to search course registrations: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return [];
+        }
+    }
 }

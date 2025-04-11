@@ -150,7 +150,7 @@ class CourseRegistrationController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function staffIndex()
+    public function staffIndex(Request $request)
     {
         try {
             // Kiểm tra quyền nhân viên
@@ -159,10 +159,17 @@ class CourseRegistrationController extends Controller
                     ->with('error', 'You do not have permission to access this page.');
             }
             
-            // Lấy danh sách đăng ký
-            $registrations = $this->courseRegistrationService->getAllPendingRegistrations();
+            // Lấy search term từ request
+            $searchTerm = $request->get('search', '');
             
-            return view('course_registration.staff.index', compact('registrations'));
+            // Lấy danh sách đăng ký (filtered hoặc all)
+            if (!empty($searchTerm)) {
+                $registrations = $this->courseRegistrationService->searchPendingRegistrations($searchTerm);
+            } else {
+                $registrations = $this->courseRegistrationService->getAllPendingRegistrations();
+            }
+            
+            return view('course_registration.staff.index', compact('registrations', 'searchTerm'));
         } catch (\Exception $e) {
             Log::error('Error when displaying the registration list: ' . $e->getMessage());
             return redirect()->back()
