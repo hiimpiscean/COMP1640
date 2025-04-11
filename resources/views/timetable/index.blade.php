@@ -67,8 +67,8 @@
       $teacherName = 'N/A';
       if ($entry->teacher_id) {
       $teacher = App\Repository\TeacherRepos::getTeacherById($entry->teacher_id);
-      if (!empty($teacher) && is_array($teacher) && count($teacher) > 0) {
-      $teacherName = $teacher[0]->fullname_t ?? 'N/A';
+      if ($teacher) {
+      $teacherName = $teacher->fullname_t ?? 'N/A';
       }
       }
   @endphp
