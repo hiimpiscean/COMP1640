@@ -1,7 +1,7 @@
 ## ATN E-Learning
-This is a fork from hiimpiscean/atntoycars for experimental purposes.
----
 
+---
+This is a fork from [hiimpiscean/atn_toycars](https://github.com/hiimpiscean/atn_toycars) for experimental purposes.
 ```markdown
 # 📘 E-Learning Platform
 
