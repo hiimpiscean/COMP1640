@@ -2,38 +2,43 @@
 <div class="container">
   <div class="row justify-content-center">
     @foreach($product as $p)
-      <!-- Course Item -->
-      <div class="col-lg-4 col-md-6 col-sm-12 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
-        <div class="course-item shadow-sm">
-          <div class="course-image">
-            <a href="{{ route('ui.details', $p->id_p) }}">
-              <img src="{{ asset('images/handicraf/' . $p->image_p) }}" alt="{{ $p->name_p }}" class="img-fluid">
-            </a>
-            <div class="course-buttons">
-              <a href="{{ route('ui.details', $p->id_p) }}" class="btn btn-primary">Read More</a>
-              <a href="{{ route('auth.ask') }}" class="btn btn-outline-primary">Join Now</a>
-            </div>
-          </div>
-          <div class="course-content text-center p-3">
-            <h3 class="price">VND {{ number_format($p->price_p, 0, ',', '.') }}</h3>
-            <div class="rating mb-2">
-              <i class="fa fa-star text-warning"></i>
-              <i class="fa fa-star text-warning"></i>
-              <i class="fa fa-star text-warning"></i>
-              <i class="fa fa-star text-warning"></i>
-              <i class="fa fa-star text-warning"></i>
-              <small>(123)</small>
-            </div>
-            <h5 class="course-title"><a href="{{ route('ui.details', $p->id_p) }}">{{ $p->name_p }}</a></h5>
-          </div>
-          <div class="course-meta d-flex border-top">
-            <small class="flex-fill text-center border-end py-2"><i class="fa fa-user-tie text-primary me-2"></i>John Doe</small>
-            <small class="flex-fill text-center border-end py-2"><i class="fa fa-clock text-primary me-2"></i>1.49 Hrs</small>
-            <small class="flex-fill text-center py-2"><i class="fa fa-user text-primary me-2"></i>30 Students</small>
-          </div>
+    <!-- Course Item -->
+    <div class="col-lg-4 col-md-6 col-sm-12 mb-4" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
+      <div class="course-item shadow-sm">
+      <div class="course-image">
+        <a href="{{ route('ui.details', $p->id_p) }}">
+        <img src="{{ asset('images/handicraf/' . $p->image_p) }}" alt="{{ $p->name_p }}" class="img-fluid">
+        </a>
+        <div class="course-buttons">
+        <a href="{{ route('ui.details', $p->id_p) }}" class="btn btn-primary">Read More</a>
+        <!-- Ẩn nút Join Now nếu người dùng đã đăng nhập -->
+        @if(!session('username'))
+      <a href="{{ route('auth.ask') }}" class="btn btn-outline-primary">Join Now</a>
+    @endif
         </div>
       </div>
-    @endforeach
+      <div class="course-content text-center p-3">
+        <h3 class="price">VND {{ number_format($p->price_p, 0, ',', '.') }}</h3>
+        <div class="rating mb-2">
+        <i class="fa fa-star text-warning"></i>
+        <i class="fa fa-star text-warning"></i>
+        <i class="fa fa-star text-warning"></i>
+        <i class="fa fa-star text-warning"></i>
+        <i class="fa fa-star text-warning"></i>
+        <small>(123)</small>
+        </div>
+        <h5 class="course-title"><a href="{{ route('ui.details', $p->id_p) }}">{{ $p->name_p }}</a></h5>
+      </div>
+      <div class="course-meta d-flex border-top">
+        <small class="flex-fill text-center border-end py-2"><i class="fa fa-user-tie text-primary me-2"></i>John
+        Doe</small>
+        <small class="flex-fill text-center border-end py-2"><i class="fa fa-clock text-primary me-2"></i>1.49
+        Hrs</small>
+        <small class="flex-fill text-center py-2"><i class="fa fa-user text-primary me-2"></i>30 Students</small>
+      </div>
+      </div>
+    </div>
+  @endforeach
   </div>
 </div>
 <!-- Courses End -->
@@ -78,7 +83,8 @@
 
   .course-item:hover .course-image img {
     transform: scale(1.05);
-    filter: brightness(0.7); /* Làm tối ảnh khi hover để nổi bật nút */
+    filter: brightness(0.7);
+    /* Làm tối ảnh khi hover để nổi bật nút */
   }
 
   /* Nút hiển thị trên hình ảnh */
@@ -90,7 +96,8 @@
     display: flex;
     justify-content: center;
     gap: 12px;
-    width: 80%; /* Giữ nút gọn gàng trong khung */
+    width: 80%;
+    /* Giữ nút gọn gàng trong khung */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;

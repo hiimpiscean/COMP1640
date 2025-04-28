@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Repository\TeacherRepos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
 
 class TeacherController extends Controller
 {
-
     public function index()
     {
         $teacher = TeacherRepos::getAllTeacher();
@@ -28,9 +29,11 @@ class TeacherController extends Controller
     public function store(Request $request)
     {
         $validated = $this->formValidate($request)->validate();
-        $validated['password'] = $request->password;
 
-        TeacherRepos::insert((object)$validated);
+        // Mã hóa mật khẩu trước khi lưu
+        $validated['password'] = Hash::make($request->password);
+
+        TeacherRepos::insert((object) $validated);
         return redirect()->route('teacher.index')->with('msg', 'Thêm giáo viên thành công!');
     }
 
@@ -53,24 +56,28 @@ class TeacherController extends Controller
 
         // Nếu nhập mật khẩu mới, kiểm tra mật khẩu cũ
         if ($request->filled('password')) {
-            if (trim($request->old_password) !== trim($teacher->password)) {
+            if (!Hash::check($request->old_password, $teacher->password)) {
                 return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
             }
+
 
             if ($request->password !== $request->password_confirmation) {
                 return redirect()->back()->with('error', 'Mật khẩu xác nhận không khớp!');
             }
+
+            // Mã hóa mật khẩu mới
+            $validated['password'] = Hash::make($request->password);
+        } else {
+            // Giữ mật khẩu cũ nếu không thay đổi
+            $validated['password'] = $teacher->password;
         }
 
         // Validate dữ liệu nhập vào
         $validated = $this->formValidate($request)->validate();
         $validated['id_t'] = $id;
 
-        // Nếu nhập mật khẩu mới thì cập nhật, ngược lại giữ nguyên mật khẩu cũ
-        $validated['password'] = $request->filled('password') ? $request->password : $teacher->password;
-
-        // Gọi repository để cập nhật
-        TeacherRepos::update((object)$validated);
+        // Cập nhật thông tin giáo viên
+        TeacherRepos::update((object) $validated);
 
         return redirect()->route('teacher.index')->with('msg', 'Cập nhật thành công!');
     }
@@ -99,8 +106,8 @@ class TeacherController extends Controller
     {
         $rules = [
             'fullname_t' => 'required|min:5',
-            'phone_t'    => 'required|digits:10|starts_with:0',
-            'email'      => 'required|email',
+            'phone_t' => 'required|digits:10|starts_with:0',
+            'email' => 'required|email',
         ];
 
         if ($request->filled('password')) {
@@ -112,14 +119,14 @@ class TeacherController extends Controller
 
         $messages = [
             'fullname_t.required' => 'Vui lòng nhập Họ và Tên',
-            'fullname_t.min'      => 'Họ và tên phải có ít nhất 5 ký tự',
-            'phone_t.required'    => 'Vui lòng nhập số điện thoại',
-            'phone_t.digits'      => 'Số điện thoại phải có đúng 10 số',
+            'fullname_t.min' => 'Họ và tên phải có ít nhất 5 ký tự',
+            'phone_t.required' => 'Vui lòng nhập số điện thoại',
+            'phone_t.digits' => 'Số điện thoại phải có đúng 10 số',
             'phone_t.starts_with' => 'Số điện thoại phải bắt đầu bằng 0',
-            'email.required'      => 'Vui lòng nhập Email',
-            'email.email'         => 'Email không hợp lệ',
+            'email.required' => 'Vui lòng nhập Email',
+            'email.email' => 'Email không hợp lệ',
             'old_password.required' => 'Vui lòng nhập mật khẩu cũ để đổi mật khẩu',
-            'password.min'    => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
             'password.confirmed' => 'Mật khẩu xác nhận không khớp',
         ];
 

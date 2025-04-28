@@ -1,64 +1,154 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+## ATN E-Learning
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
+This is a fork from [hiimpiscean/atn_toycars](https://github.com/hiimpiscean/atn_toycars) for experimental purposes.
+```markdown
+# 📘 E-Learning Platform
 
-## About Laravel
+A robust e-learning platform built with Laravel, designed to support digital education workflows for students, teachers, and staff. The system provides core functionalities such as course management, learning materials, timetabling, real-time chat, messaging, and more — making it suitable for schools, colleges, and training institutions.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🧑‍🏫 Teacher Features
+- Upload learning materials for courses
+- View teaching timetable
+- Communicate with students and staff via real-time chat and internal messaging
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🧑‍🎓 Student Features
+- View and download approved learning materials
+- Access personalized timetable
+- Smart search for materials and messages
+- Receive real-time message notifications
+- Register for courses (manual process)
 
-## Learning Laravel
+### 🧑‍💼 Staff/Admin Features
+- Review and approve/reject uploaded materials
+- Manage class and teacher timetables
+- Oversee course registrations
+- Monitor activity and analytics
+- Manage user roles and permissions
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 💬 Communication & Notifications
+- **Real-time chat** between users (WebSocket or polling-based)
+- Internal messaging system with notifications
+- PostgreSQL-backed alert system for new messages and events
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠 Tech Stack
 
-## Laravel Sponsors
+- **Framework**: Laravel 10+
+- **Database**: PostgreSQL
+- **Frontend**: Blade / Tailwind CSS
+- **Authentication**: Laravel Breeze
+- **File Handling**: Laravel Filesystem (local or cloud storage)
+- **Real-time**: Laravel Echo
+- **VCS**: GitHub
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## 📁 Project Structure (Simplified)
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── LearningMaterialController.php
+│   │   ├── TimetableController.php
+│   │   ├── CourseController.php
+│   │   ├── ChatController.php
+│   │   └── ...
+├── Models/
+│   ├── User.php
+│   ├── Teacher.php
+│   ├── Student.php
+│   ├── Message.php
+│   ├── CourseRegistration.php
+│   └── ...
+resources/
+├── views/
+routes/
+├── web.php
+public/
+├── uploads/
+```
 
-## Contributing
+## ⚙️ Setup Instructions
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **Clone the repository**
 
-## Code of Conduct
+```bash
+git clone https://github.com/hiimpiscean/COMP1640.git
+cd COMP1640
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. **Install PHP and JavaScript dependencies**
 
-## Security Vulnerabilities
+```bash
+composer install
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
 
-## License
+3. **Set up environment**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4. **Configure `.env`**
+
+Update your environment variables for DB connection, mail, chat, and storage.
+
+5. **Run migrations (optional)**  
+> _Skip if you're managing the database schema manually_
+
+```bash
+php artisan migrate
+```
+
+6. **Serve the application**
+
+```bash
+php artisan serve
+```
+
+## 🔐 Roles and Permissions
+
+| Role    | Capabilities |
+|---------|--------------|
+| **Student** | Download materials, view timetable, search, messaging/chat |
+| **Teacher** | Upload materials, view schedule, messaging/chat |
+| **Staff**   | Approve materials, manage timetable, manage users |
+| **Admin**   | Full system access, user management, analytics |
+
+## 📊 Feature Status
+
+- ✅ Smart search for learning materials and messages  
+- ✅ Dashboard widgets for activity overview  
+- ✅ Real-time chat  
+- ⏳ Course grading system  
+- ⏳ Quiz and test functionality  
+- ⏳ Analytics for student progress and course engagement  
+
+## 📸 Screenshots
+
+### 🏠 Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### 📚 Learning Materials Page
+![Learning Materials](screenshots/learning-materials.png)
+
+### 🕒 Timetable View
+![Timetable](screenshots/timetable.png)
+
+### 💬 Real-Time Chat
+![Chat](screenshots/chat.png)
+
+### 🔔 Notifications
+![Notifications](screenshots/notifications.png)
+
+## 🧾 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+> Made with ❤️, from Piscean and fellow contributors: ThangNV, HaiDH, QuanNM, DucMT.
+

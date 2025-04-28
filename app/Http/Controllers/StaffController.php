@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\ClassAssigned;
 use App\Notifications\TeacherAssignment;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash; // Thêm thư viện Hash
 
 class StaffController extends Controller
 {
@@ -88,9 +89,11 @@ class StaffController extends Controller
     public function store(Request $request)
     {
         $validated = $this->formValidate($request)->validate();
-        $validated['password'] = $request->password;
 
-        StaffRepos::insert((object)$validated);
+        // Mã hóa mật khẩu trước khi lưu
+        $validated['password'] = Hash::make($request->password);
+
+        StaffRepos::insert((object) $validated);
         return redirect()->route('staff.index')->with('msg', 'Thêm nhân viên thành công!');
     }
 
@@ -111,20 +114,34 @@ class StaffController extends Controller
             return redirect()->route('staff.index')->with('error', 'Nhân viên không tồn tại!');
         }
 
+        // Validate form data
+        $validated = $this->formValidate($request, $id_s)->validate();
+        
+        // Xử lý mật khẩu
         if ($request->filled('password')) {
-            if ($request->old_password !== $staff->password) {
+            if (!Hash::check($request->old_password, $staff->password)) {
                 return redirect()->back()->with('error', 'Mật khẩu cũ không đúng!');
             }
             if ($request->password !== $request->password_confirmation) {
                 return redirect()->back()->with('error', 'Mật khẩu xác nhận không khớp!');
             }
+
+            // Mã hóa mật khẩu mới
+            $validated['password'] = Hash::make($request->password);
+        } else {
+            // Giữ nguyên mật khẩu cũ nếu không thay đổi
+            $validated['password'] = $staff->password;
         }
 
-        $validated = $this->formValidate($request)->validate();
+        // Thêm id_s vào validated data
         $validated['id_s'] = $id_s;
-        $validated['password'] = $request->filled('password') ?  $request->password : $staff->password;
+        
+        // Thêm username vào validated data nếu không có
+        if (!isset($validated['username'])) {
+            $validated['username'] = $staff->username;
+        }
 
-        StaffRepos::update((object)$validated);
+        StaffRepos::update((object) $validated);
         return redirect()->route('staff.index')->with('msg', 'Cập nhật thành công!');
     }
 
@@ -151,10 +168,10 @@ class StaffController extends Controller
     private function formValidate($request, $id_s = null)
     {
         $rules = [
-            'username'   => 'required',
+            'username' => 'required',
             'fullname_s' => 'required|min:5',
-            'phone_s'    => 'required|digits:10|starts_with:0',
-            'email'      => 'required|email',
+            'phone_s' => 'required|digits:10|starts_with:0',
+            'email' => 'required|email',
         ];
 
         if ($request->filled('password')) {
@@ -166,14 +183,14 @@ class StaffController extends Controller
 
         $messages = [
             'fullname_s.required' => 'Vui lòng nhập Họ và Tên',
-            'fullname_s.min'      => 'Họ và tên phải có ít nhất 5 ký tự',
-            'phone_s.required'    => 'Vui lòng nhập số điện thoại',
-            'phone_s.digits'      => 'Số điện thoại phải có đúng 10 số',
+            'fullname_s.min' => 'Họ và tên phải có ít nhất 5 ký tự',
+            'phone_s.required' => 'Vui lòng nhập số điện thoại',
+            'phone_s.digits' => 'Số điện thoại phải có đúng 10 số',
             'phone_s.starts_with' => 'Số điện thoại phải bắt đầu bằng 0',
-            'email.required'      => 'Vui lòng nhập Email',
-            'email.email'         => 'Email không hợp lệ',
+            'email.required' => 'Vui lòng nhập Email',
+            'email.email' => 'Email không hợp lệ',
             'old_password.required' => 'Vui lòng nhập mật khẩu cũ để đổi mật khẩu',
-            'password.min'    => 'Mật khẩu phải có ít nhất 6 ký tự',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự',
             'password.confirmed' => 'Mật khẩu xác nhận không khớp',
         ];
 

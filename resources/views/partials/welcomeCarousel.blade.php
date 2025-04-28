@@ -15,7 +15,7 @@
     <div class="carousel-item active welcome-carousel-image1">
       <div class="container">
         <div class="carousel-caption">
-          <h1>Welcome to ATN Shop</h1>
+          <h1>Welcome to ATN e-Learning</h1>
           <p></p>
           <p></p>
         </div>

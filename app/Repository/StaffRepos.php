@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\DB;
 
 class StaffRepos
 {
-    public static function getAllStaff() {
+    public static function getAllStaff()
+    {
         $sql = "select s.* ";
         $sql .= "from staff as s ";
         $sql .= "order by s.username ";
@@ -14,7 +15,8 @@ class StaffRepos
         return DB::select($sql);
     }
 
-    public static function getStaffById($id_s){
+    public static function getStaffById($id_s)
+    {
         $sql = "select s.* ";
         $sql .= "from staff as s ";
         $sql .= "where s.id_s = ? ";
@@ -22,7 +24,8 @@ class StaffRepos
         return DB::select($sql, [$id_s]);
     }
 
-    public static function insert($staff){
+    public static function insert($staff)
+    {
         $sql = "insert into staff ";
         $sql .= "(username, fullname_s, phone_s, email, password) ";
         $sql .= "values(?, ?, ?, ?, ?) ";
@@ -32,11 +35,12 @@ class StaffRepos
             $staff->fullname_s,
             $staff->phone_s,
             $staff->email,
-            $staff->password
+            $staff->password // Sử dụng mật khẩu đã được hash từ StaffController
         ]);
     }
 
-    public static function update($staff){
+    public static function update($staff)
+    {
         $sql = "update staff ";
         $sql .= "set username = ?, fullname_s = ?, phone_s = ?, email = ?, password = ? ";
         $sql .= "where id_s = ? ";
@@ -51,9 +55,10 @@ class StaffRepos
         ]);
     }
 
-    public static function delete($id_s){
+    public static function delete($id_s)
+    {
         $sql = "delete from staff ";
-        $sql .= "where id_s = ?     ";
+        $sql .= "where id_s = ? ";
 
         return DB::delete($sql, [$id_s]);
     }

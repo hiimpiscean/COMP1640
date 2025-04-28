@@ -48,7 +48,7 @@ class HomepageController extends Controller
     public function create()
     {
         return view('ui.new', [
-            'customer' => (object)[
+            'customer' => (object) [
                 'id_c' => '',
                 'fullname_c' => '',
                 'dob' => '',
@@ -77,7 +77,7 @@ class HomepageController extends Controller
     {
         $this->formValidate($request)->validate();
 
-        $customer = (object)[
+        $customer = (object) [
             'fullname_c' => $request->input('fullname_c'),
             'dob' => $request->input('dob'),
             'gender' => $request->input('gender'),

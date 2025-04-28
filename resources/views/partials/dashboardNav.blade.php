@@ -1,10 +1,19 @@
 <nav class="sidebar">
   <div class="sidebar-header">
-    <h3>ATN portal</h3>
+    <div>
+      <li class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
+        <a href="{{ route('admin.index') }}">ATN portal</a>
+    </div>
   </div>
   <ul class="sidebar-menu">
     <li>
       <a href="{{route('ui.index')}}">Home Page</a>
+    </li>
+    <li>
+      <a href="{{route('learning_materials.pending')}}">Learning Materials</a>
+    </li>
+    <li class="{{ request()->routeIs('staff.registrations') ? 'active' : '' }}">
+      <a href="{{ route('staff.registrations') }}">Course Registrations</a>
     </li>
     <li class="{{ request()->routeIs('product.*') ? 'active' : '' }}">
       <a href="#">Courses</a>
@@ -17,14 +26,7 @@
         </li>
       </ul>
     </li>
-    <li class="{{ request()->routeIs('admin.*') ? 'active' : '' }}">
-      <a href="#">Admin</a>
-      <ul class="submenu">
-        <li class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">
-          <a href="{{ route('admin.index') }}">View All</a>
-        </li>
-      </ul>
-    </li>
+
     <li class="{{ request()->routeIs('category.*') ? 'active' : '' }}">
       <a href="#">Category</a>
       <ul class="submenu">
@@ -58,17 +60,20 @@
         </li>
       </ul>
     </li>
+
+    @if(Session::get('role') === 'admin')
     <li class="{{ request()->routeIs('staff.*') ? 'active' : '' }}">
       <a href="#">Staff</a>
       <ul class="submenu">
-        <li class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
-          <a href="{{ route('staff.index') }}">View All</a>
-        </li>
-        <li class="{{ request()->routeIs('staff.create') ? 'active' : '' }}">
-          <a href="{{route('staff.create')}}">Create Staff</a>
-        </li>
+      <li class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
+        <a href="{{ route('staff.index') }}">View All</a>
+      </li>
+      <li class="{{ request()->routeIs('staff.create') ? 'active' : '' }}">
+        <a href="{{route('staff.create')}}">Create Staff</a>
+      </li>
       </ul>
     </li>
+  @endif
 
   </ul>
   <div class="sidebar-footer">
@@ -90,75 +95,111 @@
     left: 0;
     width: 250px;
     height: 100%;
-    background: #343a40;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
     padding: 20px;
     overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
   }
 
   .sidebar-header {
     margin-bottom: 30px;
     color: #fff;
     text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .sidebar-menu, .submenu {
+  .sidebar-header li {
+    list-style: none;
+  }
+
+  .sidebar-header a {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+  }
+
+  .sidebar-menu,
+  .submenu {
     list-style: none;
     padding: 0;
     margin: 0;
   }
+
   .sidebar-menu li {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
-  .sidebar-menu > li > a {
-    color: #adb5bd;
+
+  .sidebar-menu>li>a {
+    color: #ecf0f1;
     display: block;
     text-decoration: none;
-    padding: 10px;
-    border-radius: 5px;
-    font-weight: bold;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
   }
-  .sidebar-menu > li > a:hover, .submenu li a:hover {
-    background: #495057;
+
+  .sidebar-menu>li>a:hover,
+  .submenu li a:hover {
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
   }
 
   .submenu {
-    margin-left: 15px;
+    margin-left: 20px;
     margin-top: 5px;
   }
+
   .submenu li a {
-    font-size: 14px;
-    color: #ced4da;
+    font-size: 0.9rem;
+    color: #bdc3c7;
     display: block;
     text-decoration: none;
-    padding: 8px 10px;
-    border-radius: 5px;
+    padding: 8px 15px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
   }
 
-  /* Hiệu ứng khi menu đang được chọn */
-  .sidebar-menu > li.active > a,
+  .sidebar-menu>li.active>a,
   .submenu li.active a {
-    background: #17a2b8;
+    background: rgba(255, 255, 255, 0.2);
     color: #fff;
   }
 
   .sidebar-footer {
     margin-top: auto;
-    border-top: 1px solid #495057;
-    padding-top: 20px;
-    color: #adb5bd;
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
   }
+
   .sidebar-footer a {
-    color: #adb5bd;
+    color: #ecf0f1;
     display: block;
     text-decoration: none;
-    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
   }
+
   .sidebar-footer a:hover {
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
+  }
+
+  .sidebar-footer i {
+    margin-right: 10px;
   }
 
   body {
     margin-left: 250px;
+    min-height: 100vh;
   }
 </style>
