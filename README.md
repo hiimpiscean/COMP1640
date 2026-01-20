@@ -1,7 +1,7 @@
 ## ATN E-Learning
 
 ---
-This is a fork from [hiimpiscean/atn_toycars](https://github.com/hiimpiscean/atn_toycars) for experimental purposes.
+This is an E-Learning platform made for experimental purposes.
 ```markdown
 # 📘 E-Learning Platform
 
@@ -74,7 +74,7 @@ public/
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/hiimpiscean/COMP1640.git
+git clone [git_url]
 cd COMP1640
 ```
 
@@ -150,5 +150,5 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Made with ❤️, from Piscean and fellow contributors: ThangNV, HaiDH, QuanNM, DucMT.
+> Made with ❤️, from HN and fellow contributors: ThangNV, HaiDH, QuanNM, DucMT.
 
